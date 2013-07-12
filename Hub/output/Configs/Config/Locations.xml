@@ -1,7 +1,0 @@
-﻿<Location Name="Home">
-  <Location Name="Mobile"/>
-  <Location Name="Outdoors"/>
-  <Location Name="Indoors">
-    <Location Name="Living room"/>
-  </Location>    
-</Location>
