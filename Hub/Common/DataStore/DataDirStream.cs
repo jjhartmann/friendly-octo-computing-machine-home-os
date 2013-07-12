@@ -108,7 +108,7 @@ namespace HomeOS.Hub.Common.DataStore
             // check if the entry is present, so that the old file can be deleted
             IValue valueDataFilePathOld = base.Get(key);
 
-            ts = StreamFactory.Now();
+            ts = StreamFactory.HighResTick();
             string dataFilePath = targetDir + "/" + Convert.ToString(ts) + ".dat";
             StrValue strDataFilePathValue = new StrValue(dataFilePath);
             

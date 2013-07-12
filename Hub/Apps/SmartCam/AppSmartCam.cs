@@ -484,9 +484,9 @@ namespace HomeOS.Hub.Apps.SmartCam
             foreach (string filePath in fileArray)
             {
                 int len = filePath.Length;
-                string substr = "\\" + VIDEO_SUB_DIR_NAME;
+                string substr = /*"\\" +*/ VIDEO_SUB_DIR_NAME;
                 int postVideosPosition = filePath.LastIndexOf(substr) + substr.Length + 1;
-                fileArray[count++] = this.videosBaseUrl + "/" + filePath.Substring(postVideosPosition, len - postVideosPosition);
+                fileArray[count++] = /*this.videosBaseUrl+*/ substr +  "/" + filePath.Substring(postVideosPosition, len - postVideosPosition);
                 fileArray[count - 1] = fileArray[count - 1].Replace("\\", "/");
 
                 if (count == countMax)

@@ -174,14 +174,28 @@ function GetRecordedClips() {
     new PlatformServiceHelper().MakeServiceCall("webapp/GetRecordedClips", '{"cameraFriendlyName": "' + g_currentCamera + '","countMax": "' + g_maxClipsToDisplay + '"}', GetRecordedClipsCallback);
 }
 
+function isRemoteRequest() {
+    if (window.location.href.indexOf("cloudapp") != "-1") {
+        return true;
+    }
+
+    return false;
+}
+
 
 function GetRecordedClipsCallback(context, result) {
  
+    var remoteRequest = isRemoteRequest();
+
     $("#videoClips").html("");
 
     if (result[0] == "") {
         for (i = 1; i < result.length; i++) {
-            $("#videoClips").append('<div><video class="snapshot_image col" id="video1" src="' + result[i] + '"Assets/TestVideo.mp4" controls="controls" /></div>');
+
+            if (remoteRequest == false)
+                $("#videoClips").append('<div><video class="snapshot_image col" id="video1" src="' + result[i] + '" controls="controls" /></div>');
+            else
+               $("#videoClips").append('<div><video class="snapshot_image col" id="video1" src="' + result[i] + '" controls="controls" preload="none"  /></div>');
         }
     }
     else {

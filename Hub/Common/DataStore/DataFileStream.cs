@@ -621,7 +621,7 @@ namespace HomeOS.Hub.Common.DataStore
             {
                 op = (byte)WriteOp.UpdateOp;
             }
-            long ts = StreamFactory.Now();
+            long ts = StreamFactory.NowUtc();
             DataBlock<KeyType, ValType> db = new DataBlock<KeyType, ValType>();
             db.op = op;
             db.timestamp = ts;

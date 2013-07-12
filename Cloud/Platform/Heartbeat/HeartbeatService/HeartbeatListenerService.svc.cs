@@ -71,19 +71,43 @@ namespace HomeOS.Cloud.Platform.Heartbeat
         public bool CanClaimHomeId(ClaimHomeIdInfo chi)
         {
             bool canClaim = false;
+            bool selfclaimed = false;
+            bool homeIdPresent = false;
+            bool add = false;
             HomeIdentityTable homeIdTable = Helper.GetHomeIdentityTable();
             if (null != homeIdTable)
             {
-                canClaim = !homeIdTable.IsHomeIdentityPresent(chi.HardwareId, chi.HomeId);
+                selfclaimed = homeIdTable.IsHomeIdHardwareIdPairPresent(chi.HardwareId, chi.HomeId);
             }
 
-            if (canClaim)
+            if (selfclaimed)
+            {
+                canClaim = true;
+            }
+            else
+            {
+                homeIdPresent = homeIdTable.IsHomeIdPresent(chi.HomeId);
+
+                if (homeIdPresent)
+                {
+                    // there is a different device that has claimed this id already
+                    canClaim = false;
+                }
+                else
+                {
+                    // either no device has used this homeid or same device wants to use a different
+                    // homeid, both should be allowed
+                    canClaim = true;
+                    add = true;
+                }
+            }
+
+            if (add)
             {
                 homeIdTable.AddHomeIdentity(chi.HardwareId, chi.HomeId);
             }
 
             return canClaim;            
         }
-
     }
 }

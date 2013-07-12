@@ -60,7 +60,7 @@ namespace HomeOS.Cloud.Platform.Heartbeat
             this.homeIdentityTable.CreateIfNotExists();
         }
 
-        public bool IsHomeIdentityPresent(string hardwareId, string homeId)
+        public bool IsHomeIdHardwareIdPairPresent(string hardwareId, string homeId)
         {
             bool IsPresent = false;
             try
@@ -74,6 +74,44 @@ namespace HomeOS.Cloud.Platform.Heartbeat
                 IsPresent = this.homeIdentityTable.ExecuteQuery(rangeQuery).Count<HomeIdentityEntity>() != 0;
             }
             catch(Exception e) 
+            {
+                Helper.Trace().WriteLine(String.Format("Querying from Azure Table failed with exception:{0}\n InnerException:{1}",
+                                                        e.Message, null != e.InnerException ? e.InnerException.ToString() : null));
+            }
+
+            return IsPresent;
+        }
+
+        public bool IsHardwareIdPresent(string hardwareId)
+        {
+            bool IsPresent = false;
+            try
+            {
+                string FilterCondition = TableQuery.GenerateFilterCondition(HomeIdentityEntity.partitionKeyPropertyName, QueryComparisons.Equal, hardwareId);
+                // Create the table query.
+                TableQuery<HomeIdentityEntity> rangeQuery = new TableQuery<HomeIdentityEntity>().Where(FilterCondition);
+                IsPresent = this.homeIdentityTable.ExecuteQuery(rangeQuery).Count<HomeIdentityEntity>() != 0;
+            }
+            catch (Exception e)
+            {
+                Helper.Trace().WriteLine(String.Format("Querying from Azure Table failed with exception:{0}\n InnerException:{1}",
+                                                        e.Message, null != e.InnerException ? e.InnerException.ToString() : null));
+            }
+
+            return IsPresent;
+        }
+
+        public bool IsHomeIdPresent(string homeId)
+        {
+            bool IsPresent = false;
+            try
+            {
+                string FilterCondition = TableQuery.GenerateFilterCondition(HomeIdentityEntity.rowKeyPropertyName, QueryComparisons.Equal, homeId);
+                // Create the table query.
+                TableQuery<HomeIdentityEntity> rangeQuery = new TableQuery<HomeIdentityEntity>().Where(FilterCondition);
+                IsPresent = this.homeIdentityTable.ExecuteQuery(rangeQuery).Count<HomeIdentityEntity>() != 0;
+            }
+            catch (Exception e)
             {
                 Helper.Trace().WriteLine(String.Format("Querying from Azure Table failed with exception:{0}\n InnerException:{1}",
                                                         e.Message, null != e.InnerException ? e.InnerException.ToString() : null));

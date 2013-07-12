@@ -86,9 +86,15 @@ namespace HomeOS.Hub.Common.DataStore
             }
         }
 
-        public static long Now()
+        public static long NowUtc()
         {
-             return Stopwatch.GetTimestamp(); 
+            return DateTime.UtcNow.Ticks;
+        }
+
+        public static long HighResTick()
+        {
+            return Stopwatch.GetTimestamp(); 
+            
         }
     }
 }
