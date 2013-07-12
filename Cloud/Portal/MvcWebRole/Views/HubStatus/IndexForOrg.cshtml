@@ -1,0 +1,60 @@
+﻿@model IEnumerable<HomeOS.Cloud.Portal.MvcWebRole.Models.HubStatusEx>
+<script type="text/javascript" src="/Scripts/jquery-1.7.1.min.js"></script>
+
+@{
+    ViewBag.Title = "HomeLab Hubs Deployed";
+}
+
+<h2>HomeLab Hubs Deployed</h2>
+
+<select id="OrgSelection" onchange="OnOrgSelection()">
+    @foreach (var item in Model)
+  {
+      for (int i=0; i < item.OrgList.Count; ++i)
+      {
+        <option>@(item.OrgList[i].OrgID)</option>
+      }
+      break;
+  }
+</select>
+<script type="text/javascript">
+    function OnOrgSelection() {
+        var org = $("#OrgSelection :selected").text();
+        // $.get("HubStatus/Organization?orgId=" + org);
+        location.replace(location.href + "/HubStatus/Organization?orgId=" + org);
+    }
+</script>
+>
+
+<table>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.HomeID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Status)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.LastHeartbeatReported)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.HomeID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.LastHeartbeatReported)
+            </td>
+            <td>
+                @Html.ActionLink("Details", "Details", new { PartitionKey = item.PartitionKey, RowKey=item.RowKey })
+            </td>
+        </tr>
+}
+
+</table>

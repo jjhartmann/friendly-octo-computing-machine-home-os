@@ -1,0 +1,63 @@
+﻿<script type="text/javascript" src="homeos-1.1.js"></script>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+     <title>Add Zwave</title>
+     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <script type="text/javascript" src="jquery-1.7.1.js"></script>
+  <script type="text/javascript" src="common.js"></script>
+   <link rel="stylesheet" media="all" type="text/css" href="Styles/HomeOSMasterStyleSheet.css" />
+ 
+
+    <script>
+        var DEVICEID = "";
+       
+
+        function StartPair() {
+            //Call the pair function
+            new PlatformServiceHelper().MakeServiceCall("webapp/AddZwaveWeb", "", AddZwaveWebCallback);
+        }
+
+        function AddZwaveWebCallback(context, result) {
+
+            UpdateDebugInfo(this, "Call returned");
+            if (result[0] == "") {
+                DEVICEID = result[1];
+                GoToFinalSetup(DEVICEID);
+            }
+
+            else {
+                ShowDebugInfo();
+                UpdateDebugInfo(this, result[0] + ", Please try again");
+            }
+        }
+
+
+    </script>
+</head>
+<body>
+
+
+    <div class="page">
+            <div class="row">
+                 <div class="homeID_title col"><a href="index.html">Dashboard</a> | <a href="AddDeviceUnconfiguredDevicesForScout.html">Add Devices </a> | Add Zwave </div>
+                 <div class="page_title col">Add Zwave Device</div>
+                <div class="status col" id="status" style="display:none">System Status</div> 
+            </div>
+
+     
+             <div>
+               To install a z-wave sensor: <br />
+                 1. Press the Pair button <br />
+                 2. Within 10 seconds, press the program button on your z-wave sensor <br/>
+                  <button class="btn" type="button" onclick="StartPair()">Pair</button> <br />
+             </div>
+        
+
+   <!-- Change display style to 'normal' to show debug information and 'none' to turn it off  -->
+   <div class="settings_listitem" id="divDebugInfo" style="display:none">DEBUG info</div>
+
+</div>
+
+</body>
+</html>

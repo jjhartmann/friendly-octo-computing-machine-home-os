@@ -1,0 +1,5 @@
+﻿#format: ProcessName;ExeDir (can be relative to watchdog);ExeName;nSecondsRunDelay;UpdateUri;Args (optional)
+
+HomeOS.Hub.Platform;..\binaries\Platform;HomeOS.Hub.Platform.exe;10;http://homelab-vm.cloudapp.net/watchdog-test/;;
+
+#HomeOS.Hub.Platform;..\binaries\Platform;HomeOS.Hub.Platform.exe;10;file://yellow03/public/homeos/watchdog-test/;;
