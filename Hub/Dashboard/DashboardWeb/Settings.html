@@ -50,7 +50,7 @@
 
         function GetSettingsRemoteAccessUrlWebCallback(context, result) {
             if (result[0] == "") {
-                $("#urlInfo").html("URL for remote access: " + result[1]);
+                $("#urlInfo").html("URL for remote access: <a href='" + result[1] + "' target='_blank'>" + result[1] + "</a>");
             }
             else {
                 DisplayDebugging("GetRemoteAccess URL " + result[0]);

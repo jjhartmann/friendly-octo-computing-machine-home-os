@@ -138,7 +138,7 @@ Microsoft Account: <input type="text" name="liveid" id="liveid" /><br/>
          hideDiv(logoutButtonDiv);
          
          var url = "webapp/AddLiveIdUser";
-         var data = '{"userName": "' + param["userName"] + '","groupName": "' + param["groupName"] + '","liveId": "' + param["liveId"] + '",' + '"liveIdUniqueUserToken":' + param["liveIdUniqueUserToken"] + '}';
+         var data = '{"userName": "' + param["userName"] + '","groupName": "' + param["groupName"] + '","liveId": "' + param["liveId"] + '",' + '"liveIdUniqueUserToken":"' + param["liveIdUniqueUserToken"] + '"}';
          new PlatformServiceHelper().MakeServiceCall(url, data, AddUserCallBack);
      }
      else 

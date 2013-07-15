@@ -15,10 +15,10 @@ namespace HomeOS.Hub.Common
         public const int InfoServicePort = 51430;
         public static readonly string InfoServiceAddress = "http://localhost:" + InfoServicePort;         
 
-        // ..... where to find addins and scouts
-        //       GetFullPath cleans out the ..
+        // ..... where to find various resources
         public static string AddInRoot = System.IO.Path.GetFullPath(PlatformBinaryDir + "\\..\\Pipeline");
         public static string ScoutRoot = System.IO.Path.GetFullPath(PlatformBinaryDir + "\\..\\Scouts");
+        public static string DashboardRoot = System.IO.Path.GetFullPath(PlatformBinaryDir + "\\DashboardWeb");
 
         // ..... what isolation level to run the modules in; this is a debugging feature if you are having trouble with the addin framework
         public static readonly ModuleIsolationModes ModuleIsolationLevel = ModuleIsolationModes.AppDomain;
@@ -71,7 +71,7 @@ namespace HomeOS.Hub.Common
 
         public static readonly Dictionary<string, int> PrivilegeLevels = new Dictionary<string, int> { { SystemLow, 1 }, { LiveId, 2 }, { SystemHigh, 3 } };
         public static readonly Dictionary<string, Uri> PrivilegeLevelTokenEndpoints = new Dictionary<string, Uri> { { SystemLow, SystemLowTokenEndpoint }, { LiveId, LiveIdTokenEndpoint }, { SystemHigh, SystemHighTokenEndpoint } };
-        public static readonly Dictionary<string, int> PrivilegeLevelTokenExpiry /* in seconds */ = new Dictionary<string, int> { { SystemLow, 3600 }, { LiveId, 3600 }, { SystemHigh, 300 } };
+        public static readonly Dictionary<string, int> PrivilegeLevelTokenExpiry /* in seconds */ = new Dictionary<string, int> { { SystemLow, 24 * 3600 }, { LiveId, 24 * 3600 }, { SystemHigh, 3600 } };
         // Level 1 = "systemlow" < Level 2 ="liveid" < Level 3 = "system high"
         // Corresponding to each level we need a user (in users.xml) each with his own password. 
         // LiveId users each have their own password, so those liveid-based per-user access levels are represented by just one level (level2 named 'liveid').

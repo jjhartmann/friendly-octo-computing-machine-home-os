@@ -142,7 +142,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="start.bat">
+    <None Include="startplatform.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="starthostednetwork.bat">
@@ -160,9 +160,6 @@
     <Content Include="libs\Microsoft.Secpal.Core.pdb" />
     <Content Include="libs\Microsoft.Secpal.Datalog.dll" />
     <Content Include="libs\Microsoft.Secpal.Datalog.pdb" />
-    <None Include="resetdevices.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="reset.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -196,7 +193,11 @@ xcopy  /E /D /Y "$(ProjectDir)..\Homestore" "$(TargetDir)..\..\HomeStore"
 
 REM copy libraries needed for webcam and smartcamrecorder
 copy $(windir)\system32\msvcr110d.dll $(TargetDir)
-copy $(windir)\system32\msvcp110d.dll $(TargetDir)</PostBuildEvent>
+copy $(windir)\system32\msvcp110d.dll $(TargetDir)
+
+REM copy scripts
+copy $(ProjectDir)*.bat  $(TargetDir)..\..\..\output
+copy $(ProjectDir)..\..\..\Dashboard.url  $(TargetDir)..\..\..\output</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

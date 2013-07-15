@@ -1,11 +1,10 @@
 ﻿@model IEnumerable<HomeOS.Cloud.Portal.MvcWebRole.Models.HubStatusEx>
-<script type="text/javascript" src="/Scripts/jquery-1.7.1.min.js"></script>
 
 @{
-    ViewBag.Title = "HomeLab Hubs Deployed";
+    ViewBag.Title = "Hubs Deployed";
 }
 
-<h2>HomeLab Hubs Deployed</h2>
+<h2>Hubs Deployed</h2>
 
 <select id="OrgSelection" onchange="OnOrgSelection()">
     @foreach (var item in Model)
@@ -20,11 +19,9 @@
 <script type="text/javascript">
     function OnOrgSelection() {
         var org = $("#OrgSelection :selected").text();
-        // $.get("HubStatus/Organization?orgId=" + org);
-        location.replace(location.href + "/HubStatus/Organization?orgId=" + org);
+        location.replace("http://" + location.hostname + "/HubStatus/Organization?orgId=" + org);
     }
 </script>
->
 
 <table>
     <tr>
@@ -32,29 +29,28 @@
             @Html.DisplayNameFor(model => model.HomeID)
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.Status)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.LastHeartbeatReported)
+            @Html.DisplayNameFor(model => model.LastHeartbeat)
         </th>
         <th></th>
     </tr>
 
-    @foreach (var item in Model) {
-        <tr>
-            <td>
+    @foreach (var item in Model) { 
+        if (item.Status == "offline") {    
+            @Html.Raw("<tr style=\"background-color:pink\">");
+        } else {
+           @Html.Raw("<tr>");
+        }
+            @Html.Raw("<td>");
                 @Html.DisplayFor(modelItem => item.HomeID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LastHeartbeatReported)
-            </td>
-            <td>
+            @Html.Raw("</td>");
+            @Html.Raw("<td>");
+                @Html.DisplayFor(modelItem => item.LastHeartbeat)
+            @Html.Raw("</td>");
+            @Html.Raw("<td>");
                 @Html.ActionLink("Details", "Details", new { PartitionKey = item.PartitionKey, RowKey=item.RowKey })
-            </td>
-        </tr>
-}
+            @Html.Raw("</td>");
+        @Html.Raw("</tr>");
+        
+    }
 
 </table>

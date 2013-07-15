@@ -207,7 +207,6 @@ namespace HomeOS.Cloud.Portal.WorkerRole
                         OrgID = tupleHeartbeat.Item1,
                         HomeID = tupleHeartbeat.Item2,
                         StudyID = tupleHeartbeat.Item4.StudyId,
-                        Status = "online",
                         LastHeartbeatReported = tupleHeartbeat.Item3.ToString(),
                         HubTimeStamp = tupleHeartbeat.Item4.HubTimestamp,
                         LastHeartbeatSequenceNumber = tupleHeartbeat.Item4.SequenceNumber.ToString(),
@@ -248,19 +247,12 @@ namespace HomeOS.Cloud.Portal.WorkerRole
                     {
                         currentAvgHeartbeatIntervalInMins += HeartbeatCheckFrequencyInMins;
 
-                        bool statusOnline = hubStatus.Status == "online";
-                        if (expectedAvgHeartbeatIntervalInMins > 0.0 && currentAvgHeartbeatIntervalInMins > Constants.MaxHeartbeatIntervalInMins)
-                        {
-                            statusOnline = false;
-                        }
-
                         TableOperation updateOperation = TableOperation.Merge(new HubStatus()
                         {
                             ETag = "*",
                             OrgID = tupleHeartbeat.Item1,
                             HomeID = tupleHeartbeat.Item2,
                             CurrentHeartbeatIntervalInMins = String.Format("{0:0.##}", currentAvgHeartbeatIntervalInMins),
-                            Status = statusOnline ? "online" : "offline"
                         });
                         try
                         {
@@ -301,7 +293,6 @@ namespace HomeOS.Cloud.Portal.WorkerRole
                             OrgID = tupleHeartbeat.Item1,
                             HomeID = tupleHeartbeat.Item2,
                             StudyID = tupleHeartbeat.Item4.StudyId, // in case  updated by hub
-                            Status = "online",
                             LastHeartbeatReported = tupleHeartbeat.Item3.ToString(),
                             HubTimeStamp = tupleHeartbeat.Item4.HubTimestamp,
                             LastHeartbeatSequenceNumber = tupleHeartbeat.Item4.SequenceNumber.ToString(),

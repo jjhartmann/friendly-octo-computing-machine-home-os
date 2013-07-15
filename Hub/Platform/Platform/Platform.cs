@@ -2331,7 +2331,9 @@ namespace HomeOS.Hub.Platform
 
             ModuleInfo moduleInfo = new ModuleInfo(driverFriendlyName, driverAppName, device.DriverBinaryName, null, true, driverParams.ToArray());
 
-            moduleInfo.SetWorkingDir(Environment.CurrentDirectory + "\\" + moduleInfo.FriendlyName());
+            // this will be set in StartModule -- why set here
+            //moduleInfo.SetWorkingDir(Environment.CurrentDirectory + "\\" + moduleInfo.FriendlyName());
+
             moduleInfo.SetManifest(new Manifest());
             moduleInfo.Background = true;
 

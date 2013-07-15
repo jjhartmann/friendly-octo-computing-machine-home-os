@@ -196,12 +196,14 @@ function homeosErrorHandler(context, result)
     
     else if (result.status == "404")
     {
-        document.write("Cannot find application web service endpoints");
+        document.write("\n Cannot find application web service endpoints");
     }
 
     else
     {
-        document.write("Error in invoking application web endpoints (Response Code Received: "+result.status+","+JSON.stringify(result)+")");
+        if(isDebugMode)
+            document.write("Error in invoking application web endpoints (Response Code Received: "+result.status+","+JSON.stringify(result)+")");
+        document.write(".");
     }
     
     
@@ -293,8 +295,9 @@ function PolicyEndpointRequest() {
 
         if (result.length == 0)
         {
-            alert("Access Unavailable. Remote access requires adding Microsoft Account users on Home Hub using the Settings page ");
-            redirect(GuiWebEndpointSuffix);
+            message = "Access Unavailable. Remote access requires adding Microsoft Account users on Home Hub using the Settings page ";
+            //alert(message);
+            redirect(GuiWebEndpointSuffix + "?message=" + encodeURIComponent(message));
             return;
         }
         else if (context.receivedStatus == "400" || context.receivedStatus == "401") {
@@ -323,8 +326,9 @@ function PolicyEndpointRequest() {
                     if(isDebugMode)
                         document.write("\nCurrent privilegeLevel is highest. But user does not match. ");
                     popToken(cookieStackHead, cookieName);
-                    alert("User Access Denied for given " + result[i].Name + " user");
-                    redirect(GuiWebEndpointSuffix);
+                    message = "User Access Denied for given " + result[i].Name + " user";
+                    //alert(message);
+                    redirect(GuiWebEndpointSuffix + "?message=" + encodeURIComponent(message));
                     return;
                 }
 

@@ -132,7 +132,7 @@ namespace HomeOS.Hub.Platform.Authentication
             
             #region treat the add liveid user as a special app and handle it separately
             string html = "";
-            if (appctx.ToLower().Contains(GuiWebAddLiveIdUserPage.ToLower()))
+            if (appctx.ToLower().Contains(GuiWebAddLiveIdUserPage.ToLower()) && scheme.Equals(Constants.LiveId,StringComparison.CurrentCultureIgnoreCase))
             {
                 try
                 {
@@ -176,7 +176,7 @@ namespace HomeOS.Hub.Platform.Authentication
                 WindowsLiveLogin.User windowsliveiduser = wll.ProcessToken(stoken);
 
                 if (windowsliveiduser == null)
-                    throw new Exception("unable to decrypt liveid stoken");
+                    throw new Exception("unable to decrypt liveid token");
                 else if (DateTime.UtcNow.Subtract(windowsliveiduser.Timestamp).TotalMilliseconds <= Constants.PrivilegeLevelTokenExpiry[Constants.LiveId] * 1000)
                 {
                     dict["liveIdUniqueUserToken"] = windowsliveiduser.Id;

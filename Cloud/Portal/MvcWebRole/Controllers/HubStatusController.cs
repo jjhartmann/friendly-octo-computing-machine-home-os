@@ -9,6 +9,7 @@ using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using Microsoft.WindowsAzure.Storage.Table;
 using HomeOS.Cloud.Portal.MvcWebRole.Models;
 using System.Diagnostics;
+using System.Web.Routing;
 
 namespace AzureHubManagementControllers
 {
@@ -87,8 +88,11 @@ namespace AzureHubManagementControllers
 
         public ActionResult Organization(string orgId)
         {
-            return RedirectToAction("IndexForOrg", new { orgid = orgId });            
+            //return RedirectToAction("IndexForOrg", new { orgid = orgId });
+            return RedirectToAction("IndexForOrg", new RouteValueDictionary(
+                                    new { controller = "HubStatus", action = "IndexForOrg", orgid = orgId }));
         }
+ 
 
         //
         // GET: /Hubstatus

@@ -110,7 +110,7 @@
     <Content Include="Assets\MetroUpArrow.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Assets\TestVideo.mp4">
+    <Content Include="Assets\poster-image.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="icon.png">

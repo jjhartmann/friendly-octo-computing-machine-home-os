@@ -28,7 +28,6 @@ namespace HomeOS.Hub.Platform
         ServiceHost serviceHostWeb;
         WebFileServer webFileServer;
 
-        //ServiceHost serviceHostWebHomeId;
         SafeServiceHost serviceHostWebHomeId;
         WebFileServer webFileServerHomeId;
 
@@ -43,33 +42,26 @@ namespace HomeOS.Hub.Platform
 
             string svcBase = Constants.InfoServiceAddress + "/" ;
 
-            //serviceHost = OpenService(svcBase + Common.Globals.GuiServiceSuffix);
-
             //let us start serving the files
             string webBase = svcBase + Common.Constants.GuiServiceSuffixWeb;
+            webFileServer = new WebFileServer(Constants.DashboardRoot, webBase, logger);
 
-            webFileServer = new WebFileServer(Environment.CurrentDirectory + "\\DashboardWeb", webBase, logger);
-
-            serviceHostWeb = OpenUnsafeServiceWeb(webBase + "/webapp");
+            serviceHostWeb = OpenUnsafeServiceWeb(webBase + Constants.AjaxSuffix);
         }
 
         public void ConfiguredStart()
         {
             string svcBase = Constants.InfoServiceAddress + "/" + Settings.HomeId + "/";
 
-            //serviceHostHomeId = OpenService(svcBase + Common.Globals.GuiServiceSuffix);
-
             //let us start serving the files
             string webBase = svcBase + Common.Constants.GuiServiceSuffixWeb;
+            webFileServerHomeId = new WebFileServer(Constants.DashboardRoot, webBase, logger);
 
-            webFileServerHomeId = new WebFileServer(Environment.CurrentDirectory + "\\DashboardWeb", webBase, logger);
-
-            serviceHostWebHomeId = OpenSafeServiceWeb(webBase + "/webapp");
-            //serviceHostWebHomeId = OpenUnsafeServiceWeb(webBase + "/webapp");
+            serviceHostWebHomeId = OpenSafeServiceWeb(webBase + Constants.AjaxSuffix);
 
             string webSecBase = svcBase + Common.Constants.GuiServiceSuffixWebSec;
 
-            serviceHostWebSecHomeId = OpenSafeServiceWebSec(webSecBase + "/webapp");
+            serviceHostWebSecHomeId = OpenSafeServiceWebSec(webSecBase + Constants.AjaxSuffix);
         }
 
         public void Dispose()

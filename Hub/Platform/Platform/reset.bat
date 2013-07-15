@@ -15,16 +15,16 @@ net stop "HomeOS Hub Watchdog"
 taskkill /F /IM HomeOS.Hub.Platform.exe
 
 :: nuke the current config
-del /Q ..\\..\\Configs\%configDir%\\*
+del /Q Configs\%configDir%\\*
 
 :: stop hosted network
 :: netsh wlan stop hostednetwork
 
 :: copy over the fresh config
-copy ..\\..\\..\\Platform\\Configs\\%configDir%\\* ..\\..\\Configs\\%configDir%
+copy ..\\Platform\\Configs\\%configDir%\\* Configs\\%configDir%
 
 :: make it writeable
-:: attrib -r ..\\..\\Configs\%configDir%\\*
+:: attrib -r \\Configs\%configDir%\\*
 
 :: !Please Keep this as the last block in the file!
 :: Cleans up any DataStore generated files and directories

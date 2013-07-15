@@ -164,11 +164,6 @@ namespace HomeOS.Hub.Platform
             }
         }
 
-        public class ClaimHomeIdResultWrapper
-        {
-            public bool CanClaimHomeIdResult;
-        }
-
         void webClient_CanIClaimHomeIdCompleted(object sender, UploadStringCompletedEventArgs arg)
         {
             Action<bool> callback = ((ClaimHomeIdCallbackTokenObject)arg.UserState).Callback;
@@ -181,19 +176,9 @@ namespace HomeOS.Hub.Platform
             {
                 logger.Log("Successfully checked for unique Home ID for {0}", ((ClaimHomeIdCallbackTokenObject)arg.UserState).JsonSerialized);
 
-                ClaimHomeIdResultWrapper retJson = null;
-                try
+                if (arg.Result != null)
                 {
-                    retJson = SerializerHelper<ClaimHomeIdResultWrapper>.DeserializeFromJsonStream(arg.Result);
-                }
-                catch (Exception e)
-                {
-                    logger.Log("Exception while deserializing response result for ClaimHomeId Wcf request, Exception={0}", e.Message);
-                    retJson = null;
-                }
-                if (retJson != null)
-                {
-                    callback(retJson.CanClaimHomeIdResult);
+                    callback(arg.Result == "true");
                 }
                 else
                 {
@@ -201,6 +186,7 @@ namespace HomeOS.Hub.Platform
                 }
             }
         }
+
         public class ClaimHomeIdCallbackTokenObject
         {
             public Action<bool> Callback { get; set; }

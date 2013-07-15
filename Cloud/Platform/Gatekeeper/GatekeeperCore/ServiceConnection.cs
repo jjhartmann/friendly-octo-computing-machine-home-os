@@ -537,11 +537,18 @@ namespace HomeOS.Cloud.Platform.Gatekeeper
 
                     socketState = SocketState.Receiving;
 
-                    this.eventArgs.SetBuffer(buffer, offset, max);
-                    bool asynchronous = this.socket.ReceiveAsync(this.eventArgs);
-                    if (!asynchronous)
+                    try
                     {
-                        this.IOCompleted(this, this.eventArgs);
+                        this.eventArgs.SetBuffer(buffer, offset, max);
+                        bool asynchronous = this.socket.ReceiveAsync(this.eventArgs);
+                        if (!asynchronous)
+                        {
+                            this.IOCompleted(this, this.eventArgs);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Caught exception in StartReceive: " + ex.ToString());
                     }
                 }
                 else

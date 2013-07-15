@@ -39,13 +39,16 @@
         <div> Network Security Key:  &nbsp
         <input type="text" id="networkSecurityKey" /><br /></div>
 
-        <div> <button  class="btn" id="joinButton" onclick="JoinWirelessNetwork()">Join</button></div>
+        <div> <button  class="btn" id="joinButton" onclick="JoinWirelessNetwork()">Join</button>
+                  <button class="btn" onclick="GoToHTMLPage('HomeOSSetup2HomeID.html')">Skip</button>
+        </div>
     </div>
 
     <div  class="settings_listitem"  id="statusInfo"></div>
 
+  
+
     <div id="errorHandling" style="display:none">
-        <button class="btn" onclick="GoToHTMLPage('HomeOSSetup2HomeID.html')">Skip</button>
         <button class="btn" style="width: 250px" onclick="RetryWirelessNetwork()">Refresh Network List</button>
     </div>
 

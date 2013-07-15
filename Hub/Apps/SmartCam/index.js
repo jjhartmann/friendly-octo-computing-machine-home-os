@@ -104,7 +104,7 @@ function ControlCameraCallback(context, result) {
 
 
 function GetImage() {
-   // var camera = $("#cameraList :selected").text();
+ 
     if (null == g_smartCamGetImageServiceHelper) {
         g_smartCamGetImageServiceHelper = new PlatformServiceHelper();
     }
@@ -187,16 +187,21 @@ function GetRecordedClipsCallback(context, result) {
  
     var remoteRequest = isRemoteRequest();
 
-    $("#videoClips").html("");
+   $("#videoClips").html("");
 
     if (result[0] == "") {
         for (i = 1; i < result.length; i++) {
-
-            if (remoteRequest == false)
-                $("#videoClips").append('<div><video class="snapshot_image col" id="video1" src="' + result[i] + '" controls="controls" /></div>');
-            else
-               $("#videoClips").append('<div><video class="snapshot_image col" id="video1" src="' + result[i] + '" controls="controls" preload="none"  /></div>');
+           
+          //  $("#videoClips").append('<div>Screen width' + screen.width + ':' + screen.availWidth + ':' + window.innerWidth + '</div>');
+            if (screen.width > 770)  //not on smart phone - smart phones are giving us trouble with showing video
+                $("#videoClips").append('<div><video class="snapshot_image col"  src="' + result[i] + '" controls="controls" /></div>');
+            else {
+                $("#videoClips").append('<div><a href="' + result[i] + '">Recording: ' + i + '</a></div>');
+                //$("#videoClips").append('<div class="snapshot_image col"><a href="' + result[i] + '"><img src ="Assets/poster-image.png" /></a></div>');  //Maybe add something like this in remote case: preload="none"  poster="Assets/poster-image.png"
+            }
         }
+
+      
     }
     else {
         DisplayDebugging("GetRecordedClipsCallback:" + result[0]);

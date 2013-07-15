@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using System.Collections.Generic;
@@ -16,7 +17,6 @@ namespace HomeOS.Cloud.Portal.MvcWebRole.Models
             this.Timestamp = hubStatus.Timestamp;
             this.OrgID = hubStatus.OrgID;
             this.HomeID = hubStatus.HomeID;
-            this.Status = hubStatus.Status;
             this.StudyID = hubStatus.StudyID;
             this.HubTimeStamp = hubStatus.HubTimeStamp;
             this.LastHeartbeatReported = hubStatus.LastHeartbeatReported;
@@ -27,6 +27,25 @@ namespace HomeOS.Cloud.Portal.MvcWebRole.Models
             this.Memory = hubStatus.Memory;
             this.CPU = hubStatus.CPU;
         }
+
+        [Display(Name = "Status")]
+        [DisplayFormat(NullDisplayText = "'Not Available'")]
+        public string Status
+        {
+            get
+            {
+                DateTime dtHeartbeat = new DateTime();
+                DateTime.TryParse(this.LastHeartbeatReported, out dtHeartbeat);
+                TimeSpan ts = DateTime.UtcNow - dtHeartbeat;
+                string result="offline";
+                if (ts.CompareTo(new TimeSpan(0, (int)Constants.MaxHeartbeatIntervalInMins, 0)) <=0)
+                {
+                    result = "online";
+                }
+                return result;
+            }
+        }
+
 
         public class ModuleStatusListWrapper
         {
@@ -48,6 +67,20 @@ namespace HomeOS.Cloud.Portal.MvcWebRole.Models
             }
         }
 
-        public List<OrgInfo> OrgList { get; set; }                                         
+        public List<OrgInfo> OrgList { get; set; }
+
+        [Display(Name = "Last Heartbeat")]
+        public string LastHeartbeat
+        {
+            get
+            {
+                DateTime dtHeartbeat = new DateTime();
+                DateTime.TryParse(this.LastHeartbeatReported, out dtHeartbeat);
+                TimeSpan ts = DateTime.UtcNow - dtHeartbeat;
+                string result = String.Format("{0} Days {1} Hrs {2} Mins", ts.Days, ts.Hours, ts.Minutes);
+                return result;
+            }
+        }
+            
     }
 }

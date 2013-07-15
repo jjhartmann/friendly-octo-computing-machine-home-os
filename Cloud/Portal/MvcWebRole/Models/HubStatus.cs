@@ -43,10 +43,6 @@ namespace HomeOS.Cloud.Portal.MvcWebRole.Models
         [DisplayFormat(NullDisplayText = "'Not Available'")]
         public string StudyID { get; set; }
 
-        [Display(Name = "Status")]
-        [DisplayFormat(NullDisplayText = "'Not Available'")]
-        public string Status { get; set; }
-
         [Display(Name = "Heartbeat Received(UTC)")]
         [DisplayFormat(NullDisplayText = "'Not Available'")]
         public string LastHeartbeatReported { get; set; }

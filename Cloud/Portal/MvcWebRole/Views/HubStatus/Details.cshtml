@@ -76,7 +76,14 @@
             @Html.DisplayNameFor(model => model.CurrentHeartbeatIntervalInMins)
         </th>
         <td style="text-align: center">
-            @Html.DisplayFor(model => model.CurrentHeartbeatIntervalInMins)
+            @if (Model.Status == "online")
+            {
+                @Html.DisplayFor(model => model.CurrentHeartbeatIntervalInMins)
+            }
+            else
+            {
+                <text>offline</text>
+            }
         </td>
     </tr>
     <tr>
@@ -134,5 +141,5 @@
 </table>
 
 <p>
-    @Html.ActionLink("Back to List", "Index")
+    @Html.ActionLink("Back to List", "IndexForOrg", new { orgid = Model.OrgID })
 </p>

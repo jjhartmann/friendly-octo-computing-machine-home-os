@@ -100,8 +100,9 @@ namespace HomeOS.Hub.Platform
         /// </summary>
         public static bool AutoSyncLogs { get; private set; }
 
-        public static string LogArchivalAccountName { get; private set; }
-        public static string LogArchivalAccountKey { get; private set; }
+        // we just use the data store account credentials
+        //public static string LogArchivalAccountName { get; private set; }
+        //public static string LogArchivalAccountKey { get; private set; }
 
         #endregion
 
@@ -228,8 +229,8 @@ namespace HomeOS.Hub.Platform
                 SettingsTable["LogArchivalDir"] = new SettingsRef<object>(() => Settings.LogArchivalDir, v => { Settings.LogArchivalDir = v.ToString(); });
                 SettingsTable["LogRotationThreshold"] = new SettingsRef<object>(() => Settings.LogRotationThreshold, v => { Settings.LogRotationThreshold = Convert.ToUInt64(v); });
                 SettingsTable["AutoSyncLogs"] = new SettingsRef<object>(() => Settings.AutoSyncLogs, v => { Settings.AutoSyncLogs = Convert.ToBoolean(v); });
-                SettingsTable["LogArchivalAccountName"] = new SettingsRef<object>(() => Settings.LogArchivalAccountName, v => { Settings.LogArchivalAccountName = v.ToString(); });
-                SettingsTable["LogArchivalAccountKey"] = new SettingsRef<object>(() => Settings.LogArchivalAccountKey, v => { Settings.LogArchivalAccountKey = v.ToString(); });
+                //SettingsTable["LogArchivalAccountName"] = new SettingsRef<object>(() => Settings.LogArchivalAccountName, v => { Settings.LogArchivalAccountName = v.ToString(); });
+                //SettingsTable["LogArchivalAccountKey"] = new SettingsRef<object>(() => Settings.LogArchivalAccountKey, v => { Settings.LogArchivalAccountKey = v.ToString(); });
 
                 // .... timeouts related to module communication
                 SettingsTable["PortRegisterDelay"] = new SettingsRef<object>(() => Settings.PortRegisterDelay, v => { Settings.PortRegisterDelay = Convert.ToInt32(v); });
@@ -329,8 +330,8 @@ namespace HomeOS.Hub.Platform
             LogArchivalDir = "archived-logs";
             LogRotationThreshold = 10000;
             AutoSyncLogs = true;
-            LogArchivalAccountName = String.Empty;
-            LogArchivalAccountKey = String.Empty;
+            //LogArchivalAccountName = String.Empty;
+            //LogArchivalAccountKey = String.Empty;
 
             // .... location of cloud resources
             HomeStoreBase = "file:///" + Constants.PlatformBinaryDir + "/../../HomeStore";

@@ -131,7 +131,7 @@ function SetNotificationEmailWebCallback(context, result) {
         }
     
         var infoText = "Your Home Hub has been successfully configured.<br />Home ID: " + HOMEID + "<br /> Home Password:" + HOMEPWD +
-             "<br />Remote Access: " + REMOTEACCESSLINK + "<br />Default Email: " + DEFAULTEMAIL + "<br />";
+             "<br />Remote Access: <a href='" + REMOTEACCESSLINK + "' target='_blank'>" + REMOTEACCESSLINK + "</a><br />Default Email: " + DEFAULTEMAIL + "<br />";
         $("#houseSetupInformation").html(infoText);
 
     }
