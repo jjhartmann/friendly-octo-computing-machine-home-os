@@ -20,7 +20,7 @@
     </SupportedCultures>
     <XapOutputs>true</XapOutputs>
     <GenerateSilverlightManifest>true</GenerateSilverlightManifest>
-    <XapFilename>AppVolumeWp7.xap</XapFilename>
+    <XapFilename>VolumeWp7.xap</XapFilename>
     <SilverlightManifestTemplate>Properties\AppManifest.xml</SilverlightManifestTemplate>
     <SilverlightAppEntry>HomeOS.Hub.Apps.VolumeWp7.App</SilverlightAppEntry>
     <ValidateXaml>true</ValidateXaml>
@@ -30,7 +30,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\output\Pipeline\AddIns\AppVolume\</OutputPath>
+    <OutputPath>..\..\..\output\Pipeline\AddIns\VolumeWp7\</OutputPath>
     <DefineConstants>DEBUG;TRACE;SILVERLIGHT;WINDOWS_PHONE</DefineConstants>
     <NoStdLib>true</NoStdLib>
     <NoConfig>true</NoConfig>

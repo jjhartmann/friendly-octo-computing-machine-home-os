@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 
 <Deployment xmlns="http://schemas.microsoft.com/windowsphone/2009/deployment" AppPlatformVersion="7.1">
-  <App xmlns="" ProductID="{672d6511-1b9f-4111-a840-246b02181964}" Title="VolumeWp7" RuntimeType="Silverlight" Version="1.0.0.0" Genre="apps.normal"  Author="VolumeWp7 author" Description="Sample description" Publisher="AppVolumeWp7">
+  <App xmlns="" ProductID="{672d6511-1b9f-4111-a840-246b02181964}" Title="VolumeWp7" RuntimeType="Silverlight" Version="1.0.0.0" Genre="apps.normal"  Author="VolumeWp7 author" Description="Sample description" Publisher="VolumeWp7">
     <IconPath IsRelative="true" IsResource="false">ApplicationIcon.png</IconPath>
     <Capabilities>
       <Capability Name="ID_CAP_GAMERSERVICES"/>
