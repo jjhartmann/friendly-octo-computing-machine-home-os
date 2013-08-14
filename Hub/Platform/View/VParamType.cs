@@ -11,5 +11,6 @@ namespace HomeOS.Hub.Platform.Views
     {
         int Maintype();
         object Value();
+        string Name();
     }
 }
