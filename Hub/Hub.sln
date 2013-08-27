@@ -142,6 +142,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configs", "Configs", "{CCBE
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Config", "Config", "{5D3562F1-F860-4F94-95FF-272A31F5A7E4}"
 	ProjectSection(SolutionItems) = preProject
+		Platform\Configs\Config\.versiondef = Platform\Configs\Config\.versiondef
 		Platform\Configs\Config\Devices.xml = Platform\Configs\Config\Devices.xml
 		Platform\Configs\Config\Locations.xml = Platform\Configs\Config\Locations.xml
 		Platform\Configs\Config\Modules.xml = Platform\Configs\Config\Modules.xml
@@ -154,6 +155,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Config", "Config", "{5D3562
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DummyConfig", "DummyConfig", "{4946E6E9-0FA0-4996-9BB4-3A87AFFDCCE5}"
 	ProjectSection(SolutionItems) = preProject
+		Platform\Configs\DummyConfig\.versiondef = Platform\Configs\DummyConfig\.versiondef
 		Platform\Configs\DummyConfig\Devices.xml = Platform\Configs\DummyConfig\Devices.xml
 		Platform\Configs\DummyConfig\Locations.xml = Platform\Configs\DummyConfig\Locations.xml
 		Platform\Configs\DummyConfig\Modules.xml = Platform\Configs\DummyConfig\Modules.xml
@@ -197,21 +199,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StartStopWatchdog", "StartS
 		Tools\StartStopWatchdog\StartPlatform.ps1 = Tools\StartStopWatchdog\StartPlatform.ps1
 		Tools\StartStopWatchdog\StopPlatform.ps1 = Tools\StartStopWatchdog\StopPlatform.ps1
 	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Volume", "Volume", "{89952DE8-0DBE-4B14-8F1C-B28936C93EA1}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Volume", "Apps\Volume\Volume\Volume.csproj", "{32B54731-6044-4D56-959A-151E5E9C98D8}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NAudio", "NAudio", "{68AA6CEA-0683-4FCD-A3E2-DB311A8FB4DF}"
-	ProjectSection(SolutionItems) = preProject
-		Apps\Volume\NAudio\license.txt = Apps\Volume\NAudio\license.txt
-		Apps\Volume\NAudio\NAudio.dll = Apps\Volume\NAudio\NAudio.dll
-		Apps\Volume\NAudio\NAudio.WindowsMediaFormat.dll = Apps\Volume\NAudio\NAudio.WindowsMediaFormat.dll
-		Apps\Volume\NAudio\NAudio.xml = Apps\Volume\NAudio\NAudio.xml
-		Apps\Volume\NAudio\readme.txt = Apps\Volume\NAudio\readme.txt
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VolumeWp7", "Apps\Volume\VolumeWp7\VolumeWp7.csproj", "{6684B66C-0E28-4B71-A096-AE1A6F44773E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1189,59 +1176,6 @@ Global
 		{C3100F36-D8C4-41D1-A3E4-4EFA87E7D10D}.Release|Win32.ActiveCfg = Release|Any CPU
 		{C3100F36-D8C4-41D1-A3E4-4EFA87E7D10D}.Release|x64.ActiveCfg = Release|Any CPU
 		{C3100F36-D8C4-41D1-A3E4-4EFA87E7D10D}.Release|x86.ActiveCfg = Release|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.ClientDebug|Any CPU.ActiveCfg = Debug|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.ClientDebug|Any CPU.Build.0 = Debug|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.ClientDebug|ARM.ActiveCfg = Debug|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.ClientDebug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.ClientDebug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.ClientDebug|Win32.ActiveCfg = Debug|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.ClientDebug|x64.ActiveCfg = Debug|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.ClientDebug|x86.ActiveCfg = Debug|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.Release|ARM.ActiveCfg = Release|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.Release|Win32.ActiveCfg = Release|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.Release|x64.ActiveCfg = Release|Any CPU
-		{32B54731-6044-4D56-959A-151E5E9C98D8}.Release|x86.ActiveCfg = Release|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.ClientDebug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.ClientDebug|Any CPU.Build.0 = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.ClientDebug|Any CPU.Deploy.0 = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.ClientDebug|ARM.ActiveCfg = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.ClientDebug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.ClientDebug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.ClientDebug|Mixed Platforms.Deploy.0 = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.ClientDebug|Win32.ActiveCfg = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.ClientDebug|x64.ActiveCfg = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.ClientDebug|x86.ActiveCfg = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Release|ARM.ActiveCfg = Release|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Release|Mixed Platforms.Deploy.0 = Release|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Release|Win32.ActiveCfg = Release|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Release|x64.ActiveCfg = Release|Any CPU
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1250,7 +1184,6 @@ Global
 		{93CF03B5-8A1A-4E3A-B9DE-2A42BDAC6858} = {1C5F5FF2-F4AD-4745-B3D2-F9325CA363D3}
 		{B114FC72-2C19-4A35-ABD5-C55BA6EBA1D5} = {1C5F5FF2-F4AD-4745-B3D2-F9325CA363D3}
 		{EE86E1A9-FFEA-4C8E-A1BE-30FF0AD3AB78} = {1C5F5FF2-F4AD-4745-B3D2-F9325CA363D3}
-		{89952DE8-0DBE-4B14-8F1C-B28936C93EA1} = {1C5F5FF2-F4AD-4745-B3D2-F9325CA363D3}
 		{9B69CC8C-22E4-4A2A-AB08-C04CE905F143} = {AF658F57-DCBA-48B4-8466-8475DA86058A}
 		{238489E7-A61B-4606-B0BB-A2E7E5DD1B88} = {AF658F57-DCBA-48B4-8466-8475DA86058A}
 		{1C51A823-842B-403E-BDAE-9498ED18F41F} = {AF658F57-DCBA-48B4-8466-8475DA86058A}
@@ -1300,8 +1233,5 @@ Global
 		{EE0B8570-7E26-4F8E-B9E8-F57796D5ABD5} = {FEA11D4E-80F4-40E4-AFC5-8614F0CC1013}
 		{5D3562F1-F860-4F94-95FF-272A31F5A7E4} = {CCBE8D2E-AF1A-459D-AE0F-375F7BF72129}
 		{4946E6E9-0FA0-4996-9BB4-3A87AFFDCCE5} = {CCBE8D2E-AF1A-459D-AE0F-375F7BF72129}
-		{32B54731-6044-4D56-959A-151E5E9C98D8} = {89952DE8-0DBE-4B14-8F1C-B28936C93EA1}
-		{68AA6CEA-0683-4FCD-A3E2-DB311A8FB4DF} = {89952DE8-0DBE-4B14-8F1C-B28936C93EA1}
-		{6684B66C-0E28-4B71-A096-AE1A6F44773E} = {89952DE8-0DBE-4B14-8F1C-B28936C93EA1}
 	EndGlobalSection
 EndGlobal

@@ -600,10 +600,6 @@ namespace HomeOS.Hub.Platform
                     //app startup needed since it's not in the install repository
                     StartModule(new ModuleInfo("AppDoorjamb", "AppDoorjamb", "HomeOS.Hub.Apps.Doorjamb", null, false));
                 }
-                else if (Settings.RunningMode.Equals("kamil.hawdziejuk"))
-                {
-                    StartModule(new ModuleInfo("Volume", "Volume", "HomeOS.Hub.Apps.Volume", null, false));
-                }
                 else
                 {
                     throw new Exception("Unknown running mode: " + Settings.RunningMode);

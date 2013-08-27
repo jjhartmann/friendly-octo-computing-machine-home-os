@@ -13,8 +13,7 @@ namespace HomeOS.Hub.Common
 
         // ..... the base address at which we host all the services
         public const int InfoServicePort = 51430;
-        public static string HostAddressOrIP = "localhost";
-        public static readonly string InfoServiceAddress = "http://" + Constants.HostAddressOrIP + ":" + InfoServicePort;         
+        public static readonly string InfoServiceAddress = "http://localhost:" + InfoServicePort;         
 
         // ..... where to find various resources
         public static string AddInRoot = System.IO.Path.GetFullPath(PlatformBinaryDir + "\\..\\Pipeline");
@@ -45,6 +44,9 @@ namespace HomeOS.Hub.Common
         public const string RulesFileName = "Rules.xml";
         public const string DevicesFileName = "Devices.xml";
         public const string ScoutsFileName = "Scouts.xml";
+        // the default config version definition if none is found in the config directory; value is read from the file
+        public static string[] DefaultConfigVersionDefinition = { ModulesFileName, ServicesFileName, ScoutsFileName, RulesFileName };
+
 
         // ..... names of files containing homestore information
         public const string RoleDbFileName = "RoleDb.xml";
@@ -87,6 +89,8 @@ namespace HomeOS.Hub.Common
 
         // ... suffix for hosting service host endpoints for ajax calls
         public const string AjaxSuffix = "/webapp";
+
+        
     }
 
     public enum ResultCode

@@ -21,6 +21,8 @@ namespace HomeOS.Hub.Common
         /// </summary>
         private static string hwId = null;
 
+        /// NB: If you change how hardware id is computed, make sure that you change it in Watchdog as well
+
         /// <summary>
         /// Returns a unique hardware id for a computer, by combining the cpu and hdd ids.        
         /// </summary>
@@ -118,6 +120,7 @@ namespace HomeOS.Hub.Common
             catch (Exception e)
             {
                 logger.Log("Got an exception while starting the process");
+                logger.Log(e.ToString());
 
                 return;
             }
@@ -194,6 +197,9 @@ namespace HomeOS.Hub.Common
         {
             try
             {
+                if (!Directory.Exists(directory))
+                    return;
+
                 DirectoryInfo dir = new DirectoryInfo(directory);
                 foreach (FileInfo fi in dir.GetFiles())
                 {
@@ -364,6 +370,55 @@ namespace HomeOS.Hub.Common
             }
         }
 
+        public static string ReadFile(VLogger logger, string filePath)
+        {
+            try
+            {
+
+                System.IO.StreamReader myFile = new System.IO.StreamReader(filePath);
+                string myString = myFile.ReadToEnd();
+                myFile.Close();
+                return myString;
+            }
+            catch (Exception e)
+            {
+                Utils.structuredLog(logger, "E", e.Message + ". GetMD5HashOfFile(), file" + filePath);
+                return "";
+            }
+        }
+
+        public static string WriteToFile(VLogger logger, string filePath, string text)
+        {
+            try
+            {
+                System.IO.StreamReader myFile = new System.IO.StreamReader(filePath);
+                string myString = myFile.ReadToEnd();
+                myFile.Close();
+                return myString;
+            }
+            catch (Exception e)
+            {
+                Utils.structuredLog(logger, "E", e.Message + ". WriteToFile "+filePath+" "+ text);
+                return "";
+            }
+
+        }
+
+        public static bool CopyFile(VLogger logger, string filePath1, string filePath2)
+        {
+            if (File.Exists(filePath2))
+                Utils.DeleteFile(logger, filePath2);
+            try
+            {
+                File.Copy(filePath1, filePath2);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Utils.structuredLog(logger, "E", e.Message + ". CopyFile(), file" + filePath1 + " to "+filePath2);
+                return false; ;
+            }
+        }
         #endregion
 
 
