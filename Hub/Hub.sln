@@ -142,6 +142,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configs", "Configs", "{CCBE
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Config", "Config", "{5D3562F1-F860-4F94-95FF-272A31F5A7E4}"
 	ProjectSection(SolutionItems) = preProject
+		Platform\Configs\Config\.versiondef = Platform\Configs\Config\.versiondef
 		Platform\Configs\Config\Devices.xml = Platform\Configs\Config\Devices.xml
 		Platform\Configs\Config\Locations.xml = Platform\Configs\Config\Locations.xml
 		Platform\Configs\Config\Modules.xml = Platform\Configs\Config\Modules.xml
@@ -154,6 +155,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Config", "Config", "{5D3562
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DummyConfig", "DummyConfig", "{4946E6E9-0FA0-4996-9BB4-3A87AFFDCCE5}"
 	ProjectSection(SolutionItems) = preProject
+		Platform\Configs\DummyConfig\.versiondef = Platform\Configs\DummyConfig\.versiondef
 		Platform\Configs\DummyConfig\Devices.xml = Platform\Configs\DummyConfig\Devices.xml
 		Platform\Configs\DummyConfig\Locations.xml = Platform\Configs\DummyConfig\Locations.xml
 		Platform\Configs\DummyConfig\Modules.xml = Platform\Configs\DummyConfig\Modules.xml
