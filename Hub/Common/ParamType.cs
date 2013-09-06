@@ -13,6 +13,14 @@ namespace HomeOS.Hub.Common
 
         SimpleType maintype;
         Object value;
+        string name;
+
+        public ParamType(SimpleType maint, string name, Object value)
+        {
+            this.maintype = maint;
+            this.value = value;
+            this.name = name;
+        }
 
         public ParamType(SimpleType maint, Object value)
         {
@@ -32,6 +40,11 @@ namespace HomeOS.Hub.Common
         public Object Value()
         {
             return value;
+        }
+
+        public string Name()
+        {
+            return name;
         }
 
         public void SetValue(Object v)

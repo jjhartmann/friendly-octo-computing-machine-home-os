@@ -9,6 +9,7 @@ namespace HomeOS.Hub.Platform.Contracts
     {
         int Maintype();
         Object Value();
+        string Name();
     }
 
 }

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+    <system.serviceModel>
+        <bindings>
+            <basicHttpBinding>
+                <binding name="BasicHttpBinding_ISimplexContract" maxBufferSize="2147483647"
+                    maxReceivedMessageSize="2147483647">
+                    <security mode="None" />
+                </binding>
+            </basicHttpBinding>
+        </bindings>
+        <client>
+            <endpoint address="http://192.168.0.2:51430/Hawdziejuk/Volume"
+                binding="basicHttpBinding" bindingConfiguration="BasicHttpBinding_ISimplexContract"
+                contract="ISimplexContract" name="BasicHttpBinding_ISimplexContract" />
+        </client>
+    </system.serviceModel>
+</configuration>

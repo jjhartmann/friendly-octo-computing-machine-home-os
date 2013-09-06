@@ -400,6 +400,130 @@ namespace HomeOS.Hub.Common
         }
     }
 
+    public class RoleDepthCam : Role
+    {
+        public const string RoleName = ":depthcam:";
+        public const string OpGetLastDepthImgName = "lastdepthimg";
+        public const string OpRcvDepthStreamName = "rcvdepthstream";
+        public const string OpGetLastDepthArrayName = "lastdeptharray";
+        public const string OpRcvDepthArrayName = "rcvdeptharray";
+
+        private static RoleDepthCam _instance;
+
+        public static RoleDepthCam Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    new RoleDepthCam();
+                return _instance;
+            }
+        }
+
+        public RoleDepthCam()
+            : base(RoleName)
+        {
+            SetName(RoleName);
+            _instance = this;
+
+            {
+                List<HomeOS.Hub.Platform.Views.VParamType> retVals = new List<HomeOS.Hub.Platform.Views.VParamType>();
+                retVals.Add(new ParamType(ParamType.SimpleType.jpegimage, "byteImg", null));
+                AddOperation(new Operation(RoleDepthCam.OpGetLastDepthImgName, null, retVals));
+            }
+
+            {
+                List<HomeOS.Hub.Platform.Views.VParamType> retVals = new List<HomeOS.Hub.Platform.Views.VParamType>();
+                retVals.Add(new ParamType(ParamType.SimpleType.jpegimage, "byteImg", null));
+                AddOperation(new Operation(RoleDepthCam.OpRcvDepthStreamName, null, retVals, true));
+            }
+
+            {
+                List<HomeOS.Hub.Platform.Views.VParamType> retVals = new List<HomeOS.Hub.Platform.Views.VParamType>();
+                retVals.Add(new ParamType(ParamType.SimpleType.list, "depthArray", null));
+                AddOperation(new Operation(RoleDepthCam.OpGetLastDepthArrayName, null, retVals));
+            }
+
+            {
+                List<HomeOS.Hub.Platform.Views.VParamType> retVals = new List<HomeOS.Hub.Platform.Views.VParamType>();
+                retVals.Add(new ParamType(ParamType.SimpleType.list, "depthArray", null));
+                AddOperation(new Operation(RoleDepthCam.OpRcvDepthArrayName, null, retVals, true));
+            }
+        }
+    }
+
+    public class RoleMicrophone : Role
+    {
+        public const string RoleName = ":microphone:";
+        public const string OpRecAudioName = "recaudio";
+
+        private static RoleMicrophone _instance;
+
+        public static RoleMicrophone Instance
+        {
+
+            get
+            {
+                if (_instance == null)
+                    new RoleMicrophone();
+                return _instance;
+            }
+        }
+
+        public RoleMicrophone()
+            : base(RoleName)
+        {
+            SetName(RoleName);
+            _instance = this;
+            {
+                List<HomeOS.Hub.Platform.Views.VParamType> args = new List<HomeOS.Hub.Platform.Views.VParamType>();
+                args.Add(new ParamType(ParamType.SimpleType.integer, "recLength", null));
+
+                List<HomeOS.Hub.Platform.Views.VParamType> retVals = new List<HomeOS.Hub.Platform.Views.VParamType>();
+                retVals.Add(new ParamType(ParamType.SimpleType.text, "audioFullPath", null));
+
+                AddOperation(new Operation(RoleMicrophone.OpRecAudioName, args, retVals));
+            }
+        }
+    }
+
+    public class RoleSkeletonTracker : Role
+    {
+        public const string RoleName = ":skeletontracker:";
+        public const string OpGetLastskeletonName = "lastskeleton";
+        public const string OpRcvSkeletonStreamName = "rcvskeletonstream";
+
+        private static RoleSkeletonTracker _instance;
+
+        public static RoleSkeletonTracker Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    new RoleSkeletonTracker();
+                return _instance;
+            }
+        }
+
+        public RoleSkeletonTracker()
+            : base(RoleName)
+        {
+            SetName(RoleName);
+            _instance = this;
+            {
+                List<HomeOS.Hub.Platform.Views.VParamType> retVals = new List<HomeOS.Hub.Platform.Views.VParamType>();
+                retVals.Add(new ParamType(ParamType.SimpleType.text, "skeletonArray", null));
+                AddOperation(new Operation(RoleSkeletonTracker.OpGetLastskeletonName, null, retVals));
+            }
+
+            {
+                List<HomeOS.Hub.Platform.Views.VParamType> retVals = new List<HomeOS.Hub.Platform.Views.VParamType>();
+                retVals.Add(new ParamType(ParamType.SimpleType.text, "skeletonArray", null));
+                AddOperation(new Operation(RoleSkeletonTracker.OpRcvSkeletonStreamName, null, retVals, true));
+            }
+        }
+    }
+
     //public class RoleCamera : Role
     //{
     //    public const string RoleName = "camera";

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace HomeOS.Hub.Common
 {
-    public class AzureHelper
+    public class AzureUtils
     {
         #region methods to acquire and relinquich leases on azure blobs; and check if a blob already exists
         public static string AcquireLease(VLogger logger, CloudBlockBlob blob, int AzureBlobLeaseTimeout)
@@ -58,7 +58,14 @@ namespace HomeOS.Hub.Common
                 Utils.structuredLog(logger, "WebException", e.Message + ". DoLeaseOperation, blob: " + blob.Name + ", leaseId: " + leaseId + ", action " + action);
             }
         }
+        #endregion
 
+        /// <summary>
+        /// Method to check if a blockblob exists already
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="blob"></param>
+        /// <returns></returns>
         public static bool BlockBlobExists(VLogger logger, CloudBlockBlob blob)
         {
             try
@@ -79,7 +86,7 @@ namespace HomeOS.Hub.Common
                 }
             }
         }
-        #endregion
+        
 
         
         

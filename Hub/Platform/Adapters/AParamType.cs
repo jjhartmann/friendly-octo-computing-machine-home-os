@@ -35,6 +35,11 @@ namespace HomeOS.Hub.Platform.Adapters
         {
             return _view.Value();
         }
+
+        public string Name()
+        {
+            return _view.Name();
+        }
     }
 
     public class ParamTypeC2V : VParamType
@@ -63,6 +68,11 @@ namespace HomeOS.Hub.Platform.Adapters
         public Object Value()
         {
             return _contract.Value();
+        }
+
+        public string Name()
+        {
+            return _contract.Name();
         }
     }
 
