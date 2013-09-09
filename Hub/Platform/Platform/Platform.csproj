@@ -55,6 +55,9 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup Condition="$(TeamBuildOutDir) != '' ">
+    <OutputPath>$(TeamBuildOutDir)\$(SolutionName)\output\binaries\Platform\</OutputPath>
+  </PropertyGroup>
   <PropertyGroup>
     <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
@@ -71,6 +74,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\SecPal\Microsoft.Secpal.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Synchronization, Version=2.1.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.WindowsAzure.StorageClient, Version=1.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -192,12 +196,12 @@ mkdir "$(TargetDir)..\..\HomeStore"
 xcopy  /E /D /Y "$(ProjectDir)..\Homestore" "$(TargetDir)..\..\HomeStore"
 
 REM copy libraries needed for webcam and smartcamrecorder
-copy $(windir)\system32\msvcr110d.dll $(TargetDir)
-copy $(windir)\system32\msvcp110d.dll $(TargetDir)
+copy "$(windir)\system32\msvcr110d.dll" "$(TargetDir)"
+copy "$(windir)\system32\msvcp110d.dll" "$(TargetDir)"
 
 REM copy scripts
-copy $(ProjectDir)*.bat  $(TargetDir)..\..\..\output
-copy $(ProjectDir)..\..\..\Dashboard.url  $(TargetDir)..\..\..\output</PostBuildEvent>
+copy "$(ProjectDir)*.bat"  "$(TargetDir)..\..\..\output"
+copy "$(ProjectDir)..\..\..\Dashboard.url"  "$(TargetDir)..\..\..\output"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
