@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoistureSensor", "MoistureS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowCamera", "WindowCamera\WindowCamera\WindowCamera.csproj", "{A9800B1A-2D2E-4DA1-BAF1-BAE0F73CF030}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightSensor", "LightSensor\LightSensor\LightSensor.csproj", "{76462206-5411-4CDC-A0D2-0D0CB61D64ED}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
 		SccNumberOfProjects = 5
@@ -55,6 +57,12 @@ Global
 		{A9800B1A-2D2E-4DA1-BAF1-BAE0F73CF030}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9800B1A-2D2E-4DA1-BAF1-BAE0F73CF030}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A9800B1A-2D2E-4DA1-BAF1-BAE0F73CF030}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{76462206-5411-4CDC-A0D2-0D0CB61D64ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76462206-5411-4CDC-A0D2-0D0CB61D64ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76462206-5411-4CDC-A0D2-0D0CB61D64ED}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{76462206-5411-4CDC-A0D2-0D0CB61D64ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76462206-5411-4CDC-A0D2-0D0CB61D64ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76462206-5411-4CDC-A0D2-0D0CB61D64ED}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

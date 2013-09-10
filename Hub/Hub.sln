@@ -21,7 +21,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foscam", "Drivers\Foscam\Fo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gadgeteer.MicrosoftResearch.WindowCamera", "Drivers\GadgetCamera\Gadgeteer.MicrosoftResearch.WindowCamera.csproj", "{1C51A823-842B-403E-BDAE-9498ED18F41F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gadgeteer.MicrosoftResearch.MoistureSensor", "Drivers\Gadgeteer\Gadgeteer.MicrosoftResearch.MoistureSensor.csproj", "{6074DB78-93FE-4AE1-A297-DE14259EF866}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gadgeteer.MicrosoftResearch.MoistureSensor", "Drivers\GadgeteerMoisture\Gadgeteer.MicrosoftResearch.MoistureSensor.csproj", "{6074DB78-93FE-4AE1-A297-DE14259EF866}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoLoading", "Drivers\VideoLoading\VideoLoading.csproj", "{44841FF0-B3F6-4410-8512-60F48756070D}"
 EndProject
@@ -207,6 +207,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doorjamb", "Apps\Doorjamb\Doorjamb.csproj", "{FF5A93EC-4D32-445E-9F37-914730371274}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doorjamb", "Drivers\Doorjamb\Doorjamb.csproj", "{C47B4C85-B8AB-40FE-98EE-90A6E852E171}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gadgeteer.MicrosoftResearch.LightSensor", "Drivers\GadgeteerLight\Gadgeteer.MicrosoftResearch.LightSensor.csproj", "{6868916B-E0A0-4F21-A34C-47CCB275F6EB}"
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
@@ -1542,6 +1544,30 @@ Global
 		{C47B4C85-B8AB-40FE-98EE-90A6E852E171}.Release|Win32.ActiveCfg = Release|Any CPU
 		{C47B4C85-B8AB-40FE-98EE-90A6E852E171}.Release|x64.ActiveCfg = Release|Any CPU
 		{C47B4C85-B8AB-40FE-98EE-90A6E852E171}.Release|x86.ActiveCfg = Release|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.ClientDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.ClientDebug|Any CPU.Build.0 = Debug|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.ClientDebug|ARM.ActiveCfg = Debug|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.ClientDebug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.ClientDebug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.ClientDebug|Win32.ActiveCfg = Debug|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.ClientDebug|x64.ActiveCfg = Debug|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.ClientDebug|x86.ActiveCfg = Debug|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.Release|ARM.ActiveCfg = Release|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.Release|Win32.ActiveCfg = Release|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.Release|x64.ActiveCfg = Release|Any CPU
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1559,6 +1585,7 @@ Global
 		{BF532D34-833C-4FB3-88CA-07E58510F130} = {AF658F57-DCBA-48B4-8466-8475DA86058A}
 		{B423D503-28D4-497C-9A7D-804BD60E6C15} = {AF658F57-DCBA-48B4-8466-8475DA86058A}
 		{C47B4C85-B8AB-40FE-98EE-90A6E852E171} = {AF658F57-DCBA-48B4-8466-8475DA86058A}
+		{6868916B-E0A0-4F21-A34C-47CCB275F6EB} = {AF658F57-DCBA-48B4-8466-8475DA86058A}
 		{3F789879-0944-463C-A747-2F74AD916186} = {B8DBF8CA-1178-4C5F-8C34-6E73DA0B64F0}
 		{F1F63113-59BE-4CB9-90AB-0FEA9DE4379E} = {B8DBF8CA-1178-4C5F-8C34-6E73DA0B64F0}
 		{D9B1E621-4C9D-4E76-8575-5B2F8FBB8988} = {B8DBF8CA-1178-4C5F-8C34-6E73DA0B64F0}
