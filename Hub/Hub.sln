@@ -298,7 +298,7 @@ Global
 		SccAuxPath13 = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
 		SccLocalPath13 = Drivers\\GadgetCamera
 		SccProvider13 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName14 = Drivers\\Gadgeteer\\Gadgeteer.MicrosoftResearch.MoistureSensor.csproj
+		SccProjectUniqueName14 = Drivers\\GadgeteerMoisture\\Gadgeteer.MicrosoftResearch.MoistureSensor.csproj
 		SccProjectTopLevelParentUniqueName14 = Hub.sln
 		SccProjectName14 = Drivers/Gadgeteer
 		SccAuxPath14 = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
