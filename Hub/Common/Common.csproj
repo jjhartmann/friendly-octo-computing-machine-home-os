@@ -58,7 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArgumentHelper.cs" />
-    <Compile Include="AzureHelper.cs" />
+    <Compile Include="AzureUtils.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Device.cs" />
     <Compile Include="Globals.cs" />
@@ -90,14 +90,17 @@
     <ProjectReference Include="..\..\Shared\Shared.csproj">
       <Project>{10571a55-2270-4a83-9b56-28c186bac59d}</Project>
       <Name>Shared</Name>
+      <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Platform\View\Views.csproj">
       <Project>{71272f38-fc7d-4170-8411-51e27200c791}</Project>
       <Name>Views</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="DataStore\DataStore.csproj">
       <Project>{b7def861-d0e5-47ce-aeb7-2e9b6091b52f}</Project>
       <Name>DataStore</Name>
+      <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

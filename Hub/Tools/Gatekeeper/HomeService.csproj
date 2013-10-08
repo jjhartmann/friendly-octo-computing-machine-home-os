@@ -42,6 +42,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <CustomPath>..\..</CustomPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -52,8 +53,25 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <CustomPath>..\..</CustomPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TeamBuildOutDir) != '' ">
+    <CustomPath>$(TeamBuildOutDir)\$(SolutionName)</CustomPath>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HomeOS.Hub.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="HomeOS.Hub.Platform.Gatekeeper.HomeService">
+      <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Platform.Gatekeeper.HomeService.dll</HintPath>
+    </Reference>
+    <Reference Include="HomeOS.Hub.Platform.Views">
+      <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Platform.Views.dll</HintPath>
+    </Reference>
+    <Reference Include="HomeOS.Shared">
+      <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Shared.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -68,24 +86,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Shared\Shared.csproj">
-      <Project>{10571a55-2270-4a83-9b56-28c186bac59d}</Project>
-      <Name>Shared</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Common\Common.csproj">
-      <Project>{6f879b8b-c4b1-4e8d-9bf2-c6376b05e4ec}</Project>
-      <Name>Common %28Common\Common%29</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Platform\HomeService\HomeService.csproj">
-      <Project>{62467325-6d15-4161-a09d-07b7793dab68}</Project>
-      <Name>HomeService %28Platform\HomeService%29</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Platform\View\Views.csproj">
-      <Project>{71272f38-fc7d-4170-8411-51e27200c791}</Project>
-      <Name>Views</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">

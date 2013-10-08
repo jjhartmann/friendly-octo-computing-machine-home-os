@@ -24,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CustomPath>..\..</CustomPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,12 +33,30 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CustomPath>..\..</CustomPath>
   </PropertyGroup>
   <PropertyGroup Condition="$(TeamBuildOutDir) != '' ">
     <OutputPath>$(TeamBuildOutDir)\$(SolutionName)\output\binaries\Pipeline\AddIns\HomeOS.Hub.Apps.Doorjamb\</OutputPath>
+    <CustomPath>$(TeamBuildOutDir)\$(SolutionName)</CustomPath>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Accessibility" />
+    <Reference Include="HomeOS.Hub.Common">
+      <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Common.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="HomeOS.Hub.Common.DataStore">
+      <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Common.DataStore.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="HomeOS.Hub.Platform.Views">
+      <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Platform.Views.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="HomeOS.Shared">
+      <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Shared.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
     <Reference Include="System.AddIn" />
@@ -56,25 +75,6 @@
     <Compile Include="Doorjamb.cs" />
     <Compile Include="DoorjambService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Shared\Shared.csproj">
-      <Project>{10571a55-2270-4a83-9b56-28c186bac59d}</Project>
-      <Name>Shared</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Common\Common.csproj">
-      <Project>{6f879b8b-c4b1-4e8d-9bf2-c6376b05e4ec}</Project>
-      <Name>Common %28Common\Common%29</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Common\DataStore\DataStore.csproj">
-      <Project>{b7def861-d0e5-47ce-aeb7-2e9b6091b52f}</Project>
-      <Name>DataStore</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Platform\View\Views.csproj">
-      <Project>{71272f38-fc7d-4170-8411-51e27200c791}</Project>
-      <Name>Views</Name>
-      <Private>False</Private>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.png">

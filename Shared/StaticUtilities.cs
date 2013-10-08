@@ -133,5 +133,37 @@ namespace HomeOS.Shared
 
             socket.IOControl(IOControlCode.KeepAliveValues, option, result);
         }
+
+        public static string ConvertMemoryInBytesToUnitBytes(string byteString)
+        {
+            double memInUnits = 0.0;
+            if (!double.TryParse(byteString, out memInUnits))
+                return null;
+
+            if ((int)(memInUnits / (1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0)) > 0) // TB
+            {
+                return String.Format("{0:0.##} PB", memInUnits / (1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0));
+            }
+            else if ((int)(memInUnits / (1024.0 * 1024.0 * 1024.0 * 1024.0)) > 0) // TB
+            {
+                return String.Format("{0:0.##} TB", memInUnits / (1024.0 * 1024.0 * 1024.0 * 1024.0));
+            }
+            else if ((int)(memInUnits / (1024.0 * 1024.0 * 1024.0)) > 0) // GB
+            {
+                return String.Format("{0:0.##} GB", memInUnits / (1024.0 * 1024.0 * 1024.0));
+            }
+            else if ((int)(memInUnits / (1024.0 * 1024.0)) > 0) // MB
+            {
+                return String.Format("{0:0.##} MB", memInUnits / (1024.0 * 1024.0));
+            }
+            else if ((int)(memInUnits / (1024.0)) > 0)
+            {
+                return String.Format("{0:0.##} KB", memInUnits / (1024.0));
+            }
+            else
+            {
+                return String.Format("{0}", (int)memInUnits);
+            }
+        }
     }
 }

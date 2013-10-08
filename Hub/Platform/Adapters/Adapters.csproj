@@ -37,6 +37,9 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup Condition="$(TeamBuildOutDir) != '' ">
+    <OutputPath>$(TeamBuildOutDir)\$(SolutionName)\output\binaries\Pipeline\AddInSideAdapters\</OutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.AddIn" />
@@ -67,10 +70,12 @@
     <ProjectReference Include="..\Contracts\Contracts.csproj">
       <Project>{f1f63113-59be-4cb9-90ab-0fea9de4379e}</Project>
       <Name>Contracts</Name>
+      <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\View\Views.csproj">
       <Project>{71272f38-fc7d-4170-8411-51e27200c791}</Project>
       <Name>Views</Name>
+      <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

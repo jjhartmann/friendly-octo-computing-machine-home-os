@@ -3,7 +3,7 @@ var HOMEOSTOKEN;
 var isDebugMode = false; 
 
 //constants 
-var LiveIdAppId = "000000004C0E8F4B";
+var LiveIdAppId = "000000004C0FF8E2";
 var cookieName = "homeostoken";
 var cookieStackHead = cookieName + ":tok";
 var liveIdLogoutUrl = "http://login.live.com/logout.srf?appid="+LiveIdAppId+"&appctx=" + appctx;

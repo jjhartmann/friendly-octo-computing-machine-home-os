@@ -270,6 +270,24 @@ namespace HomeOS.Hub.Platform
             }
         }
 
+        public List<string> SetOrgIdWeb(string orgId)
+        {
+            try
+            {
+                logger.Log("UICalled:SetOrgIdWeb " + orgId);
+
+                config.UpdateConfSetting("OrgId", orgId);
+
+                return new List<string>() { "", "true" };
+            }
+            catch (Exception e)
+            {
+                logger.Log("Exception in SetOrgIdWeb: " + e.ToString());
+
+                return new List<string>() { "Got exception: " + e.Message };
+            }
+        }
+
         public bool IsConfigNeeded()
         {
             return string.IsNullOrEmpty(Settings.HomeId);
@@ -1711,7 +1729,7 @@ namespace HomeOS.Hub.Platform
 
         public List<string> GetRemoteAccessUrlWeb()
         {
-            string url = String.Format("http://{0}:{1}/{2}/{3}/index.html", Settings.GatekeeperUri, HomeOS.Shared.Gatekeeper.Settings.ClientPort, Settings.HomeId, Constants.GuiServiceSuffixWeb);
+            string url = String.Format("https://{0}:{1}/{2}/{3}/index.html", Settings.GatekeeperURI, HomeOS.Shared.Gatekeeper.Settings.ClientPort, Settings.HomeId, Constants.GuiServiceSuffixWeb);
             return new List<string>() {"", url};
         }
 
@@ -1963,6 +1981,10 @@ namespace HomeOS.Hub.Platform
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
         List<string> SetNotificationEmailWeb(string emailAddress);
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        List<string> SetOrgIdWeb(string orgId);
 
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]

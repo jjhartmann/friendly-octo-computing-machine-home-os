@@ -7,6 +7,7 @@ var g_keepalive;
 var g_currentCamera = "";
 var g_maxClipsToDisplay = 5;
 
+
 var CAMERA_INFORMATION_ARRAY = null;
 
 $(document).ready(
@@ -75,6 +76,12 @@ function CameraSelected() {
 
     //Get the clips and show them
     GetRecordedClips();
+
+    //Determine state of motion triggered recording and later video recording
+    GetMotionRecordingState();
+
+    //Get Video recording state - might combine this and motion recording state method
+    GetVideoUploadingState();
 }
 
 
@@ -184,15 +191,15 @@ function isRemoteRequest() {
 
 
 function GetRecordedClipsCallback(context, result) {
- 
+
     var remoteRequest = isRemoteRequest();
 
-   $("#videoClips").html("");
+    $("#videoClips").html("");
 
     if (result[0] == "") {
         for (i = 1; i < result.length; i++) {
-           
-          //  $("#videoClips").append('<div>Screen width' + screen.width + ':' + screen.availWidth + ':' + window.innerWidth + '</div>');
+
+            //  $("#videoClips").append('<div>Screen width' + screen.width + ':' + screen.availWidth + ':' + window.innerWidth + '</div>');
             if (screen.width > 770)  //not on smart phone - smart phones are giving us trouble with showing video
                 $("#videoClips").append('<div><video class="snapshot_image col"  src="' + result[i] + '" controls="controls" /></div>');
             else {
@@ -201,11 +208,71 @@ function GetRecordedClipsCallback(context, result) {
             }
         }
 
-      
     }
     else {
         DisplayDebugging("GetRecordedClipsCallback:" + result[0]);
     }
-        
-    
+}
+
+//Figure out toggle state for whether or not motion based recording is happening
+
+function GetMotionRecordingState() {
+    new PlatformServiceHelper().MakeServiceCall("webapp/IsMotionTriggerEnabled", '{"cameraFriendlyName": "' + g_currentCamera +  '"}', GetIsMotionTriggeredCallback);
+}
+
+function GetIsMotionTriggeredCallback(context, result) {
+    if (result.IsMotionTriggerEnabledResult[0] == "") {
+        if (result.IsMotionTriggerEnabledResult[1] == "True") {
+            document.getElementById("mCheckbox").checked = true
+        }
+    }
+    else {
+        DisplayDebugging("GetMotionTriggeredCallback:" + result[0]);
+    }
+}
+
+//set the new state for motion recording
+function ToggleMotionRecording(cbox) {
+
+    var newState = false;
+    if (cbox.checked) {
+        newState = true;
+    }
+    new PlatformServiceHelper().MakeServiceCall("webapp/EnableMotionTrigger", '{"cameraFriendlyName": "' + g_currentCamera + '","enable": "' + newState  + '"}', ToggleMotionTriggeredCallback);
+}
+
+function ToggleMotionTriggeredCallback(context, result) {
+    //possibly do something here to show errors
+    ;
+
+}
+
+//set the new state for motion recording
+function ToggleVideoUploading(cbox) {
+
+    var newState = false;
+    if (cbox.checked) {
+        newState = true;
+    }
+    new PlatformServiceHelper().MakeServiceCall("webapp/EnableVideoUpload", '{"cameraFriendlyName": "' + g_currentCamera + '","enable": "' + newState + '"}', ToggleMotionTriggeredCallback);
+}
+
+function GetVideoUploadingState() {
+    new PlatformServiceHelper().MakeServiceCall("webapp/IsVideoUploadEnabled", '{"cameraFriendlyName": "' + g_currentCamera + '"}', GetIsVideoUploadingCallback);
+}
+
+function GetIsVideoUploadingCallback(context, result) {
+    if (result.IsVideoUploadEnabledResult[0] == "") {
+        if (result.IsVideoUploadEnabledResult[1] == "True") {
+            document.getElementById("videoCheckbox").checked = true
+        }
+    }
+    else {
+        DisplayDebugging("GetVideoUploadingCallback:" + result[0]);
+    }
+}
+
+function RefreshVideos() {
+    //Get the clips and show them
+    GetRecordedClips();
 }

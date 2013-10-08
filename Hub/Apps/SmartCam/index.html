@@ -1,6 +1,6 @@
 ﻿<script type="text/javascript" src="../GuiWeb/homeos-1.1.js"></script>
 <!DOCTYPE html>
-<html manifest="/test.manifest">
+<html>
 <head>
   <title>Camera Viewer Application</title>
 
@@ -8,7 +8,9 @@
   <script type="text/javascript" src="../GuiWeb/common.js"></script>
   <script type="text/javascript" src="index.js"></script>
   <link rel="stylesheet" media="all" type="text/css" href="Styles/AppSmartCameraStyleSheet.css" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />    <!-- Back-up in case there is problem with responsive css-->
+
+
 </head>
 <body>
 
@@ -33,7 +35,11 @@
                         <img id="right" class="app_button3" src="Assets/MetroRightArrow.png" onclick="ControlCamera('right')" />
                         <img id="up" class="app_button3" src="Assets/MetroUpArrow.png" onclick="ControlCamera('up')" />
                         <img id="down" class="app_button3" src="Assets/MetroDownArrow.png" onclick="ControlCamera('down')" />
-                         <div id="recordText"></div>
+                         
+                        <div id="recordText"></div>
+                        <div id="recordOnMotion"><input type="checkbox" id="mCheckbox" onclick="ToggleMotionRecording(this)" /> Record when motion is sensed </div>
+                        <div id="refreshButton">  <button id="btnRefreshVideos" class="btn" onclick="RefreshVideos()"> Refresh </button> </div>
+            <!--            <div id="uploadVideos"> <input type="checkbox" id="videoCheckbox"  onclick="ToggleVideoUploading(this)"  /> Upload recordings to cloud storage </div>-->
 
                                         
                       </div>

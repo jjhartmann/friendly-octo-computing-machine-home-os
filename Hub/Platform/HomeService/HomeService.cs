@@ -118,6 +118,7 @@ namespace HomeOS.Hub.Platform.Gatekeeper
             }
 
             this.registrationConnection = new ServiceConnection(
+                Settings.ServiceHost,
                 socket,
                 0,
                 this.Forwarding, logger);
@@ -132,6 +133,7 @@ namespace HomeOS.Hub.Platform.Gatekeeper
             if (this.registrationConnection != null)
             {
                 this.registrationConnection.Close();
+                this.registrationConnection = null;
             }
         }
 
@@ -149,12 +151,15 @@ namespace HomeOS.Hub.Platform.Gatekeeper
             Socket localService = StaticUtilities.CreateConnectedSocket(
                 "localhost",
                 HomeOS.Hub.Common.Constants.InfoServicePort);
+
+            NetworkStream netstream = new NetworkStream(localService, false /*ownSocket*/);
+
             if (localService != null)
             {
                 Forwarder forwarder = new Forwarder(
-                    localService,
-                    connection.Socket,
-                    this.StopForwarding);
+                    netstream,
+                    connection.GetStream(),
+                    this.StopForwarding, null);
                 return true;
             }
 

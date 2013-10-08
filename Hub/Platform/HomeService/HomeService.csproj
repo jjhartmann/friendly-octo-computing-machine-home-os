@@ -74,6 +74,11 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HomeOS.Hub.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Common\bin\Debug\HomeOS.Hub.Common.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -115,13 +120,10 @@
       <Project>{10571a55-2270-4a83-9b56-28c186bac59d}</Project>
       <Name>Shared</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Common\Common.csproj">
-      <Project>{6f879b8b-c4b1-4e8d-9bf2-c6376b05e4ec}</Project>
-      <Name>Common %28Common\Common%29</Name>
-    </ProjectReference>
     <ProjectReference Include="..\View\Views.csproj">
       <Project>{71272F38-FC7D-4170-8411-51E27200C791}</Project>
       <Name>Views</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Shared\Shared.csproj">
       <Project>{10571A55-2270-4A83-9B56-28C186BAC59D}</Project>

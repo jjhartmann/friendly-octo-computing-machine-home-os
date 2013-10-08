@@ -189,7 +189,7 @@ Swap with other colors in the palette by replacing 'background: #3ECFF9' with an
             font-family: inherit;
             font-size: 90%;
             color: inherit;
-            background: #70DAF9;
+            background: #007B9D;
             cursor: pointer;
             width: 65px;
             height: 25px;
@@ -198,6 +198,7 @@ Swap with other colors in the palette by replacing 'background: #3ECFF9' with an
             font-weight:400;
             outline: none;
         }
+
         .btn:hover {
             background: #2D97B5;
         }
@@ -329,9 +330,9 @@ Swap with other colors in the palette by replacing 'background: #3ECFF9' with an
         .btn {
             border: none;
             font-family: inherit;
-            font-size: 100%;
+            font-size: 80%;
             color: inherit;
-            background: #70DAF9;
+            background:#007B9D;
             cursor: pointer;
             /*width:100%;
             height: 45px;*/
@@ -479,9 +480,9 @@ Swap with other colors in the palette by replacing 'background: #3ECFF9' with an
     .btn {
         border: none;
         font-family: inherit;
-        font-size: 100%;
+        font-size: 50%;
         color: inherit;
-        background: #70DAF9;
+        background: #007B9D;
         cursor: pointer;
         /*width:100%;
         height: 45px;*/
@@ -627,9 +628,9 @@ Swap with other colors in the palette by replacing 'background: #3ECFF9' with an
     .btn {
         border: none;
         font-family: inherit;
-        font-size: 100%;
+        font-size: 50%;
         color: inherit;
-        background: #70DAF9;
+        background: #007B9D;
         cursor: pointer;
         /*width:100%;
         height: 45px;*/

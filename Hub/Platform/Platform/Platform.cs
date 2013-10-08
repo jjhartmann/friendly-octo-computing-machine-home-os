@@ -195,6 +195,7 @@ namespace HomeOS.Hub.Platform
 
             //initialize the logger
             logger = InitLogger(Settings.LogFile);
+            logger.Log("Platform initialized");
 
             //set the logger for config and read remaining config fines
             config.SetLogger(logger);
@@ -272,16 +273,30 @@ namespace HomeOS.Hub.Platform
             }
 
             string baseDir = Constants.ScoutRoot + "\\" + sInfo.Name;
-            string dllPath =  baseDir + "\\" + sInfo.DllName;
+            string dllPath =  baseDir + "\\" + sInfo.DllName+".dll";
             string baseUrl = GetBaseUrl() + "/" + Constants.ScoutsSuffixWeb + "/" + sInfo.Name;
 
-            logger.Log("starting scout {0} using dll {1} at url {2}", sInfo.Name, dllPath, baseUrl);
+            
 
             try
             {
                 string dllFullPath = Path.GetFullPath(dllPath);
-                System.Reflection.Assembly myLibrary = System.Reflection.Assembly.LoadFile(dllFullPath);
 
+                if (!File.Exists(dllFullPath))
+                    GetScoutFromRep(sInfo); // now attempt to start what we got (if we did)
+                else
+                {
+                    string currentScoutVersion = FileVersionInfo.GetVersionInfo(dllFullPath).FileVersion;
+                    // we are using file versions for the Versioning and not Assembly versions because to read that 
+                    // the assembly needs to be loaded. But unloading the assembly is a pain (in case of version mismatch)
+
+                    if (!CompareModuleVersions(currentScoutVersion, sInfo.Version))
+                        GetScoutFromRep(sInfo);// if we didn't get the right version, lets start what we have
+                }
+
+                logger.Log("starting scout {0} using dll {1} at url {2}", sInfo.Name, dllPath, baseUrl);
+
+                System.Reflection.Assembly myLibrary = System.Reflection.Assembly.LoadFile(dllFullPath);
                 Type myClass = (from type in myLibrary.GetExportedTypes()
                                 where typeof(IScout).IsAssignableFrom(type)
                                 select type)
@@ -364,6 +379,9 @@ namespace HomeOS.Hub.Platform
         {
 
             guiService.ConfiguredStart();
+
+            //initialize the scout helper; needed for scouts that rely on upnp discovery
+            ScoutHelper.Init(logger);
 
             //start the configured scouts. starting scouts before modules.
             foreach (var sInfo in config.GetAllScouts())
@@ -665,7 +683,7 @@ namespace HomeOS.Hub.Platform
             }
 
             HomeOS.Shared.Gatekeeper.Settings.HomeId = Settings.HomeId;
-            HomeOS.Shared.Gatekeeper.Settings.ServiceHost = Settings.GatekeeperUri;
+            HomeOS.Shared.Gatekeeper.Settings.ServiceHost = Settings.GatekeeperURI;
 
             homeService = new Gatekeeper.HomeService(logger);
             homeService.Start(null);
@@ -1655,6 +1673,14 @@ namespace HomeOS.Hub.Platform
                         case "help":
                         case "?":
                             PrintInteractiveUsage();
+                            break;
+                        case "starthomeservice":
+                            if (null != this.homeService)
+                                this.homeService.Start(null);
+                            break;
+                        case "stophomeservice" :
+                            if (null != this.homeService)
+                                this.homeService.Stop();
                             break;
                             //***
                         case "loadconfig":
@@ -2780,6 +2806,44 @@ namespace HomeOS.Hub.Platform
 
         }
 
+        private bool GetScoutFromRep(ScoutInfo scoutInfo)
+        {
+            logger.Log("fetching scout "+scoutInfo.Name +" v "+scoutInfo.Version+" from reps");
+            Dictionary<string, bool> repAvailability = AvailableOnRep(scoutInfo);
+            if (!repAvailability.ContainsValue(true))
+            {
+                logger.Log("Can't find " + scoutInfo.DllName + " v" + scoutInfo.Version + " on any rep.");
+                return false;
+            }
+
+            foreach (ScoutInfo runningScoutInfo in runningScouts.Values)
+            {
+                if (runningScoutInfo.DllName.Equals(scoutInfo.DllName))
+                    throw new Exception(String.Format("Attempted to fetch scout, with same binary name scout running. Running: ({0}, v {1}) Fetching: ({2}, v{3})", runningScoutInfo.DllName, runningScoutInfo.Version , scoutInfo.DllName, scoutInfo.Version));
+            }
+
+            try
+            {
+                string baseDir = Constants.ScoutRoot + "\\" + scoutInfo.Name;
+
+                CreateAddInDirectory(Constants.ScoutRoot, scoutInfo.Name);
+                GetAddInZip(repAvailability.FirstOrDefault(x => x.Value == true).Key, baseDir , scoutInfo.DllName + ".zip");
+                UnpackZip(baseDir + "\\" + scoutInfo.DllName + ".zip", baseDir );
+                
+                File.Delete(baseDir + "\\" + scoutInfo.DllName + ".zip");
+
+            }
+            catch (Exception e)
+            {
+                logger.Log("Exception : " + e);
+                return false;
+            }
+            return true; 
+
+
+        }
+
+
         private Dictionary<string,bool> AvailableOnRep(ModuleInfo moduleInfo)
         {
             string[] URIs = Settings.RepositoryURIs.Split('|'); 
@@ -2788,8 +2852,17 @@ namespace HomeOS.Hub.Platform
 
             foreach (string uri in URIs)
             {
-                logger.Log("Checking " + moduleInfo.BinaryName() + " v" + moduleInfo.GetVersion() + "  availability on Rep: " + uri);
-                string zipuri = uri + '/' + path[0] + '/' + path[1] + '/' + path[2] + '/' + path[3] + '/' + moduleInfo.GetVersion() + '/' + moduleInfo.BinaryName() + ".zip";
+                //logger.Log("Checking " + moduleInfo.BinaryName() + " v" + moduleInfo.GetVersion() + "  availability on Rep: " + uri);
+
+                //string zipuri = uri +'/' + path[0] + '/' + path[1] + '/' + path[2] + '/' + path[3] + '/' + moduleInfo.GetVersion() + '/' + moduleInfo.BinaryName() + ".zip";
+
+                string zipuri = uri;
+
+                foreach (string pathElement in path)
+                    zipuri += "/" + pathElement;
+
+                zipuri += '/' + moduleInfo.GetVersion() + '/' + moduleInfo.BinaryName() + ".zip";
+
                 if (UrlIsValid(zipuri))
                 {
                     retval[zipuri]=true;
@@ -2800,14 +2873,42 @@ namespace HomeOS.Hub.Platform
             return retval;
         }
 
+        private Dictionary<string, bool> AvailableOnRep(ScoutInfo scoutInfo)
+        {
+            string[] URIs = Settings.RepositoryURIs.Split('|');
+            String[] path = scoutInfo.DllName.Split('.');
+            Dictionary<string, bool> retval = new Dictionary<string, bool>();
+
+            foreach (string uri in URIs)
+            {
+                //logger.Log("Checking " + scoutInfo.DllName + " v" + scoutInfo.Version+ "  availability on Rep: " + uri);
+                string zipuri = uri;
+
+                foreach (string pathElement in path)
+                    zipuri += "/" + pathElement;
+
+                zipuri += '/' + scoutInfo.Version + '/' + scoutInfo.DllName + ".zip";
+
+                if (UrlIsValid(zipuri))
+                {
+                    retval[zipuri] = true;
+                    return retval;
+                }
+            }
+            retval[""] = false;
+            return retval;
+        }
+
+
         private bool UrlIsValid(string url)
         {
 
             WebResponse response = null;
 
+            bool valid = false;
+
             try
             {
-                bool valid = false;
                 Uri siteUri = new Uri(url);
                 WebRequest request = WebRequest.Create(siteUri);
                 response = request.GetResponse();
@@ -2848,22 +2949,23 @@ namespace HomeOS.Hub.Platform
                 {
                     logger.Log("URI: " + url + " has unhandled type");
                 }
-       
-                response.Close();
-
-                return valid;
             }
+            catch (WebException webEx)
+            {
+                logger.Log("URI: " + url + " is invalid. Got WebException.");
+            }
+            //exception that i don't understand
             catch (Exception e)
             {
-                logger.Log("Exception in checking URI validity ("+url+"): "+ e);
-
+                logger.Log("Exception in checking URI validity (" + url + "): " + e);
+            }
+            finally
+            {
                 if (response != null)
                     response.Close();
-
-                return false;
             }
 
-
+            return valid;
         }
 
 

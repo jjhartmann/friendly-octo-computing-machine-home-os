@@ -7,17 +7,44 @@
 namespace HomeOS.Hub.Platform.Gatekeeper
 {
     using System;
+    using System.IO;
     using System.Net;
     using System.Net.Sockets;
     using HomeOS.Hub.Common;
     using HomeOS.Shared;
     using HomeOS.Hub.Platform.Views;
+    using System.Net.Security;
+    using System.Security.Cryptography.X509Certificates;
+    using System.Security.Authentication;
 
     /// <summary>
     /// Represents a connection to the cloud service.
     /// </summary>
     public class ServiceConnection
     {
+        /// <summary>
+        /// Maintains stream buffer usage state during asynchronous read/writes
+        /// </summary>
+        private class StreamBufferState
+        {
+            public void SetBuffer(Byte[] buf, int offset, int length)
+            {
+                this.Buffer = buf;
+                this.Offset = offset;
+                this.Length = length;
+            }
+
+            public void SetBuffer(int offset, int length)
+            {
+                Offset = offset;
+                Length = length;
+            }
+
+            public byte[] Buffer { get; private set; }
+            public int Offset { get; private set; }
+            public int Length { get; private set; }
+        }
+
         /// <summary>
         /// The version number for our protocol.
         /// </summary>
@@ -29,6 +56,31 @@ namespace HomeOS.Hub.Platform.Gatekeeper
         private Socket socket;
 
         /// <summary>
+        /// Network Stream for this client connection.
+        /// </summary>
+        private NetworkStream netstream;
+
+        /// <summary>
+        /// Keeps the stream buffer state information.
+        /// </summary>
+        private StreamBufferState streamBufState;
+
+        /// <summary>
+        /// Switch to turn secure streams on and off.
+        /// </summary>
+        private bool useSecureStream;
+
+        /// <summary>
+        /// Stream created by SSL of the network stream.
+        /// </summary>
+        private SslStream sslStream;
+
+        /// <summary>
+        /// Server and domain names of the ssl server.
+        /// </summary>
+        private string sslServerHost;
+
+        /// <summary>
         /// The I/O buffer for this connection.
         /// </summary>
         private byte[] buffer;
@@ -38,10 +90,6 @@ namespace HomeOS.Hub.Platform.Gatekeeper
         /// </summary>
         private int bufferOffset;
 
-        /// <summary>
-        /// Arguments for an asychronous socket operation completion event.
-        /// </summary>
-        private SocketAsyncEventArgs eventArgs;
 
         /// <summary>
         /// The version number of the protocol our peer is using.
@@ -74,7 +122,21 @@ namespace HomeOS.Hub.Platform.Gatekeeper
         /// </summary>
         private bool forwarding;
 
-        VLogger logger;
+        public VLogger logger;
+
+
+        public static bool ValidateServerCertificate(
+              object sender,
+              X509Certificate certificate,
+              X509Chain chain,
+              SslPolicyErrors sslPolicyErrors)
+        {
+            if (sslPolicyErrors == SslPolicyErrors.None)
+                return true;
+
+            // Do not allow this client to communicate with unauthenticated servers. 
+            return false;
+        }
 
         /// <summary>
         /// Initializes a new instance of the ServiceConnection class.
@@ -90,15 +152,45 @@ namespace HomeOS.Hub.Platform.Gatekeeper
         /// The handler routine to call upon forwarding a connection.
         /// </param>
         public ServiceConnection(
+            string serverHost,
             Socket connected,
             uint token,
             ForwardingHandler handler, 
             VLogger logger)
         {
+            this.useSecureStream = true;
+
             // -
             // Set up the connection state.
             // -
             this.socket = connected;
+            this.netstream = new NetworkStream(this.socket, false /*ownSocket*/);
+            this.sslServerHost = serverHost;
+            if (this.useSecureStream)
+            {
+                this.sslStream = new SslStream(
+                                    this.netstream,
+                                    false /* leaveInnerStreamOpen */,
+                                    new RemoteCertificateValidationCallback(ValidateServerCertificate),
+                                    null
+                                    );
+                // The server name must match the name on the server certificate. 
+                try
+                {
+                    sslStream.AuthenticateAsClient(this.sslServerHost);
+                }
+                catch (Exception e)
+                {
+                    logger.Log("Exception: {0}", e.Message);
+                    if (e.InnerException != null)
+                    {
+                        logger.Log("Inner exception: {0}", e.InnerException.Message);
+                    }
+                    logger.Log("Authentication failed - closing the connection.");
+                    this.ShutdownAndClose();
+                    return;
+                }
+            }
             this.clientToken = token;
             this.handler = handler;
             this.forwarding = false;
@@ -123,11 +215,9 @@ namespace HomeOS.Hub.Platform.Gatekeeper
             // -
             this.buffer = new byte[1500];
             this.bufferOffset = 0;
-            this.eventArgs = new SocketAsyncEventArgs();
-            this.eventArgs.Completed +=
-                new EventHandler<SocketAsyncEventArgs>(this.IOCompleted);
-            this.eventArgs.SetBuffer(this.buffer, 0, this.buffer.Length);
-            this.eventArgs.UserToken = this;  // Keep GC from collecting us.
+
+            this.streamBufState = new StreamBufferState();
+            this.streamBufState.SetBuffer(this.buffer, 0, this.buffer.Length);
 
             // -
             // Start the dialog with our peer.
@@ -136,6 +226,14 @@ namespace HomeOS.Hub.Platform.Gatekeeper
                 MessageType.Version,
                 ServiceConnection.ProtocolVersion);
             this.SendMessage();
+        }
+
+        public Stream GetStream()
+        {
+            if (this.useSecureStream)
+                return this.sslStream;
+            else
+                return this.netstream;
         }
 
         /// <summary>
@@ -374,11 +472,16 @@ namespace HomeOS.Hub.Platform.Gatekeeper
         /// <param name="count">The number of bytes to send.</param>
         private void SendMessage(int offset, int count)
         {
-            this.eventArgs.SetBuffer(offset, count);
-            bool asynchronous = this.socket.SendAsync(this.eventArgs);
-            if (!asynchronous)
+            IAsyncResult result = null;
+            this.streamBufState.SetBuffer(offset, count);
+            try
             {
-                this.IOCompleted(this, this.eventArgs);
+                result = GetStream().BeginWrite(this.streamBufState.Buffer, this.streamBufState.Offset, this.streamBufState.Length, this.WriteAsyncCallback, null);
+            }
+            catch (Exception e)
+            {
+                this.ShutdownAndClose();
+                return;
             }
         }
 
@@ -401,11 +504,20 @@ namespace HomeOS.Hub.Platform.Gatekeeper
         /// </param>
         private void StartReceive(int offset, int max)
         {
-            this.eventArgs.SetBuffer(offset, max);
-            bool asynchronous = this.socket.ReceiveAsync(this.eventArgs);
-            if (!asynchronous)
+
+            this.streamBufState.SetBuffer(offset, max);
+            IAsyncResult result = null;
+            try
             {
-                this.IOCompleted(this, this.eventArgs);
+                result = GetStream().BeginRead(this.streamBufState.Buffer, this.streamBufState.Offset, this.streamBufState.Length, this.ReadAsyncCallback, null);
+            }
+            catch (Exception)
+            {
+                // -
+                // If something failed, close the connection.
+                // -
+                this.ShutdownAndClose();
+                return;
             }
         }
 
@@ -498,14 +610,14 @@ namespace HomeOS.Hub.Platform.Gatekeeper
                     if (this.clientToken == 0)
                     {
 #if DEBUG
-                    //    logger.Log("  Sending RegisterService message");
+                        //    logger.Log("  Sending RegisterService message");
 #endif
                         this.AppendMessage(MessageType.RegisterService);
                     }
                     else
                     {
 #if DEBUG
-                    //    logger.Log("  Sending ForwardToClient message");
+                        //    logger.Log("  Sending ForwardToClient message");
 #endif
                         this.AppendMessage(
                             MessageType.ForwardToClient,
@@ -545,6 +657,7 @@ namespace HomeOS.Hub.Platform.Gatekeeper
                     Socket socket = StaticUtilities.CreateConnectedSocket(
                         this.socket.RemoteEndPoint);
                     ServiceConnection client = new ServiceConnection(
+                        this.sslServerHost,
                         socket,
                         clientToken,
                         this.handler, this.logger);
@@ -562,13 +675,16 @@ namespace HomeOS.Hub.Platform.Gatekeeper
         }
 
         /// <summary>
-        /// Handler for the Completed event of an asynchronous socket operation.
+        /// Handler for the callback for the asynchronous Stream Write operation.
         /// </summary>
-        /// <param name="sender">The sender of this event.</param>
-        /// <param name="ea">Arguments pertaining to this event.</param>
-        private void IOCompleted(object sender, SocketAsyncEventArgs ea)
+        /// <param name="result"></param>
+        private void WriteAsyncCallback(IAsyncResult result)
         {
-            if (ea.SocketError != SocketError.Success)
+            try
+            {
+                GetStream().EndWrite(result);
+            }
+            catch (Exception)
             {
                 // -
                 // If something failed, close the connection.
@@ -577,173 +693,175 @@ namespace HomeOS.Hub.Platform.Gatekeeper
                 return;
             }
 
-            if (ea.LastOperation == SocketAsyncOperation.Send)
+            if (this.forwarding)
             {
                 // -
-                // Send completed.
+                // Switch out of this protocol and into forwarding mode.
                 // -
-                int outstanding = ea.Count - ea.BytesTransferred;
-                if (outstanding > 0)
+                if (!this.handler(this))
                 {
-                    // -
-                    // Still have data to send.
-                    // -
-                    this.SendMessage(
-                        ea.Offset + ea.BytesTransferred,
-                        outstanding);
-                    return;
-                }
-
-                if (this.forwarding)
-                {
-                    // -
-                    // Switch out of this protocol and into forwarding mode.
-                    // -
-                    if (!this.handler(this))
-                    {
-                        this.ShutdownAndClose();
-                    }
-
-                    return;
-                }
-
-                // -
-                // Switch to receive mode.
-                // -
-                this.bufferOffset = 0;
-                this.StartReceive(0, this.buffer.Length);
-            }
-            else
-            {
-                // -
-                // Receive completed.
-                // -
-                if (ea.BytesTransferred == 0)
-                {
-                    // -
-                    // Our peer closed the connection.  Reciprocate.
-                    // -
                     this.ShutdownAndClose();
-                    return;
                 }
 
-                // -
-                // We have three cases to deal with at this point:
-                //  1. We have a complete message from our peer.
-                //  2. We have a partial message,
-                //     (a) and our receive buffer is full.
-                //     (b) and still have room in our receive buffer.
-                // -
-                int have = ea.Offset + ea.BytesTransferred - this.bufferOffset;
-                int parsePoint = this.bufferOffset;
-                while (have != 0)
-                {
-                    MessageType type;
-                    byte length;
+                return;
+            }
 
+            // -
+            // Switch to receive mode.
+            // -
+            this.bufferOffset = 0;
+            this.StartReceive(0, this.buffer.Length);
+        }
+
+        /// <summary>
+        /// Handler for the callback for the asynchronous Stream Read operation. 
+        /// </summary>
+        /// <param name="sender">The sender of this event.</param>
+        /// <param name="ea">Arguments pertaining to this event.</param>
+        private void ReadAsyncCallback(IAsyncResult result)
+        {
+            int BytesTransferred = 0;
+            try
+            {
+                BytesTransferred = GetStream().EndRead(result);
+            }
+            catch (Exception e)
+            {
+                // -
+                // If something failed, close the connection.
+                // -
+                this.ShutdownAndClose();
+                return;
+            }
+
+            // -
+            // Receive completed.
+            // -
+            if (BytesTransferred == 0)
+            {
+                // -
+                // Our peer closed the connection.  Reciprocate.
+                // -
+                this.ShutdownAndClose();
+                return;
+            }
+
+            // -
+            // We have three cases to deal with at this point:
+            //  1. We have a complete message from our peer.
+            //  2. We have a partial message,
+            //     (a) and our receive buffer is full.
+            //     (b) and still have room in our receive buffer.
+            // -
+            int have = this.streamBufState.Offset + BytesTransferred - this.bufferOffset;
+            int parsePoint = this.bufferOffset;
+            while (have != 0)
+            {
+                MessageType type;
+                byte length;
+
+                // -
+                // Check for special-case of a Pad1 message.
+                // -
+                type = (MessageType)this.buffer[parsePoint++];
+                have--;
+                if (type == MessageType.Pad1)
+                {
+                    this.bufferOffset = parsePoint;
+                    continue;
+                }
+
+                if (have > 0)
+                {
                     // -
-                    // Check for special-case of a Pad1 message.
+                    // We could potentially have a complete message.
                     // -
-                    type = (MessageType)this.buffer[parsePoint++];
+                    length = this.buffer[parsePoint++];
                     have--;
-                    if (type == MessageType.Pad1)
+                    if (have >= length)
                     {
+                        // -
+                        // We have a complete message (as self-described).
+                        // -
+                        ArraySegment<byte> data;
+                        if (length == 0)
+                        {
+                            data = new ArraySegment<byte>(this.buffer, 0, 0);
+                        }
+                        else
+                        {
+                            data = new ArraySegment<byte>(
+                                this.buffer,
+                                parsePoint,
+                                length);
+                            parsePoint += length;
+                            have -= length;
+                        }
+
+                        if (this.HandleMessage(type, data))
+                        {
+                            // -
+                            // We've switched out of receive mode.
+                            // Note: If 'have' is non-zero at this point,
+                            // our peer has violated the protocol.
+                            // -
+                            if (have != 0)
+                            {
+                                this.ShutdownAndClose();
+                            }
+
+                            return;
+                        }
+
+                        // -
+                        // Still in receive mode, but handled a message.
+                        // -
                         this.bufferOffset = parsePoint;
                         continue;
                     }
+                }
 
-                    if (have > 0)
-                    {
-                        // -
-                        // We could potentially have a complete message.
-                        // -
-                        length = this.buffer[parsePoint++];
-                        have--;
-                        if (have >= length)
-                        {
-                            // -
-                            // We have a complete message (as self-described).
-                            // -
-                            ArraySegment<byte> data;
-                            if (length == 0)
-                            {
-                                data = new ArraySegment<byte>(this.buffer, 0, 0);
-                            }
-                            else
-                            {
-                                data = new ArraySegment<byte>(
-                                    this.buffer,
-                                    parsePoint,
-                                    length);
-                                parsePoint += length;
-                                have -= length;
-                            }
-
-                            if (this.HandleMessage(type, data))
-                            {
-                                // -
-                                // We've switched out of receive mode.
-                                // Note: If 'have' is non-zero at this point,
-                                // our peer has violated the protocol.
-                                // -
-                                if (have != 0)
-                                {
-                                    this.ShutdownAndClose();
-                                }
-
-                                return;
-                            }
-
-                            // -
-                            // Still in receive mode, but handled a message.
-                            // -
-                            this.bufferOffset = parsePoint;
-                            continue;
-                        }
-                    }
-
+                // -
+                // We have a partial message.
+                // -
+                if (this.streamBufState.Length == BytesTransferred)
+                {
                     // -
-                    // We have a partial message.
+                    // Our receive buffer is full.  Shift the start of
+                    // the current partial message down to the zero index.
                     // -
-                    if (ea.Count == ea.BytesTransferred)
-                    {
-                        // -
-                        // Our receive buffer is full.  Shift the start of
-                        // the current partial message down to the zero index.
-                        // -
-                        int partialLength = this.buffer.Length
-                            - this.bufferOffset;
-                        Array.Copy(
-                            this.buffer,
-                            this.bufferOffset,
-                            this.buffer,
-                            0,
-                            partialLength);
+                    int partialLength = this.buffer.Length
+                        - this.bufferOffset;
+                    Array.Copy(
+                        this.buffer,
+                        this.bufferOffset,
+                        this.buffer,
+                        0,
+                        partialLength);
 
-                        this.bufferOffset = 0;
-                        this.StartReceive(
-                            partialLength,
-                            this.buffer.Length - partialLength);
-                        return;
-                    }
-
-                    // -
-                    // Start another receive to fill in the buffer from where
-                    // the last one left off.
-                    // -
+                    this.bufferOffset = 0;
                     this.StartReceive(
-                        ea.Offset + ea.BytesTransferred,
-                        ea.Count - ea.BytesTransferred);
+                        partialLength,
+                        this.buffer.Length - partialLength);
                     return;
                 }
 
                 // -
-                // We had an integral number of messages (no partial messages).
-                // We're expecting another message, so restart receive.
+                // Start another receive to fill in the buffer from where
+                // the last one left off.
                 // -
-                this.bufferOffset = 0;
-                this.StartReceive(0, this.buffer.Length);
+                this.StartReceive(
+                    this.streamBufState.Offset + BytesTransferred,
+                    this.streamBufState.Length - BytesTransferred);
+                return;
             }
+
+            // -
+            // We had an integral number of messages (no partial messages).
+            // We're expecting another message, so restart receive.
+            // -
+            this.bufferOffset = 0;
+            this.StartReceive(0, this.buffer.Length);
         }
 
         /// <summary>

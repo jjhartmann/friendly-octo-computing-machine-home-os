@@ -25,6 +25,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CustomPath>..\..</CustomPath>
     <DocumentationFile>
     </DocumentationFile>
   </PropertyGroup>
@@ -36,8 +37,31 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CustomPath>..\..</CustomPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TeamBuildOutDir) != '' ">
+    <OutputPath>$(TeamBuildOutDir)\$(SolutionName)\output\binaries\Pipeline\AddIns\HomeOS.Hub.Apps.SmartCam\</OutputPath>
+    <CustomPath>$(TeamBuildOutDir)\$(SolutionName)</CustomPath>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HomeOS.Hub.Apps.SmartCam.SmartRecorder, Version=1.0.5010.19983, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(CustomPath)\output\binaries\Pipeline\AddIns\HomeOS.Hub.Apps.SmartCam\HomeOS.Hub.Apps.SmartCam.SmartRecorder.dll</HintPath>
+    </Reference>
+    <Reference Include="HomeOS.Hub.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>True</SpecificVersion>
+      <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Common.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="HomeOS.Hub.Platform.Views">
+      <HintPath>$(CustomPath)\output\binaries\Pipeline\AddInViews\HomeOS.Hub.Platform.Views.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="HomeOS.Shared, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>True</SpecificVersion>
+      <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Shared.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
     <Reference Include="System.AddIn" />
@@ -59,25 +83,6 @@
     <Compile Include="AppSmartCam.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SmartCamSvc.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Shared\Shared.csproj">
-      <Project>{10571a55-2270-4a83-9b56-28c186bac59d}</Project>
-      <Name>Shared</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Common\Common.csproj">
-      <Project>{6f879b8b-c4b1-4e8d-9bf2-c6376b05e4ec}</Project>
-      <Name>Common %28Common\Common%29</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Platform\View\Views.csproj">
-      <Project>{71272f38-fc7d-4170-8411-51e27200c791}</Project>
-      <Name>Views</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="SmartRecorder\SmartRecorder.vcxproj">
-      <Project>{239ca191-4a9b-4c7d-bc61-d1b82cd678d5}</Project>
-      <Name>SmartRecorder</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\backButton.png">

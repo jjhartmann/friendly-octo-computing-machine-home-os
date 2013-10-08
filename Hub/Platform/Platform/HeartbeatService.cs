@@ -34,7 +34,7 @@ namespace HomeOS.Hub.Platform
             this.sequenceNumber = 0;
             try
             {
-                this.uri = new Uri("http://" + GetHeartbeatServiceHostString() + ":" + Constants.HeartbeatServicePort + "/" +
+                this.uri = new Uri("https://" + GetHeartbeatServiceHostString() + ":" + Constants.HeartbeatServiceSecurePort + "/" +
                                    Constants.HeartbeatServiceWcfListenerEndPointUrlSuffix);
                 this.heartbeatIntervalMins = Settings.HeartbeatIntervalMins;
                 if (this.heartbeatIntervalMins < Constants.MinHeartbeatIntervalInMins)
@@ -57,9 +57,6 @@ namespace HomeOS.Hub.Platform
             string retString;
             switch(HomeOS.Hub.Platform.Settings.HeartbeatServiceMode)
             {
-                case "Emulation":
-                    retString = Constants.HeartbeatServiceEmulationHost;
-                        break;
                 case "Production":
                     retString = Settings.HeartbeatServiceHost;
                     break;
@@ -131,6 +128,7 @@ namespace HomeOS.Hub.Platform
                     webClient.UploadStringCompleted += webClient_UploadHeartbeatInfoCompleted;
                     webClient.Headers["Content-type"] = "application/json";
                     webClient.Encoding = Encoding.UTF8;
+                    webClient.UseDefaultCredentials = true;
                     webClient.UploadStringAsync(new Uri(this.uri.OriginalString + "/SetHeartbeatInfo"), "POST", jsonString, jsonString);
                 }
             }

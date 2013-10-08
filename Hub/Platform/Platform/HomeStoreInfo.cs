@@ -21,6 +21,8 @@ namespace HomeOS.Hub.Platform
 
         public HomeStoreDb(VLogger logger)
         {
+            this.logger = logger;
+
             xmlReaderSettings.IgnoreComments = true;
         }
 

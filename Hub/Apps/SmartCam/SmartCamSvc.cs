@@ -186,6 +186,96 @@ namespace HomeOS.Hub.Apps.SmartCam
             }
         }
 
+
+        /// <summary>
+        /// Sets (or turns off) Motion triggered recording for a camera
+        /// </summary>
+        /// <param name="cameraFriendlyName"></param>
+        /// <param name="enable"></param>
+        public List<string> EnableMotionTrigger(string cameraFriendlyName, bool enable)
+        {
+            try
+            {
+
+                smartCam.EnableMotionTrigger(cameraFriendlyName, enable);
+                return new List<string>() { "" };
+            }
+            catch (Exception e)
+            {
+                logger.Log("Exception in SmartCam:EnableMotionTrigger for {0}: {1}", cameraFriendlyName, e.ToString());
+                return new List<string>() { "Got exception: " + e.Message };
+            }
+        }
+
+
+        /// <summary>
+        /// Returns whether motion triggered recording is enabled
+        /// </summary>
+        /// <param name="cameraFriendlyName"></param>
+        /// <returns></returns>
+        public List<string> IsMotionTriggerEnabled(string cameraFriendlyName)
+        {
+            try
+            {
+                bool result = smartCam.IsMotionTriggerEnabled(cameraFriendlyName);
+                List<string> retList = new List<string>() { "" , result.ToString() };
+                return retList;
+
+                
+            }
+            catch (Exception e)
+            {
+                logger.Log("Exception in SmartCam:IsMotionTriggerEnabled for {0}: {1}", cameraFriendlyName, e.ToString());
+                return new List<string>() { "Got exception: " + e.Message };
+
+            }
+        }
+
+
+        /// <summary>
+        /// Sets (or turns off) Motion triggered recording for a camera
+        /// </summary>
+        /// <param name="cameraFriendlyName"></param>
+        /// <param name="enable"></param>
+        public List<string> EnableVideoUpload(string cameraFriendlyName, bool enable)
+        {
+            try
+            {
+
+                smartCam.EnableVideoUpload(cameraFriendlyName, enable);
+                return new List<string>() { "" };
+            }
+            catch (Exception e)
+            {
+                logger.Log("Exception in SmartCam:EnableMotionTrigger for {0}: {1}", cameraFriendlyName, e.ToString());
+                return new List<string>() { "Got exception: " + e.Message };
+            }
+        }
+
+
+        /// <summary>
+        /// Returns whether motion triggered recording is enabled
+        /// </summary>
+        /// <param name="cameraFriendlyName"></param>
+        /// <returns></returns>
+        public List<string> IsVideoUploadEnabled(string cameraFriendlyName)
+        {
+            try
+            {
+                bool result = smartCam.IsVideoUploadEnabled(cameraFriendlyName);
+                List<string> retList = new List<string>() { "", result.ToString() };
+                return retList;
+
+
+            }
+            catch (Exception e)
+            {
+                logger.Log("Exception in SmartCam:IsVideoUploadEnabled for {0}: {1}", cameraFriendlyName, e.ToString());
+                return new List<string>() { "Got exception: " + e.Message };
+
+            }
+        }
+
     }
 
 
@@ -214,19 +304,23 @@ namespace HomeOS.Hub.Apps.SmartCam
 
         //[OperationContract]
         //[WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json)]
-        //List<string> StopRecording(string cameraFriendlyName);
-
-        //[OperationContract]
-        //[WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json)]
         //void RecordVideo(string cameraFriendlyName, bool enable);
 
-        //[OperationContract]
-        //[WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json)]
-        //void EnableMotionTrigger(string cameraFriendlyName, bool enable);
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json)]
+        List<string> EnableMotionTrigger(string cameraFriendlyName, bool enable);
 
-        //[OperationContract]
-        //[WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json)]
-        //bool IsMotionedTriggerEnabled(string cameraFriendlyName);
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json)]
+        List<string> IsMotionTriggerEnabled(string cameraFriendlyName);
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json)]
+        List<string> EnableVideoUpload(string cameraFriendlyName, bool enable);
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json)]
+        List<string> IsVideoUploadEnabled(string cameraFriendlyName);
 
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json)]

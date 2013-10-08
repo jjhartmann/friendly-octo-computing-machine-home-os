@@ -189,7 +189,7 @@ namespace HomeOS.Hub.Scouts.Foscam
         }
         private static string GetUniqueName(string macaddr)
         {
-            return "macaddr:" + macaddr;
+            return "foscam:" + macaddr;
         }
 
         private string GetHttpResponseStr(HttpWebResponse webResponse)

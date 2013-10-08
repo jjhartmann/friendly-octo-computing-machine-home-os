@@ -215,8 +215,14 @@ namespace HomeOS.Hub.Platform
 
                 string scoutName = xmlDevice.GetAttribute("Name");
                 string driverBinaryName = xmlDevice.GetAttribute("DllName");
+                string version = xmlDevice.GetAttribute("Version");
+                driverBinaryName = driverBinaryName.Replace(".dll", "");
+                
 
                 ScoutInfo sInfo = new ScoutInfo(scoutName, driverBinaryName);
+
+                if (!String.IsNullOrEmpty(version))
+                    sInfo.setVersion(version);
 
                 allScouts.Add(scoutName, sInfo);
             }

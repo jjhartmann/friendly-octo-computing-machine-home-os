@@ -60,10 +60,12 @@
     <ProjectReference Include="..\..\Common\Common.csproj">
       <Project>{6f879b8b-c4b1-4e8d-9bf2-c6376b05e4ec}</Project>
       <Name>Common %28Common\Common%29</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\View\Views.csproj">
       <Project>{71272f38-fc7d-4170-8411-51e27200c791}</Project>
       <Name>Views</Name>
+      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

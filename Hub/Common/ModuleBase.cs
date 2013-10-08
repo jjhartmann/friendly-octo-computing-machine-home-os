@@ -493,7 +493,6 @@ namespace HomeOS.Hub.Common
         {
             get { return defaultPortCapabilities[ControlPort]; }
         }
-
         protected IStream CreateFileStream<KeyType, ValType>(string streamId, bool remoteSync)
         {
             CallerInfo ci = new CallerInfo(this.moduleInfo.WorkingDir(), this.moduleInfo.FriendlyName(), this.moduleInfo.AppName(), this.Secret());

@@ -118,6 +118,7 @@
     <ProjectReference Include="..\..\Common\Common.csproj">
       <Project>{6F879B8B-C4B1-4E8D-9BF2-C6376B05E4EC}</Project>
       <Name>Common %28Common\Common%29</Name>
+      <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Common\DataStore\DataStore.csproj">
       <Project>{b7def861-d0e5-47ce-aeb7-2e9b6091b52f}</Project>

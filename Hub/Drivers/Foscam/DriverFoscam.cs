@@ -6,6 +6,7 @@ using System.Threading;
 using System.Net;
 using System.AddIn;
 using HomeOS.Hub.Common;
+
 using HomeOS.Hub.Platform.Views;
 
 namespace HomeOS.Hub.Drivers.Foscam

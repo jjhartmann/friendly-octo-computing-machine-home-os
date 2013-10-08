@@ -166,7 +166,7 @@ function PlatformServiceHelper() {
 
     this.SucceededServiceCallback = function (context, result) {
         if (null != context) {
-            UpdateDebugInfo(context, "succeeded: " + context.DataType + " URL: " + context.Url + " Data: " + context.Data);
+            UpdateDebugInfo(context, "succeeded: " + context.DataType + " URL: " + context.Url + " Data: " + context.Data + " Result: " +result);
         }
         if (context != null && context.DataType == "json" && result != null && context.Callback != null) {
             context.Callback(context, result);

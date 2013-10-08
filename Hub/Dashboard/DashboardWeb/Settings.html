@@ -10,14 +10,18 @@
     <script>
 
         var HOMEID;
+        var ORGID;
+        var DATASTOREACCOUNTNAME;
         var DEFAULTEMAIL;
         //Load  1. HomeID, 2. RemoteAccessURL  3. Apps  4. Devices
         
         $(document).ready(
             function () {
                 //Ask dashboard for all the information we need to display
-                new PlatformServiceHelper().MakeServiceCall("webapp/GetConfSettingWeb", '{"confKey":"HomeId"}', GetSettingsHomeIDCallback);
-                new PlatformServiceHelper().MakeServiceCall("webapp/GetConfSettingWeb", '{"confKey":"NotificationEmail"}', GetSettingsEmailCallback);
+                new PlatformServiceHelper().MakeServiceCall("webapp/GetConfSettingWeb", '{"confKey":"HomeId"}', GetSettingsCallback);
+                new PlatformServiceHelper().MakeServiceCall("webapp/GetConfSettingWeb", '{"confKey":"DataStoreAccountName"}', GetSettingsCallback);
+                new PlatformServiceHelper().MakeServiceCall("webapp/GetConfSettingWeb", '{"confKey":"OrgId"}', GetSettingsCallback);
+                new PlatformServiceHelper().MakeServiceCall("webapp/GetConfSettingWeb", '{"confKey":"NotificationEmail"}', GetSettingsCallback);
                 new PlatformServiceHelper().MakeServiceCall("webapp/GetRemoteAccessUrlWeb", "", GetSettingsRemoteAccessUrlWebCallback);
                 new PlatformServiceHelper().MakeServiceCall("webapp/GetInstalledAppsWeb", "", GetAppsCallback);
                 new PlatformServiceHelper().MakeServiceCall("webapp/GetConfiguredDevicesWeb", "", GetConfiguredDevicesCallback);
@@ -27,27 +31,40 @@
             }
          );
       
-        function GetSettingsHomeIDCallback(context, result) {
+        function GetSettingsCallback(context, result) {
             if (result[0] == "") {
-                HOMEID = result[1];
-                $("#homeIDSetting").html("Home ID: " + HOMEID);
+                //figure out which setting it is    
+                var dataAsObject = JSON.parse(context.Data);
+                var confKey = dataAsObject.confKey;
+
+                switch (confKey) {
+                    case "HomeId":
+                        HOMEID = result[1];
+                        $("#homeIDSetting").html("Home ID: " + HOMEID);
+                        break;
+                    case "DataStoreAccountName":
+                        DATASTOREACCOUNTNAME = result[1];
+                        $("#datastoreAccountNameSetting").html("Datastore Account Name: " + DATASTOREACCOUNTNAME);
+                        break;
+                    case "OrgId":
+                        $("#editOrgId").hide();
+                        ORGID = result[1];
+                        $("#orgIDSetting").html("Org ID: " + ORGID  + '<button class="btn" onclick="ShowEditButton(' + "'OrgId'" +')">Edit</button>');
+                        break;
+                    case "NotificationEmail":
+                        $("#editEmail").hide();
+                        DEFAULTEMAIL = result[1];
+                        $("#defaultEmail").html("Email: " + DEFAULTEMAIL + '<button class="btn" onclick="ShowEditButton(' + "'NotificationEmail'" + ')">Edit</button>');
+                        break;
+
+                }
             }
             else {
                 DisplayDebugging("GetHomeIDCallback:" + result[0]);
             }
         }
 
-        function GetSettingsEmailCallback(context, result) {
-            $("#editEmail").hide();
-            if (result[0] == "") {
-                DEFAULTEMAIL = result[1];
-                $("#defaultEmail").html("Email: " + DEFAULTEMAIL + '<button class="btn" onclick="ShowEmailEdit()">Edit</button>' );
-            }
-            else {
-                DisplayDebugging("GetDefaultEmailCallback:" + result[0]);
-            }
-        }
-
+       
         function GetSettingsRemoteAccessUrlWebCallback(context, result) {
             if (result[0] == "") {
                 $("#urlInfo").html("URL for remote access: <a href='" + result[1] + "' target='_blank'>" + result[1] + "</a>");
@@ -213,23 +230,49 @@
             }
         }
 
+        function ShowEditButton(confKey) {
+            
+            switch (confKey) {
 
-        function ShowEmailEdit() {
-            $("#editEmail").show();
+                case "OrgId":
+                    $("#editOrgId").show();
+                    break;
+
+                case "NotificationEmail":
+                    $("#editEmail").show();
+                    break;
+            }
+
         }
+
 
         function SetNewEmail() {
             var emailAddr = $('#newEmail').val();
             new PlatformServiceHelper().MakeServiceCall("webapp/SetNotificationEmailWeb", '{"emailAddress": "' + emailAddr + '"}', EmailCallback);
         }
 
-        function EmailCallback(context, result) {         
-            if (result[0] == "") {
+        function EmailCallback(context, result) {
+
+             if (result[0] == "") {
                 $("#status").show();
                 $("#status").html("Email reset was successful");  
-                new PlatformServiceHelper().MakeServiceCall("webapp/GetConfSettingWeb", '{"confKey":"NotificationEmail"}', GetSettingsEmailCallback);
+                new PlatformServiceHelper().MakeServiceCall("webapp/GetConfSettingWeb", '{"confKey":"NotificationEmail"}', GetSettingsCallback);
             }
         }
+
+        function SetOrgId() {
+            ORGID = $('#newOrgID').val();
+            new PlatformServiceHelper().MakeServiceCall("webapp/SetOrgIdWeb", '{"orgId": "' + ORGID + '"}', OrgIdCallback);
+        }
+
+        function OrgIdCallback(context, result) {
+            if (result[0] == "") {
+                $("#status").show();
+                $("#status").html("OrgId reset was successful");
+                new PlatformServiceHelper().MakeServiceCall("webapp/GetConfSettingWeb", '{"confKey":"OrgId"}', GetSettingsCallback);
+            }
+        }
+
 
         function GetAllUsersCallback(context, result) {
             $("#status").hide();
@@ -281,6 +324,9 @@
             </div>
   
          <div  class="settings_listitem" id="homeIDSetting"> </div>
+         <div  class="settings_listitem" id="orgIDSetting"> </div>
+         <div class="settings_listitem" id="editOrgId" style="display:none">New Org ID: <input type="text" id="newOrgID"/><button class="btn" onclick="SetOrgId()">Set</button></div>
+          <div  class="settings_listitem" id="datastoreAccountNameSetting"> </div>
 
          <div class="settings_listitem" id="urlInfo">  </div>
 

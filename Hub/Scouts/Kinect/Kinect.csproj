@@ -34,6 +34,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HomeOS.Hub.Common">
+      <HintPath>..\..\output\binaries\Platform\HomeOS.Hub.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="HomeOS.Hub.Platform.DeviceScout">
+      <HintPath>..\..\output\binaries\Platform\HomeOS.Hub.Platform.DeviceScout.dll</HintPath>
+    </Reference>
+    <Reference Include="HomeOS.Hub.Platform.Views">
+      <HintPath>..\..\output\binaries\Platform\HomeOS.Hub.Platform.Views.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Kinect, Version=1.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -49,21 +58,6 @@
     <Compile Include="IKinectScout.cs" />
     <Compile Include="KinectScout.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Common\Common.csproj">
-      <Project>{6f879b8b-c4b1-4e8d-9bf2-c6376b05e4ec}</Project>
-      <Name>Common %28Common\Common%29</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Platform\DeviceScout\DeviceScout.csproj">
-      <Project>{74363882-6ecc-40f5-a7e7-139dd95b52d3}</Project>
-      <Name>DeviceScout</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Platform\View\Views.csproj">
-      <Project>{71272f38-fc7d-4170-8411-51e27200c791}</Project>
-      <Name>Views</Name>
-      <Private>False</Private>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="index.html">

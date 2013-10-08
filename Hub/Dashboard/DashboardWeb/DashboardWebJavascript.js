@@ -43,7 +43,9 @@ function GetHomeIDCallback(context, result) {
     if (result[0] == "") {
         HOMEID = result[1];
         //Check if our URL doesn't already include our home id
-        if ((window.location.href.indexOf(HOMEID) == -1)) {
+        var hrefToLower = window.location.href.toLowerCase();
+        var HOMEID_toLower = HOMEID.toLowerCase();
+        if (hrefToLower.indexOf(HOMEID_toLower) == -1) {
             //We aren't at HomeID url - go there now.
             var url = "../" + HOMEID + "/GuiWeb/index.html"
             GoToHTMLPage(url);
@@ -94,7 +96,9 @@ function getFullURL(relurl) {
 
     //relurl has this format: "../"+ aName  + "/index.html"; 
     var appURL = relurl.substring(3);  //get rid of "../"
-    var endIdx = window.location.href.indexOf("GuiWeb");
+    var hrefToLower = window.location.href.toLowerCase();
+    var endIdx = hrefToLower.indexOf("guiweb");
+
     var fullURL = "";
    
     if (endIdx != -1) { 

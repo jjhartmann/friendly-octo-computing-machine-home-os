@@ -8,6 +8,8 @@ using System.Net.Sockets;
 using System.Net.NetworkInformation;
 using HomeOS.Hub.Common;
 using HomeOS.Hub.Platform.Views;
+using System.Timers;
+using UPNPLib;
 
 namespace HomeOS.Hub.Platform.DeviceScout
 {
@@ -15,6 +17,81 @@ namespace HomeOS.Hub.Platform.DeviceScout
     {
         public const int DefaultDeviceDiscoveryPeriodSec = 30;
         public const int DefaultNumPeriodsToForgetDevice = 5;
+
+        static Timer upnpScanTimer;
+
+        //variables to ensure that we only have one instance of ScoutHelper running
+        private static object instance = null;
+
+        private static object lockObject = new object();
+
+        private static List<UPnPDevice> upnpDevices = new List<UPnPDevice>();
+
+        private static VLogger logger;
+
+        public static void Init(VLogger loggerObject)
+        {
+            lock (lockObject)
+            {
+                if (instance != null)
+                    loggerObject.Log("Duplicate Init called on ScoutHelper");
+
+                instance = new object();
+            }
+
+            logger = loggerObject;
+
+            //create a time that fires ScanNow() periodically
+            upnpScanTimer = new Timer(ScoutHelper.DefaultDeviceDiscoveryPeriodSec * 1000);
+            //upnpScanTimer = new Timer(1 * 1000);  // for debugging
+            upnpScanTimer.Enabled = true;
+            upnpScanTimer.Elapsed += new ElapsedEventHandler(UpnpScan);
+        }
+
+        private static void UpnpScan(object source, ElapsedEventArgs e)
+        {
+            //lets stop the timer while we do our work
+            upnpScanTimer.Enabled = false;
+
+            var finder = new UPnPDeviceFinder();
+            var devices = finder.FindByType("upnp:rootdevice", 0);
+
+            lock (lockObject)
+            {
+                upnpDevices.Clear();
+
+                foreach (UPnPDevice device in devices)
+                {
+                    upnpDevices.Add(device);
+
+                    logger.Log("UPnPDevice: model={0} present={1} type={2} sn={3} upc={4} udn={5}", device.ModelURL, device.PresentationURL, device.Type, device.SerialNumber, device.UPC, device.UniqueDeviceName);
+                }
+            }
+
+           //lets re-start the timer now
+           upnpScanTimer.Enabled = true;
+        }
+
+        /// <summary>
+        /// Returns the upnp devices that were discovered in the last scan
+        /// We return as UPnpDevice[] because .net does not let us pass List<UPnPDevice>
+        /// </summary>
+        public static UPnPDevice[] UpnpGetDevices()
+        {
+           UPnPDevice[] retList = null;
+
+            lock (lockObject)
+            {
+                retList = new UPnPDevice[upnpDevices.Count];
+
+                for(int index = 0; index < upnpDevices.Count; index++)
+                {
+                    retList[index] = upnpDevices[index];
+                }
+            }
+
+            return retList;
+        }
 
         public static bool BroadcastRequest(byte[] request, int portNumber, VLogger logger)
         {

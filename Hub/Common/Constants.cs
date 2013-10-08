@@ -55,8 +55,8 @@ namespace HomeOS.Hub.Common
 
 
         // ..... constants related to LiveId based authentication
-        public static readonly string LiveIdappId = "000000004C0E8F4B";
-        public static readonly string LiveIdappsecret = "CbFws4saqV1AWQxwpnOF8oonCJpRZseu";
+        public static readonly string LiveIdappId = "000000004C0FF8E2";
+        public static readonly string LiveIdappsecret = "yVADO63r9bEqhjClpMTOTUM11ko0Msoh";
         public static readonly string LiveIdsecurityAlgorithm = "wsignin1.0";
         public static readonly string LiveIdpolicyURL = "http://foo";// these URLs are embedded in the encrypted live ID token 
         public static readonly string LiveIdreturnURL = "http://foo";// but we are not using these right now

@@ -22,11 +22,7 @@ namespace HomeOS.Hub.Common
             this.name = name;
         }
 
-        public ParamType(SimpleType maint, Object value)
-        {
-            this.maintype = maint;
-            this.value = value;
-        }
+        public ParamType(SimpleType maint, Object value) : this(maint, "", value) { }
 
         public ParamType(int value) : this (SimpleType.integer, value)  { }
 

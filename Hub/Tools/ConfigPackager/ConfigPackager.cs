@@ -21,8 +21,9 @@ namespace ConfigPackager
         private const string setdesired = "setdesired";
 
         // version file names
-        private const string currentVersionFileName = ".currentversion";
-        private const string parentVersionFileName = ".parentversion"; 
+        private const string CurrentVersionFileName = ".currentversion";
+        private const string ParentVersionFileName = ".parentversion";
+        private const string VersionDefinitionFileName = ".versiondef"; 
 
         // paths for storage on the blob store
         private const string actualConfigFilePathInHubFolder = "/config/actual/";
@@ -151,20 +152,20 @@ namespace ConfigPackager
 
             // copy current version from actual onto that of desired
 
-            if (File.Exists(zipPath_actual + currentVersionFileName))
+            if (File.Exists(zipPath_actual + CurrentVersionFileName))
             {
-                Console.WriteLine("Copying {0} to {1} ", zipPath_actual + currentVersionFileName, zipPath_desired + parentVersionFileName);
-                CopyFile(zipPath_actual + currentVersionFileName, zipPath_desired + parentVersionFileName);
+                Console.WriteLine("Copying {0} to {1} ", zipPath_actual + CurrentVersionFileName, zipPath_desired + ParentVersionFileName);
+                CopyFile(zipPath_actual + CurrentVersionFileName, zipPath_desired + ParentVersionFileName);
             }
             else
             {
-               Console.WriteLine("Writing version of config in {0} to {1} ",zipPath_actual,  zipPath_desired + parentVersionFileName);
-               UpdateVersionFile( GetConfigVersion(zipPath_actual), zipPath_desired+parentVersionFileName);
+               Console.WriteLine("Writing version of config in {0} to {1} ",zipPath_actual,  zipPath_desired + ParentVersionFileName);
+               UpdateVersionFile( GetConfigVersion(zipPath_actual), zipPath_desired+ParentVersionFileName);
             }
 
-            Console.WriteLine("Writing version of config in {0} to {1} ", zipPath_desired, zipPath_desired + currentVersionFileName);
+            Console.WriteLine("Writing version of config in {0} to {1} ", zipPath_desired, zipPath_desired + CurrentVersionFileName);
             Dictionary<string, string> currentVersion_desired = GetConfigVersion(zipPath_desired);
-            UpdateVersionFile(currentVersion_desired, zipPath_desired + currentVersionFileName);
+            UpdateVersionFile(currentVersion_desired, zipPath_desired + CurrentVersionFileName);
 
             File.Delete(desiredConfigDir + "/" + desiredConfigFileName);
             PackZip(zipPath_desired, desiredConfigDir + "/" + desiredConfigFileName);
@@ -753,6 +754,19 @@ namespace ConfigPackager
         private static Dictionary<string, string> GetConfigVersion(string configDir)
         {
             Dictionary<string, string> retVal = new Dictionary<string, string>();
+            List<string> configFilesToHash = GetFileNamesInVersionDef(configDir);
+
+            foreach (string name in configFilesToHash)
+            {
+                if (!name.Equals(CurrentVersionFileName, StringComparison.CurrentCultureIgnoreCase)
+                    && !name.Equals(ParentVersionFileName, StringComparison.CurrentCultureIgnoreCase)
+                    && !name.Equals(VersionDefinitionFileName, StringComparison.CurrentCultureIgnoreCase))
+                    retVal.Add(name, GetMD5HashOfFile(configDir + "\\" + name));
+            }
+
+            return retVal;
+            /*
+            Dictionary<string, string> retVal = new Dictionary<string, string>();
            
                 List<string> configFileNames = ListFiles(configDir);
                 configFileNames.Sort();
@@ -761,9 +775,69 @@ namespace ConfigPackager
                     if (!name.Equals(currentVersionFileName, StringComparison.CurrentCultureIgnoreCase) && !name.Equals(parentVersionFileName, StringComparison.CurrentCultureIgnoreCase))
                         retVal.Add(name, GetMD5HashOfFile(configDir + "\\" + name));
                 }
-                return retVal;
+                return retVal;*/
             
         }
+
+        private static List<string> GetFileNamesInVersionDef(string configDir)
+        {
+            List<string> filesInVersion = Constants.DefaultConfigVersionDefinition.ToList();
+            List<string> filesInConfigDir = ListFiles(configDir);
+            List<string> configFilesToHash = filesInVersion.ToList();
+
+            try
+            {
+                filesInVersion = GetVersionDef(configDir);
+                filesInConfigDir.Sort();
+                configFilesToHash = filesInConfigDir.Intersect(filesInVersion.ToList()).ToList();
+            }
+            catch (Exception e)
+            {
+                configLog( "E", e.Message + " .GetConfigVersion");
+            }
+
+            configFilesToHash.Sort();
+            return configFilesToHash;
+        }
+
+        private static List<string> GetVersionDef(string configDir)
+        {
+            List<string> retVal = new List<string>();
+            try
+            {
+                string versionDefinition = ReadFile( configDir + "\\" + VersionDefinitionFileName);
+                if (!string.IsNullOrEmpty(versionDefinition))
+                {
+                    retVal = versionDefinition.Split(';').ToList();
+                    retVal.Sort();
+                }
+
+            }
+            catch (Exception e)
+            {
+                configLog( "E", e.Message + " .GetVersionDef " + configDir);
+            }
+
+            return retVal;
+        }
+
+        public static string ReadFile( string filePath)
+        {
+            try
+            {
+
+                System.IO.StreamReader myFile = new System.IO.StreamReader(filePath);
+                string myString = myFile.ReadToEnd();
+                myFile.Close();
+                return myString;
+            }
+            catch (Exception e)
+            {
+                configLog( "E", e.Message + ". GetMD5HashOfFile(), file" + filePath);
+                return "";
+            }
+        }
+
 
         private static void UpdateVersionFile(Dictionary<string, string> version, string versionFilePath)
         {

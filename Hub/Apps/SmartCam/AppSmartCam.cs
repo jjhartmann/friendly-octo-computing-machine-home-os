@@ -36,6 +36,7 @@ namespace HomeOS.Hub.Apps.SmartCam
         public DateTime CurrVideoEndTime { get; set; }
         public bool RecordVideo { get; set; }
         public bool EnableObjectTrigger { get; set; }
+        public bool UploadVideo { get; set; }
     }
 
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
@@ -189,7 +190,8 @@ namespace HomeOS.Hub.Apps.SmartCam
                     {
                         registeredCameras[senderPort].LastImageBytes = imageBytes;
 
-                        if (registeredCameras[senderPort].RecordVideo)
+                        if (registeredCameras[senderPort].RecordVideo ||
+                            registeredCameras[senderPort].EnableObjectTrigger)
                         {
                             bool addFrame = false;
                             Rectangle rectObject = new Rectangle(0, 0, 0, 0);
@@ -216,21 +218,32 @@ namespace HomeOS.Hub.Apps.SmartCam
                             // stop if needed
                             StopRecording(senderPort, false /* force*/);
 
-                            // if recording is underway don't bother that, it will stop after that clip time lapses
-                            // if recording needs to be done only on motion (object) triggers, check with the result of the object
-                            // detector above
+                            //// if recording is underway don't bother that, it will stop after that clip time lapses
+                            //// if recording needs to be done only on motion (object) triggers, check with the result of the object
+                            //// detector above
+                            //if (registeredCameras[senderPort].RecordVideo)
+                            //{
+                            //    //if record video is still true, see if we need to add his frame
+                            //    if (registeredCameras[senderPort].VideoWriter != null || !registeredCameras[senderPort].EnableObjectTrigger)
+                            //    {
+                            //        addFrame = true;
+                            //    }
+                            //    else
+                            //    {
+                            //        if (registeredCameras[senderPort].ObjectFound)
+                            //            addFrame = true;
+                            //    }
+                            //}
+
                             if (registeredCameras[senderPort].RecordVideo)
                             {
-                                //if record video is still true, see if we need to add his frame
-                                if (registeredCameras[senderPort].VideoWriter != null || !registeredCameras[senderPort].EnableObjectTrigger)
-                                {
+                                addFrame = true;
+                            }
+                            else
+                            {
+                                if (registeredCameras[senderPort].EnableObjectTrigger &&
+                                    registeredCameras[senderPort].ObjectFound)
                                     addFrame = true;
-                                }
-                                else
-                                {
-                                    if (registeredCameras[senderPort].ObjectFound)
-                                        addFrame = true;
-                                }
                             }
 
                             if (addFrame)
@@ -335,19 +348,24 @@ namespace HomeOS.Hub.Apps.SmartCam
             return retList;
         }
 
-        public void RecordVideo(string cameraFriendlyName, bool enable)
+        public void EnableMotionTrigger(string cameraFriendlyName, bool enable)
         {
             VPort cameraPort = cameraFriendlyNames[cameraFriendlyName];
-            registeredCameras[cameraPort].RecordVideo = enable;
+
+            registeredCameras[cameraPort].EnableObjectTrigger = enable;
+
 
             // setup a background worker for object detection
-            if (null == registeredCameras[cameraPort].BackgroundWorkerObjectDetector)
+            if (enable)
             {
-                registeredCameras[cameraPort].BackgroundWorkerObjectDetector = new BackgroundWorker();
-                registeredCameras[cameraPort].BackgroundWorkerObjectDetector.WorkerSupportsCancellation = true;
-                registeredCameras[cameraPort].BackgroundWorkerObjectDetector.DoWork +=
-                    new DoWorkEventHandler(backgroundObjectDetector_DoWork);
-                registeredCameras[cameraPort].BackgroundWorkerObjectDetector.RunWorkerAsync(cameraPort);
+                if (null == registeredCameras[cameraPort].BackgroundWorkerObjectDetector)
+                {
+                    registeredCameras[cameraPort].BackgroundWorkerObjectDetector = new BackgroundWorker();
+                    registeredCameras[cameraPort].BackgroundWorkerObjectDetector.WorkerSupportsCancellation = true;
+                    registeredCameras[cameraPort].BackgroundWorkerObjectDetector.DoWork +=
+                        new DoWorkEventHandler(backgroundObjectDetector_DoWork);
+                    registeredCameras[cameraPort].BackgroundWorkerObjectDetector.RunWorkerAsync(cameraPort);
+                }
             }
 
 
@@ -363,17 +381,7 @@ namespace HomeOS.Hub.Apps.SmartCam
             }
         }
 
-        public void EnableMotionTrigger(string cameraFriendlyName, bool enable)
-        {
-            VPort cameraPort = cameraFriendlyNames[cameraFriendlyName];
-            //if (null == registeredCameras[cameraPort].VideoWriter)
-            //{
-            //    registeredCameras[cameraPort].VideoWriter = new VideoWriter();
-            //}
-
-            registeredCameras[cameraPort].EnableObjectTrigger = enable;
-
-        }
+     
 
         public bool IsMotionTriggerEnabled(string cameraFriendlyName)
         {
@@ -385,6 +393,30 @@ namespace HomeOS.Hub.Apps.SmartCam
             }
 
             return isEnabled;
+        }
+
+
+        public void EnableVideoUpload(string cameraFriendlyName, bool enable)
+        {
+            VPort cameraPort = cameraFriendlyNames[cameraFriendlyName];
+
+             registeredCameras[cameraPort].UploadVideo = enable;
+
+            //If video upload is enabled then when recording is stopped program will upload video and snapshots
+
+        }
+
+
+        public bool IsVideoUploadEnabled(string cameraFriendlyName)
+        {
+            bool isVideoUploadEnabled = false;
+            VPort cameraPort = cameraFriendlyNames[cameraFriendlyName];
+            unsafe
+            {
+                isVideoUploadEnabled = registeredCameras[cameraPort].UploadVideo;
+            }
+
+            return isVideoUploadEnabled;
         }
 
         public string[] GetRecordedCamerasList()
@@ -672,13 +704,7 @@ namespace HomeOS.Hub.Apps.SmartCam
 
         public void StartOrContinueRecording(string cameraFriendlyName)
         {
-            //if (!cameraFriendlyNames.ContainsKey(cameraFriendlyName))
-            //    return new List<string>() {"Unknown camera: " + cameraFriendlyName};
-
             VPort cameraPort = cameraFriendlyNames[cameraFriendlyName];
-
-            //if (!registeredCameras.ContainsKey(cameraPort))
-            //    return new List<string>() {"Did not find camerainfo object for " + cameraFriendlyName};
 
             var cameraInfo = registeredCameras[cameraPort];
 

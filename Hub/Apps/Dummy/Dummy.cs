@@ -98,7 +98,7 @@ namespace HomeOS.Hub.Apps.Dummy
         {
             StrKey key = new StrKey("DummyKey");
             datastream.Append(key, new StrValue("DummyVal"));
-            logger.Log("Got value: " + datastream.Get(key));
+            logger.Log("Writing {0} to stream " , datastream.Get(key).ToString());
         }
 
         public void SendEchoRequest(VPort port, int counter)

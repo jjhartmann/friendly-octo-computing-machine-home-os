@@ -121,7 +121,7 @@ namespace HomeOS.Hub.Platform
         /// <summary>
         /// Where the gatekeeper sits
         /// </summary>
-        public static string GatekeeperUri { get; private set; }
+        public static string GatekeeperURI { get; private set; }
 
         /// <summary>
         /// Where to send heartbeats
@@ -241,7 +241,7 @@ namespace HomeOS.Hub.Platform
                 // .... settings related to cloud resources
                 SettingsTable["HomeStoreBase"] = new SettingsRef<object>(() => Settings.HomeStoreBase, v => { Settings.HomeStoreBase = v.ToString(); });
                 SettingsTable["RepositoryURIs"] = new SettingsRef<object>(() => Settings.RepositoryURIs, v => { Settings.RepositoryURIs = v.ToString(); });
-                SettingsTable["GatekeeperURI"] = new SettingsRef<object>(() => Settings.GatekeeperUri, v => { Settings.GatekeeperUri = v.ToString(); });
+                SettingsTable["GatekeeperURI"] = new SettingsRef<object>(() => Settings.GatekeeperURI, v => { Settings.GatekeeperURI = v.ToString(); });
                 SettingsTable["HeartbeatServiceHost"] = new SettingsRef<object>(() => Settings.HeartbeatServiceHost, v => { Settings.HeartbeatServiceHost = v.ToString(); }); 
                 SettingsTable["DataStoreAccountName"] = new SettingsRef<object>(() => Settings.DataStoreAccountName, v => { Settings.DataStoreAccountName = v.ToString(); });
                 SettingsTable["DataStoreAccountKey"] = new SettingsRef<object>(() => Settings.DataStoreAccountKey, v => { Settings.DataStoreAccountKey = v.ToString(); });
@@ -337,8 +337,8 @@ namespace HomeOS.Hub.Platform
             HomeStoreBase = "file:///" + Constants.PlatformBinaryDir + "/../../HomeStore";
             
             RepositoryURIs = HomeStoreBase + "/repository";
-            GatekeeperUri = "homelab.cloudapp.net";
-            HeartbeatServiceHost = "homelab.cloudapp.net";
+            GatekeeperURI = "www.lab-of-things.net";
+            HeartbeatServiceHost = "www.lab-of-things.net";
             DataStoreAccountName = "";
             DataStoreAccountKey = "";
 
@@ -350,7 +350,7 @@ namespace HomeOS.Hub.Platform
             ConfigLookupFrequency = 1800000;
             HomeStoreRefreshIntervalsMins = 60;
 
-            HeartbeatServiceMode = "Off"; // options: Off, Emulation, Production
+            HeartbeatServiceMode = "Off"; // options: Off, Production
             HeartbeatIntervalMins = 1;
 
             NotificationEmail = String.Empty;

@@ -1,4 +1,7 @@
-﻿#format: ProcessName;ExeDir (can be relative to watchdog);ExeName;nSecondsRunDelay;UpdateUri;Args (optional)
+﻿
+MessageUploadUrl: https://dev.lab-of-things.net:6443/WatchdogListenerService.svc/SetWatchdogMsgInfo
+
+#format: ProcessName;ExeDir (can be relative to watchdog);ExeName;nSecondsRunDelay;UpdateUri;Args (optional);LogUrl
 
 HomeOS.Hub.Platform;..\binaries\Platform;HomeOS.Hub.Platform.exe;10;http://homelab-vm.cloudapp.net/watchdog-test/;;
 

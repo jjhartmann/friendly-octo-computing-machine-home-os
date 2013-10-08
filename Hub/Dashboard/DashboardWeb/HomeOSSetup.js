@@ -20,7 +20,6 @@ function GetVisibleWifiNetworksWebCallback(context, result) {
     }
     else {
         UpdateDebugInfo(this, "GetVisibleWifiNetworksWebCallback: " + result[0]);
-        $("#errorHandling").show();
         $("#joinButton").hide();
         $("#statusInfo").html(result[0]);
     }
@@ -50,7 +49,6 @@ function ConnectToWifiNetworksWebCallback(context, result) {
     }
     else {
         UpdateDebugInfo(this, "GetVisibleWifiNetworksWebCallback: " + result[0]); //only shows up if debug div is set to normal in .html file
-        $("#errorHandling").show();
         $("#statusInfo").html(result[0]);
     }
 

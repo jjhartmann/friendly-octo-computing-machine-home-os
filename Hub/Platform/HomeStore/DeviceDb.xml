@@ -108,4 +108,16 @@
     </DriverList>
   </Device>
 
+  <Device DeviceName="Kinect sensor" ManufacturerName="Microsoft" Description="the best sensor for photo taking, depth detection, skeleton tracking and audio recording." Rating="5" Model="Kinect for Windows" IconUrl="http://i.msdn.microsoft.com/dynimg/IC534687.png">
+    <RoleList>
+      <Role Name="camera"/>
+      <Role Name="depthcam"/>
+      <Role Name="skeletontracker"/>
+      <Role Name="microphone"/>
+    </RoleList>
+    <DriverList>
+      <Driver Name="Kinect"/>
+    </DriverList>
+  </Device>
+
 </Devices>

@@ -64,12 +64,6 @@ namespace HomeOS.Hub.Scouts.Gadgeteer
             scanTimer.Elapsed += new ElapsedEventHandler(ScanNow);
 
             logger.Log("GadgeteerScout initialized");
-
-            //string originalURl = "http://192.168.137.87/credentials?ssid=EM_WLAN&setupauthcode=abcdefgh&key=thisshouldbethekey";
-            //string encodedUrl = System.Web.HttpUtility.UrlEncode(originalURl);
-            //string pathEncodedUrl = System.Web.HttpUtility.UrlPathEncode(originalURl);
-            //string escapedUrl = Uri.EscapeUriString(originalURl);
-            //logger.Log("EncodedUrl = {0}\n PathEncodedUrl = {1}\n escapedUrl = {2}", encodedUrl, pathEncodedUrl, escapedUrl);
         }
 
         private void ScanNow(object source, ElapsedEventArgs e)
@@ -100,7 +94,7 @@ namespace HomeOS.Hub.Scouts.Gadgeteer
             //only one of these calls can be active because of socket conflicts
             lock (this)
             {
-                logger.Log("GadgeteerScout:ScanWifi\n");
+                //logger.Log("GadgeteerScout:ScanWifi\n");
 
                 using (var client = new UdpClient(responsePortNumber))
                 {
@@ -143,7 +137,8 @@ namespace HomeOS.Hub.Scouts.Gadgeteer
         //NB: this function sends the wifi credentials to the device
         void ScanUsb()
         {
-            logger.Log("GadgeteerScout:ScanUSB\n");
+            //logger.Log("GadgeteerScout:ScanUSB\n");
+
             string[] portNames = SerialPort.GetPortNames();
 
             //we are putting this lock here just in case two of these are running at the same time (e.g., if the ScanNow timer was really short)
@@ -238,7 +233,8 @@ namespace HomeOS.Hub.Scouts.Gadgeteer
                     }
                     catch (Exception e)
                     {
-                        logger.Log("Serial port exception for {0}: {1}", portName, e.ToString());
+                        // let us not print this 
+                        // logger.Log("Serial port exception for {0}: {1}", portName, e.ToString());
                     }
                 }
             }
@@ -277,7 +273,8 @@ namespace HomeOS.Hub.Scouts.Gadgeteer
         {
             var devId = Encoding.ASCII.GetString(response, 0, length);
             string driverName = GetDriverName(devId);
-            var device = new Device(devId, devId, netInterface, sender.Address.ToString(), DateTime.Now, driverName, false);
+            string friendlyName = GetFriendlyName(devId);
+            var device = new Device(friendlyName, devId, netInterface, sender.Address.ToString(), DateTime.Now, driverName, false);
 
             //intialize the parameters for this device
             device.Details.DriverParams = new List<string>() { device.UniqueName };
@@ -290,12 +287,24 @@ namespace HomeOS.Hub.Scouts.Gadgeteer
         {
             var devId = serialString;
             string driverName = GetDriverName(devId);
-            var device = new Device(devId, devId, "", DateTime.Now, driverName, false);
+            string friendlyName = GetFriendlyName(devId);
+            var device = new Device(friendlyName, devId, "", DateTime.Now, driverName, false);
 
             //intialize the parameters for this device
             device.Details.DriverParams = new List<string>() { device.UniqueName };
 
             return device;
+        }
+
+        private string GetFriendlyName(string devId)
+        {
+            var split = devId.Split('_');
+            if (split.Count() != 4)
+            {
+                logger.Log("ERROR::cannot find gadgeteer device friendly name - incorrect number of underscores: " + devId);
+                return devId;
+            }
+            return split[1].Replace(" ", "");
         }
 
         private string GetDriverName(string devId)
@@ -306,7 +315,7 @@ namespace HomeOS.Hub.Scouts.Gadgeteer
             var split = devId.Split('_');
             if (split.Count() != 4)
             {
-                logger.Log("ERROR::cannot find gadgeteer driver - incorrect number of slashes: " + devId);
+                logger.Log("ERROR::cannot find gadgeteer driver - incorrect number of underscores: " + devId);
                 return "unknown";
             }
             return "HomeOS.Hub.Drivers.Gadgeteer." + split[2].Replace(" ", "") + "." + split[1].Replace(" ", "");
@@ -342,17 +351,13 @@ namespace HomeOS.Hub.Scouts.Gadgeteer
 
             //http://<ip address of device>/credentials?ssid=HOMESSID&setupauthcode=12345678&key=HOMEKEY 
 
-            //string url = String.Format("http://{0}/credentials?ssid={1}&setupauthcode={2}&key={3}", device.DeviceIpAddress, wifiSsid, authCode, wifiKey);
-            //string encodedURl = System.Web.HttpUtility.UrlEncode(url);
-            //string encodedUrl = Uri.EscapeUriString(url);
-
             string encodedUrl = String.Format("http://{0}/credentials?ssid={1}&setupauthcode={2}&key={3}", 
                                                 device.DeviceIpAddress, 
                                                 Uri.EscapeDataString(wifiSsid), 
                                                 Uri.EscapeDataString(authCode), 
                                                 Uri.EscapeDataString(wifiKey));
 
-            logger.Log("GadgetConfigUrl = " + encodedUrl);
+            logger.Log("GadgeteerConfigUrl = " + encodedUrl);
 
             HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(encodedUrl);
 
@@ -370,32 +375,6 @@ namespace HomeOS.Hub.Scouts.Gadgeteer
                 return new List<string>() { "Got an odd HTTPresponse" };
 
         }
-
-        //private string PercentEncode(string input)
-        //{
-        //    char[] chars = input.ToCharArray();
-
-        //    StringBuilder output = new StringBuilder();
-
-        //    //http://www.asciitable.com/
-        //    for (int index = 0; index < chars.Length; index++)
-        //    {
-        //        if ((chars[index] < 48) ||
-        //            (chars[index] > 122) ||
-        //            ((chars[index] > 57) && (chars[index] < 65)) ||
-        //            ((chars[index] > 90) && (chars[index] < 97)))
-        //        {
-        //            output.Append(Uri.HexEscape(chars[index]));
-        //        }
-        //        else
-        //        {
-        //            output.Append(chars[index]);
-        //        }
-
-        //    }
-
-        //    return output.ToString();
-        //}
 
         private static string GetHttpResponseStr(HttpWebResponse webResponse)
         {
