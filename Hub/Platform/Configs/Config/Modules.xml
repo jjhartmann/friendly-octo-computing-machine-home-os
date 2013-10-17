@@ -1,7 +1,6 @@
 ﻿<Modules>
   <!-- zwave driver -->
-  <!-- Uncomment this if you have the zwave driver. Contact lab-of-things@microsoft.com to get the driver -->
-  <!-- <Module FriendlyName="zwavezensys" AppName="zwave driver based on zensys sdk" BinaryName="HomeOS.Hub.Drivers.ZwaveZensys_4_55" AutoStart="1" Background="1">
+  <Module FriendlyName="zwavezensys" AppName="zwave driver based on zensys sdk" BinaryName="HomeOS.Hub.Drivers.ZwaveZensys_4_55" AutoStart="1" Background="1">
     <Args Count="0"/> 
-  </Module> -->
+  </Module>
 </Modules>
