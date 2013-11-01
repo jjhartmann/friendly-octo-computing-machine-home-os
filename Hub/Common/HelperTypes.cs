@@ -64,6 +64,21 @@ namespace HomeOS.Hub.Common
         }
     }
 
+    public class HomeStoreScout
+    {
+        public string Name { get; set; }
+        public string DllName { get; set; }
+        public string Description { get; set; }
+        public int Rating { get; set; }
+        public string Version { get; set; }
+        public string IconUrl { get; set; }
+
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
+
     public class AccessRule
     {
         public string RuleName { get; set; }

@@ -4,38 +4,50 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Net.Mail;
+using System.Threading.Tasks;
 using HomeOS.Hub.Platform.Views;
 
 namespace HomeOS.Hub.Common
 {
-    public class Emailer
+    public abstract class EmailerBase
     {
-        private string smtpServer;
-        private string smtpUser;
-        private string smtpPassword;
-
-        public Emailer(string smtpServer, string smtpUsername, string smtpPassword) 
+        protected string smtpServer;
+        protected string smtpUsername;
+        protected string smtpPassword;
+        protected VLogger logger;
+        protected EmailerBase(string smtpServer, string smtpUsername, string smtpPassword, VLogger logger)
         {
             this.smtpServer = smtpServer;
-            this.smtpUser = smtpUsername;
+            this.smtpUsername = smtpUsername;
             this.smtpPassword = smtpPassword;
+            this.logger = logger;
         }
 
-        public bool Send(Notification notification, VLogger logger)
+        public abstract Tuple<bool, string> Send(Notification notification);
+    }
+
+    public class Emailer : EmailerBase
+    {
+        public Emailer(string smtpServer, string smtpUsername, string smtpPassword, VLogger logger) : base(smtpServer, smtpUsername, smtpPassword, logger)
         {
-            if (string.IsNullOrWhiteSpace(smtpServer) ||
-                string.IsNullOrWhiteSpace(smtpUser) ||
-                string.IsNullOrWhiteSpace(smtpPassword) ||
+        }
+
+        public override Tuple<bool, string> Send(Notification notification)
+        {
+            string error = "";
+            if (string.IsNullOrWhiteSpace(base.smtpServer) ||
+                string.IsNullOrWhiteSpace(base.smtpUsername) ||
+                string.IsNullOrWhiteSpace(base.smtpPassword) ||
                 string.IsNullOrWhiteSpace(notification.toAddress))
             {
-                logger.Log("Could not send email. One of the essential fields is not existent");
-                return false;
+                error = "Cannot send email. Email Setup not done correctly";
+                base.logger.Log(error);
+                return new Tuple<bool, string>(false, error);
             }
 
             MailMessage message = new MailMessage();
 
-            string from = string.IsNullOrEmpty(smtpUser) ? "homeos.placeholder@microsoft.com" : smtpUser;
-            message.From = new MailAddress(from);
+            message.From = new MailAddress(base.smtpUsername);
 
             message.To.Add(notification.toAddress);
 
@@ -52,19 +64,20 @@ namespace HomeOS.Hub.Common
 
             try
             {
-                SmtpClient smtpClient = new SmtpClient(smtpServer);
-                smtpClient.Credentials = new System.Net.NetworkCredential(smtpUser, smtpPassword);
+                SmtpClient smtpClient = new SmtpClient(base.smtpServer);
+                smtpClient.Credentials = new System.Net.NetworkCredential(base.smtpUsername, base.smtpPassword);
                 smtpClient.EnableSsl = true;
 
                 smtpClient.Send(message);
             }
             catch (Exception exception)
             {
-                logger.Log("Exception while sending message: {0}", exception.ToString());
-                return false;
+                error = string.Format("Exception while sending message: {0}", exception.ToString());
+                base.logger.Log(error);
+                return new Tuple<bool, string>(false, error);
             }
 
-            return true;
+            return new Tuple<bool, string>(true, "");
         }
 
     }

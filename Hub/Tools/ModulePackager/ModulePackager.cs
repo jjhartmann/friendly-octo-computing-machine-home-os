@@ -1,17 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using System.Security.Cryptography;
-using System.Xml;
-using System.Collections.ObjectModel;
-
-using HomeOS.Hub.Common;
+﻿using HomeOS.Hub.Common;
 using HomeOS.Hub.Platform.Views;
-using System.AddIn;
+
+using System;
 using System.AddIn.Hosting;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Xml.Linq;
 
 namespace HomeOS.Hub.Tools
 {
@@ -57,6 +55,9 @@ namespace HomeOS.Hub.Tools
             }
         }
 
+        const string DefaultHomeOSUpdateVersionValue = "0.0.0.0";
+        const string ConfigAppSettingKeyHomeOSUpdateVersion = "HomeOSUpdateVersion";
+
         private static void Package(string addInRoot, AddInToken token, string repoDir)
         {
             //get the module directory
@@ -76,20 +77,62 @@ namespace HomeOS.Hub.Tools
             foreach (var part in parts)
                 zipDir += "\\" + part;
 
-            if (token.Version != null)
-                zipDir += "\\" + token.Version;
+            // Use HomeOSUpdateVersion from App.Config
 
+            string file = moduleDir + "\\" + token.Name + ".dll.config";
+            string homeosUpdateVersion = DefaultHomeOSUpdateVersionValue;
+            try
+            {
+                XElement xmlTree = XElement.Load(file);
+                IEnumerable<XElement> das =
+                    from el in xmlTree.DescendantsAndSelf()
+                    where el.Name == "add" && el.Parent.Name == "appSettings" && el.Attribute("key").Value == ConfigAppSettingKeyHomeOSUpdateVersion
+                    select el;
+                if (das.Count() > 0)
+                {
+                    homeosUpdateVersion = das.First().Attribute("value").Value;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine("Failed to parse {0}, exception: {1}", file, e.ToString());
+            }
+
+            if (homeosUpdateVersion == DefaultHomeOSUpdateVersionValue)
+            {
+                Console.WriteLine("Warning didn't find module version in {0}, defaulting to {1}", file, homeosUpdateVersion);
+            }
+
+            zipDir += "\\" + homeosUpdateVersion;
             Directory.CreateDirectory(zipDir);
 
             //get the name of the zip file and pack it
             string zipFile = zipDir + "\\" + token.Name + ".zip";
+            string hashFile = zipDir + "\\" + token.Name + ".md5";
 
             bool result = PackZip(moduleDir, zipFile);
 
             if (!result)
                 Console.Error.WriteLine("Failed to pack zip for {0}. Quitting", token.Name);
-            else
-               Console.Out.WriteLine("Prepared module package: {0}.\n", zipFile);
+
+            string md5hash = GetMD5HashOfFile(zipFile);
+
+            if (string.IsNullOrWhiteSpace(md5hash))
+            {
+                return;
+            }
+
+            try
+            {
+                File.WriteAllText(hashFile, md5hash);
+            }
+            catch (Exception e)
+            {
+                Console.Out.WriteLine("Failed to write hash file {0}. Quitting", hashFile);
+                return;
+            }
+
+            Console.Out.WriteLine("Prepared module package: {0}.\n", zipFile);
         }
 
         private static Collection<AddInToken> GetAddInTokens(string addInRoot,  string moduleName)
@@ -241,6 +284,7 @@ namespace HomeOS.Hub.Tools
                 if (File.Exists(zipPath))
                     File.Delete(zipPath);
                 System.IO.Compression.ZipFile.CreateFromDirectory(startPath, zipPath);
+
                 return true;
             }
             catch (Exception e)

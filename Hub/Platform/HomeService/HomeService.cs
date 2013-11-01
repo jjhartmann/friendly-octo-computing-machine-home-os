@@ -152,7 +152,7 @@ namespace HomeOS.Hub.Platform.Gatekeeper
                 "localhost",
                 HomeOS.Hub.Common.Constants.InfoServicePort);
 
-            NetworkStream netstream = new NetworkStream(localService, false /*ownSocket*/);
+            NetworkStream netstream = new NetworkStream(localService, true /*ownSocket*/);
 
             if (localService != null)
             {

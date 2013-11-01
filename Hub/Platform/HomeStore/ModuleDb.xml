@@ -28,7 +28,7 @@
     </RoleList>
   </Module>
 
-  <Module AppName="Rules" BinaryName="HomeOS.Hub.Apps.Rules" Description="Create your app in a few steps" Rating="5" IconUrl="icon.png" Version="1.0.0.0">
+  <!--Module AppName="Rules" BinaryName="HomeOS.Hub.Apps.Rules" Description="Create your app in a few steps" Rating="5" IconUrl="icon.png" Version="1.0.0.0">
     <RoleList>
       <Role Name=":camera:"/>
       <Role Name=":sensor:"/>
@@ -36,7 +36,7 @@
       <Role Name=":microphone:"/>
       <Role Name=":skeletontracker:"/>
     </RoleList>
-  </Module>
+  </Module-->
 
 
   <Module AppName="EmotoCouch" BinaryName="HomeOS.Hub.Apps.EmotoCouch" Description="Get Cozy with your Couch" Rating="5" IconUrl="Assets/Foscam.png">
@@ -58,6 +58,13 @@
   <Module AppName="ThermoAlerts" BinaryName="HomeOS.Hub.Apps.Thermometer" Description="Sample application for Gadgeteer guide" Rating="5">
     <RoleList>
       <Role Name=":sensor:" />
+    </RoleList>
+  </Module>
+
+  <Module AppName="Sensor" BinaryName="HomeOS.Hub.Apps.Sensor" Description="Prints sensor values" Rating="5" IconUrl="icon.png">
+    <RoleList>
+      <Role Name=":sensor:"/>
+      <Role Name=":sensormultilevel:"/>
     </RoleList>
   </Module>
 

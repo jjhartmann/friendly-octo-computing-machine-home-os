@@ -17,7 +17,7 @@ namespace HomeOS.Hub.Drivers.Envi
     /// 3. Notifies applications that subscribed to this port
     /// </summary>
 
-   [System.AddIn.AddIn("HomeOS.Hub.Drivers.Envi", Version = "1.0.0.0")]
+   [System.AddIn.AddIn("HomeOS.Hub.Drivers.Envi")]
     public class Envi : ModuleBase
     {
         private Port enviPort;
@@ -74,7 +74,8 @@ namespace HomeOS.Hub.Drivers.Envi
             }
             catch (System.IO.IOException)
             {
-                logger.Log("Error: failed to open {0} port", SerialPortName);
+
+                logger.Log("Driver Envi Error: failed to open {0} port", SerialPortName);
                 return;
             }
 
@@ -105,7 +106,7 @@ namespace HomeOS.Hub.Drivers.Envi
                 // Notifying modules (e.g., AppEnvi) subscribed to the enviPort
                 enviPort.Notify(RoleSensor.RoleName, RoleSensor.OpGetName, retVals);
 
-                logger.Log("{0}: issued notification on port. read value {2}", SerialPortName, value.ToString());
+                logger.Log("{0}: issued notification on port. read value {1}", SerialPortName, value.ToString());
             }
             else
             {

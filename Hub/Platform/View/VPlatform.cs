@@ -78,6 +78,11 @@ namespace HomeOS.Hub.Platform.Views
         string GetConfSetting(string paramName);
 
         /// <summary>
+        /// returns the value of a global private paramname
+        /// </summary>
+        string GetPrivateConfSetting(string paramName);
+
+        /// <summary>
         /// returns the ip address of the device from its unique Id
         /// </summary>
         string GetDeviceIpAddress(string deviceId);

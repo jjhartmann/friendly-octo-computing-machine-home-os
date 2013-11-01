@@ -21,7 +21,13 @@ namespace HomeOS.Hub.Platform.DeviceScout
             Version = null;
         }
 
-        public void setVersion(string Version)
+        public ScoutInfo(HomeStoreScout hsScout) : this(hsScout.Name, hsScout.DllName)
+        {
+            if (!string.IsNullOrEmpty(hsScout.Version))
+                SetVersion(hsScout.Version);
+        }
+
+        public void SetVersion(string Version)
         {
             this.Version = Version;
         }
@@ -33,6 +39,7 @@ namespace HomeOS.Hub.Platform.DeviceScout
         void SetDeviceDriverParams(Device device, List<string> paramList);
         List<string> GetDeviceDriverParams(Device device);
         string GetConfSetting(string paramName);
+        string GetPrivateConfSetting(string paramName);
     }
 
     public interface IScout

@@ -15,7 +15,7 @@ namespace HomeOS.Hub.Apps.Doorjamb
     /// 1. sends ping messages to all active dummy ports
     /// </summary>
 
-    [System.AddIn.AddIn("HomeOS.Hub.Apps.Doorjamb", Version = "1.0.0.0")]
+    [System.AddIn.AddIn("HomeOS.Hub.Apps.Doorjamb")]
     public class Doorjamb : ModuleBase
     {
         //list of accessible doorjamb ports in the system

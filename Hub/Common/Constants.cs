@@ -37,6 +37,7 @@ namespace HomeOS.Hub.Common
 
         // .... names of various local configuration files
         public const string SettingsFileName = "Settings.xml";
+        public const string PrivateSettingsFileName = "PrivateSettings.xml";
         public const string UsersFileName = "Users.xml";
         public const string ModulesFileName = "Modules.xml";
         public static string LocationsFileName = "Locations.xml";
@@ -52,6 +53,7 @@ namespace HomeOS.Hub.Common
         public const string RoleDbFileName = "RoleDb.xml";
         public const string ModuleDbFileName = "ModuleDb.xml";
         public const string DeviceDbFileName = "DeviceDb.xml";
+        public const string ScoutDbFileName = "ScoutDb.xml";
 
 
         // ..... constants related to LiveId based authentication

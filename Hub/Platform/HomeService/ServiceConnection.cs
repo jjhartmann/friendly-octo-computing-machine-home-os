@@ -164,7 +164,7 @@ namespace HomeOS.Hub.Platform.Gatekeeper
             // Set up the connection state.
             // -
             this.socket = connected;
-            this.netstream = new NetworkStream(this.socket, false /*ownSocket*/);
+            this.netstream = new NetworkStream(this.socket, true /*ownSocket*/);
             this.sslServerHost = serverHost;
             if (this.useSecureStream)
             {
@@ -537,10 +537,10 @@ namespace HomeOS.Hub.Platform.Gatekeeper
         private bool HandleMessage(MessageType type, ArraySegment<byte> data)
         {
 #if DEBUG
-            //logger.Log(
-            //    "HomeService Received '{0}' message with {1} bytes of data.",
-            //    type.ToString(),
-            //    data.Count.ToString());
+            logger.Log(
+                "HomeService Received '{0}' message with {1} bytes of data.",
+                type.ToString(),
+                data.Count.ToString());
 #endif
 
             switch (type)
@@ -566,15 +566,15 @@ namespace HomeOS.Hub.Platform.Gatekeeper
 
                     this.peerProtocolVersion = data.Array[data.Offset];
 #if DEBUG
-                    //logger.Log(
-                    //    " HomeService Server is using protocol version #{0}",
-                    //    this.peerProtocolVersion.ToString());
+                    logger.Log(
+                        " HomeService Server is using protocol version #{0}",
+                        this.peerProtocolVersion.ToString());
 #endif
                     break;
 
                 case MessageType.PleaseIdentify:
 #if DEBUG
-                    //logger.Log("  HomeService Sending Identification message");
+                    logger.Log("  HomeService Sending Identification message");
 #endif
                     this.bufferOffset = 0;
                     this.AppendMessage(
@@ -593,10 +593,10 @@ namespace HomeOS.Hub.Platform.Gatekeeper
                     AuthenticationType authType =
                         (AuthenticationType)data.Array[data.Offset];
 #if DEBUG
-                    //logger.Log(
-                    //    "  HomeService Authentication request is for type {0}",
-                    //    authType.ToString());
-                    //logger.Log("  HomeService Sending SimpleAuthentication message");
+                    logger.Log(
+                        "  HomeService Authentication request is for type {0}",
+                        authType.ToString());
+                    logger.Log("  HomeService Sending SimpleAuthentication message");
 #endif
                     this.bufferOffset = 0;
                     this.AppendMessage(
@@ -610,14 +610,14 @@ namespace HomeOS.Hub.Platform.Gatekeeper
                     if (this.clientToken == 0)
                     {
 #if DEBUG
-                        //    logger.Log("  Sending RegisterService message");
+                        logger.Log("  Sending RegisterService message");
 #endif
                         this.AppendMessage(MessageType.RegisterService);
                     }
                     else
                     {
 #if DEBUG
-                        //    logger.Log("  Sending ForwardToClient message");
+                        logger.Log("  Sending ForwardToClient message");
 #endif
                         this.AppendMessage(
                             MessageType.ForwardToClient,
@@ -639,7 +639,7 @@ namespace HomeOS.Hub.Platform.Gatekeeper
                         data.Array,
                         data.Offset);
 #if DEBUG
-                    //logger.Log("  Client with instance token {0} awaits matchup.", clientToken.ToString());
+                    logger.Log("  Client with instance token {0} awaits matchup.", clientToken.ToString());
                     logger.Log("  Launching client connection to connect back in and match up with gatekeeper client instance.");
 #endif
 
@@ -656,11 +656,14 @@ namespace HomeOS.Hub.Platform.Gatekeeper
                     // -
                     Socket socket = StaticUtilities.CreateConnectedSocket(
                         this.socket.RemoteEndPoint);
-                    ServiceConnection client = new ServiceConnection(
-                        this.sslServerHost,
-                        socket,
-                        clientToken,
-                        this.handler, this.logger);
+                    if (null != socket)
+                    {
+                        ServiceConnection client = new ServiceConnection(
+                            this.sslServerHost,
+                            socket,
+                            clientToken,
+                            this.handler, this.logger);
+                    }
                     break;
 
                 default:

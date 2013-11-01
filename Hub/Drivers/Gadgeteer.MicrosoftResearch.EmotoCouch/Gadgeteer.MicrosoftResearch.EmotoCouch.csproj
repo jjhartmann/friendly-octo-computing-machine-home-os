@@ -39,7 +39,7 @@
     <OutputPath>$(TeamBuildOutDir)\$(SolutionName)\output\binaries\Pipeline\AddIns\HomeOS.Hub.Drivers.Gadgeteer.MicrosoftResearch.EmotoCouch\</OutputPath>
     <CustomPath>$(TeamBuildOutDir)\$(SolutionName)</CustomPath>
   </PropertyGroup>
-<ItemGroup>
+  <ItemGroup>
     <Reference Include="HomeOS.Hub.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Common.dll</HintPath>
@@ -67,6 +67,9 @@
     </Compile>
     <Compile Include="DriverGadgeteerMicrosoftResearchEmotoCouch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

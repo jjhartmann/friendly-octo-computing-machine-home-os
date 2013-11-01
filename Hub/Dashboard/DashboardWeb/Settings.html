@@ -21,7 +21,7 @@
                 new PlatformServiceHelper().MakeServiceCall("webapp/GetConfSettingWeb", '{"confKey":"HomeId"}', GetSettingsCallback);
                 new PlatformServiceHelper().MakeServiceCall("webapp/GetConfSettingWeb", '{"confKey":"DataStoreAccountName"}', GetSettingsCallback);
                 new PlatformServiceHelper().MakeServiceCall("webapp/GetConfSettingWeb", '{"confKey":"OrgId"}', GetSettingsCallback);
-                new PlatformServiceHelper().MakeServiceCall("webapp/GetConfSettingWeb", '{"confKey":"NotificationEmail"}', GetSettingsCallback);
+                new PlatformServiceHelper().MakeServiceCall("webapp/GetPrivateConfSettingWeb", '{"confKey":"NotificationEmail"}', GetSettingsCallback);
                 new PlatformServiceHelper().MakeServiceCall("webapp/GetRemoteAccessUrlWeb", "", GetSettingsRemoteAccessUrlWebCallback);
                 new PlatformServiceHelper().MakeServiceCall("webapp/GetInstalledAppsWeb", "", GetAppsCallback);
                 new PlatformServiceHelper().MakeServiceCall("webapp/GetConfiguredDevicesWeb", "", GetConfiguredDevicesCallback);
@@ -60,7 +60,9 @@
                 }
             }
             else {
-                DisplayDebugging("GetHomeIDCallback:" + result[0]);
+                var dataAsObject = JSON.parse(context.Data);
+                var confKey = dataAsObject.confKey;
+                DisplayDebugging("GetSetingsCallback:" + confKey + " " + result[0]);
             }
         }
 

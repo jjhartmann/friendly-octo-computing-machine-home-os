@@ -103,7 +103,8 @@ namespace HomeOS.Hub.Drivers.AxisCamera
             //the id does not have axis in it, we don't understand
             //lets pretent it is PTZ, so we show the controls
             if (!cameraId.Contains("axis"))
-                return new List<VRole>() { RoleCamera.Instance, RolePTCamera.Instance, RolePTZCamera.Instance };
+                //return new List<VRole>() { RoleCamera.Instance, RolePTCamera.Instance, RolePTZCamera.Instance };
+                return new List<VRole>() { RolePTZCamera.Instance };
 
             //the list of PTZ cameras is at http://www.axis.com/products/video/camera/
 
@@ -114,7 +115,8 @@ namespace HomeOS.Hub.Drivers.AxisCamera
                 cameraId.Contains("axis 212") ||
                 cameraId.Contains("axis 213") ||
                 cameraId.Contains("axis 214"))
-                return new List<VRole>() { RoleCamera.Instance, RolePTCamera.Instance, RolePTZCamera.Instance };
+                //return new List<VRole>() { RoleCamera.Instance, RolePTCamera.Instance, RolePTZCamera.Instance };
+                return new List<VRole>() { RolePTZCamera.Instance };
 
             return new List<VRole>() { RoleCamera.Instance };
         }

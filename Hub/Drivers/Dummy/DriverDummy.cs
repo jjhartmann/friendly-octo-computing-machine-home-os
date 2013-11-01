@@ -16,45 +16,43 @@ namespace HomeOS.Hub.Drivers.Dummy
     /// 3. sends back responses to received echo requests (in OnOperationInvoke())
     /// </summary>
 
-    [System.AddIn.AddIn("HomeOS.Hub.Drivers.Dummy", Version="1.0.0.0")]
+    [System.AddIn.AddIn("HomeOS.Hub.Drivers.Dummy")]
     public class DriverDummy :  ModuleBase
     {
         SafeThread workThread = null; 
         Port dummyPort;
 
+        private WebFileServer imageServer;
+
         public override void Start()
         {
-
-
             logger.Log("Started: {0}", ToString());
-        
-            // ..... initialize the list of roles we are going to export
-            List<VRole> listRole = new List<VRole>() {RoleDummy.Instance};
-            
+
+            string dummyDevice = moduleInfo.Args()[0];
+
             //.................instantiate the port
-            VPortInfo portInfo = GetPortInfoFromPlatform("port");
+            VPortInfo portInfo = GetPortInfoFromPlatform(dummyDevice);
             dummyPort = InitPort(portInfo);
 
-            //..... bind the port to roles and delegates
+            // ..... initialize the list of roles we are going to export and bind to the role
+            List<VRole> listRole = new List<VRole>() { RoleDummy.Instance };
             BindRoles(dummyPort, listRole);
 
             //.................register the port after the binding is complete
             RegisterPortWithPlatform(dummyPort);
 
-            //Work();
-
-            //***
             workThread = new SafeThread(delegate() { Work(); } , "DriverDummy work thread" , logger);
             workThread.Start();
-            //***
+
+            imageServer = new WebFileServer(moduleInfo.BinaryDir(), moduleInfo.BaseURL(), logger);
         }
 
         public override void Stop()
         {
-            if(workThread!=null)
-                workThread.Abort();
             logger.Log("Stop() at {0}", ToString());
-
+            if (workThread != null)
+                workThread.Abort();
+            imageServer.Dispose();
         }
 
 

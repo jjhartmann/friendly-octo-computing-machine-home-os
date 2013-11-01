@@ -268,7 +268,7 @@ namespace HomeOS.Hub.Common.SafeTokenHandler
                b = Convert.ToBase64String(s);
                encoded = HttpUtility.UrlEncode(b);
            }
-           catch (Exception e)
+           catch (Exception)
            {
                return null;
            }

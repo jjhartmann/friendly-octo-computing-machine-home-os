@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Net.Mail;
 using HomeOS.Hub.Common;
 using HomeOS.Hub.Platform.Views;
 using HomeOS.Hub.Common.DataStore;
@@ -252,7 +253,7 @@ namespace HomeOS.Hub.Common
 
             //if not, then try to get it from the platform
             if (capability == null)
-                capability = GetCapabilityFromPlatform(toPort); 
+                capability = GetCapabilityFromPlatform(toPort);
 
             //if capability is still null, throw exception
             if (capability == null)
@@ -278,20 +279,23 @@ namespace HomeOS.Hub.Common
             //now invoke the operation
             IList<VParamType> retVals = toPort.Invoke(role.Name(), opName, values, ControlPort, capability, ControlPortCapability);
 
+            //if we got an error, pass it along
+            if (retVals.Count >= 1 && retVals[0].Maintype() == (int)ParamType.SimpleType.error)
+            {
+                return retVals;
+            }
 
             //if we didn't get an error, sanity check the return values
-            if (retVals[0].Maintype() != (int)ParamType.SimpleType.error)
-            {
-                //check the number of elements
-                if (retVals.Count != operation.ReturnValues().Count)
-                    throw new ArgumentException("Incorrect number of return values for operation " + opName);
 
-                //check the types of elements in return values
-                for (int index = 0; index < retVals.Count; index++)
-                {
-                    if ((retVals[index].Maintype() != operation.ReturnValues()[index].Maintype()))
-                        throw new ArgumentException(String.Format("Return value {0} is of invalid type. Expected {1}. Got {2}.", index, (ParamType.SimpleType)operation.ReturnValues()[index].Maintype(), (ParamType.SimpleType)retVals[index].Maintype()));
-                }
+            //check the number of elements
+            if (retVals.Count != operation.ReturnValues().Count)
+                throw new ArgumentException("Incorrect number of return values for operation " + opName);
+
+            //check the types of elements in return values
+            for (int index = 0; index < retVals.Count; index++)
+            {
+                if ((retVals[index].Maintype() != operation.ReturnValues()[index].Maintype()))
+                    throw new ArgumentException(String.Format("Return value {0} is of invalid type. Expected {1}. Got {2}.", index, (ParamType.SimpleType)operation.ReturnValues()[index].Maintype(), (ParamType.SimpleType)retVals[index].Maintype()));
             }
 
             //otherwise, lets return these values
@@ -393,30 +397,39 @@ namespace HomeOS.Hub.Common
         }
 
         /// <summary>
-        /// Called by modules to send email
+        /// Send email using local SMTP Client, if that fails, send using cloud relay
         /// </summary>
-        /// <param name="notification"></param>
-        /// <returns></returns>
-        protected bool SendEmail(Notification notification)
+        /// <param name="dst">to:</param>
+        /// <param name="subject">subject</param>
+        /// <param name="body">body of the message</param>
+        /// <returns>A tuple with true/false success and string exception message (if any)</returns>
+        public Tuple<bool, string> SendEmail(string dst, string subject, string body, List<Attachment> attachmentList)
         {
-            string smtpServer = platform.GetConfSetting("SmtpServer");
-            string smtpUser = platform.GetConfSetting("SmtpUser");
-            string smtpPassword = platform.GetConfSetting("SmtpPassword");
+            return Utils.SendEmail(dst, subject, body, attachmentList, platform, logger);
+        }
 
-            if (string.IsNullOrWhiteSpace(notification.toAddress))
-               notification.toAddress = platform.GetConfSetting("NotificationEmail");
+        /// <summary>
+        /// Send email using local SMTP Client
+        /// </summary>
+        /// <param name="dst">to:</param>
+        /// <param name="subject">subject</param>
+        /// <param name="body">body of the message</param>
+        /// <returns>A tuple with true/false success and string exception message (if any)</returns>
+        public Tuple<bool, string> SendHubEmail(string dst, string subject, string body, List<Attachment> attachmentList)
+        {
+            return Utils.SendHubEmail(dst, subject, body, attachmentList, platform, logger);
+        }
 
-            if (string.IsNullOrWhiteSpace(smtpServer) ||
-                string.IsNullOrWhiteSpace(smtpUser) ||
-                string.IsNullOrWhiteSpace(smtpPassword) ||
-                string.IsNullOrWhiteSpace(notification.toAddress))
-            {
-                logger.Log("Cannot send email. One of the essential fields is not present");
-                return false;
-            }
-
-            Emailer emailer = new Emailer(smtpServer, smtpUser, smtpPassword);
-            return emailer.Send(notification, logger);
+        /// <summary>
+        /// Send email by using Cloud Relay Service Host
+        /// </summary>
+        /// <param name="dst">to:</param>
+        /// <param name="subject">subject</param>
+        /// <param name="body">body of the message</param>
+        /// <returns>A tuple with true/false success and string exception message (if any)</returns>
+        public Tuple<bool, string> SendCloudEmail(string dst, string subject, string body, List<Attachment> attachmentList)
+        {
+            return Utils.SendCloudEmail(dst, subject, body, attachmentList, platform, logger);
         }
 
         /// <summary>

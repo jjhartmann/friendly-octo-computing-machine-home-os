@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.ServiceModel;
-using System.IO;
 using System.ServiceModel.Web;
 using System.ServiceModel.Description;
 using HomeOS.Hub.Platform.ManagedWifi;
-using HomeOS.Hub.Platform.DeviceScout;
 using HomeOS.Hub.Common;
 using HomeOS.Hub.Platform.Views;
+using HomeOS.Shared;
 
-using System.Net.Mail;
 
 namespace HomeOS.Hub.Platform
 {
@@ -40,28 +36,28 @@ namespace HomeOS.Hub.Platform
             this.homeStoreInfo = hsInfo;
             this.logger = logger;
 
-            string svcBase = Constants.InfoServiceAddress + "/" ;
+            string svcBase = Common.Constants.InfoServiceAddress + "/" ;
 
             //let us start serving the files
             string webBase = svcBase + Common.Constants.GuiServiceSuffixWeb;
-            webFileServer = new WebFileServer(Constants.DashboardRoot, webBase, logger);
+            webFileServer = new WebFileServer(Common.Constants.DashboardRoot, webBase, logger);
 
-            serviceHostWeb = OpenUnsafeServiceWeb(webBase + Constants.AjaxSuffix);
+            serviceHostWeb = OpenUnsafeServiceWeb(webBase + Common.Constants.AjaxSuffix);
         }
 
         public void ConfiguredStart()
         {
-            string svcBase = Constants.InfoServiceAddress + "/" + Settings.HomeId + "/";
+            string svcBase = Common.Constants.InfoServiceAddress + "/" + Settings.HomeId + "/";
 
             //let us start serving the files
             string webBase = svcBase + Common.Constants.GuiServiceSuffixWeb;
-            webFileServerHomeId = new WebFileServer(Constants.DashboardRoot, webBase, logger);
+            webFileServerHomeId = new WebFileServer(Common.Constants.DashboardRoot, webBase, logger);
 
-            serviceHostWebHomeId = OpenSafeServiceWeb(webBase + Constants.AjaxSuffix);
+            serviceHostWebHomeId = OpenSafeServiceWeb(webBase + Common.Constants.AjaxSuffix);
 
             string webSecBase = svcBase + Common.Constants.GuiServiceSuffixWebSec;
 
-            serviceHostWebSecHomeId = OpenSafeServiceWebSec(webSecBase + Constants.AjaxSuffix);
+            serviceHostWebSecHomeId = OpenSafeServiceWebSec(webSecBase + Common.Constants.AjaxSuffix);
         }
 
         public void Dispose()
@@ -236,29 +232,13 @@ namespace HomeOS.Hub.Platform
             }
         }
 
-        //public Tuple<bool, string> SetNotificationEmail(string emailAddress)
-        //{
-        //    logger.Log("UICalled:SetNotificationEmail " + emailAddress);
-
-        //    try
-        //    {
-        //        config.UpdateConfSetting("NotificationEmail", emailAddress);
-
-        //        return new Tuple<bool, string>(true, "");
-        //    }
-        //    catch (Exception)
-        //    {
-        //        return new Tuple<bool, string>(false, "Got exception while updating the notification email. Try again?");
-        //    }
-        //}
-
         public List<string> SetNotificationEmailWeb(string emailAddress)
         {
             try
             {
                 logger.Log("UICalled:SetNotificationEmail " + emailAddress);
 
-                config.UpdateConfSetting("NotificationEmail", emailAddress);
+                config.UpdatePrivateConfSetting("NotificationEmail", emailAddress);
 
                 return new List<string>() { "", "true" };
             }
@@ -310,18 +290,6 @@ namespace HomeOS.Hub.Platform
 
         }
 
-       // public Tuple<string, string> GetConfSetting(string confKey)
-       // {
-       //     logger.Log("UICalled:GetConfSetting " + confKey);
-
-        //    string confValue = config.GetConfSetting(confKey);
-
-        //    if (confValue == null)
-        //        return new Tuple<string, string>(null, "Key not found!");
-        //    else
-        //        return new Tuple<string, string>(confValue, "");
-        //}
-
         public List<string> GetConfSettingWeb(string confKey)
         {
             try
@@ -342,6 +310,28 @@ namespace HomeOS.Hub.Platform
                 return new List<string>() { "Got exception: " + e.Message };
             }
         }
+
+        public List<string> GetPrivateConfSettingWeb(string confKey)
+        {
+            try
+            {
+                logger.Log("UICalled:GetPrivateConfSettingWeb " + confKey);
+
+                string confValue = config.GetPrivateConfSetting(confKey);
+
+                if (confValue == null)
+                    return new List<string>() { "Key not found!" };
+                else
+                    return new List<string>() { "", confValue };
+            }
+            catch (Exception e)
+            {
+                logger.Log("Exception in GetPrivateConfSetting: " + e.ToString());
+
+                return new List<string>() { "Got exception: " + e.Message };
+            }
+        }
+
         #endregion
 
         #region Wifi related functions
@@ -457,8 +447,8 @@ namespace HomeOS.Hub.Platform
                                 {
                                     retString = "Connection succeeded!";
 
-                                    config.UpdateConfSetting("WifiSsid", targetSsid);
-                                    config.UpdateConfSetting("WifiKey", passPhrase);
+                                    config.UpdatePrivateConfSetting("WifiSsid", targetSsid);
+                                    config.UpdatePrivateConfSetting("WifiKey", passPhrase);
 
                                     return new List<string>() { "", "true" };
                                 }
@@ -520,29 +510,11 @@ namespace HomeOS.Hub.Platform
             return new Tuple<bool, string>(true, "");
         }
 
-        //public Tuple<string, string> AddZwave()
-        //{
-        //    logger.Log("UICalled: AddZwave");
-        //    VModule driverZwave = platform.GetDriverZwave();
-
-        //    if (driverZwave == null)
-        //        return new Tuple<string, string>("", "Is the Zwave driver running?");
-
-        //    string result = (string)driverZwave.OpaqueCall("AddDevice");
-
-        //    logger.Log("Result of add zwave = " + result);
-            
-        //    if (result.Contains("ZwaveNode::"))
-        //         return new Tuple<string, string>(result, "");
-        //    else 
-        //        return new Tuple<string,string>("", result);
-        //}
-
-        public List<string> AddZwaveWeb()
+        public List<string> AddZwaveWeb(string deviceType)
         {
             try
             {
-                logger.Log("UICalled: AddZwaveWeb");
+                logger.Log("UICalled: AddZwaveWeb {0}", deviceType);
                 VModule driverZwave = platform.GetDriverZwave();
 
                 if (driverZwave == null)
@@ -550,7 +522,7 @@ namespace HomeOS.Hub.Platform
 
                 string addResult = null;
 
-                SafeThread addThread = new SafeThread(delegate() { addResult = (string)driverZwave.OpaqueCall("AddDevice"); },
+                SafeThread addThread = new SafeThread(delegate() { addResult = (string)driverZwave.OpaqueCall("AddDevice", deviceType); },
                                                       "zwave node adding", logger);
                 addThread.Start();
              addThread.Join(new TimeSpan(0, 0, ZWaveAddRemoveTimeoutSecs));
@@ -603,8 +575,72 @@ namespace HomeOS.Hub.Platform
             }
         }
 
+        public List<string> RemoveUnaddedZwaveWeb()
+        {
+            try
+            {
+                logger.Log("UICalled: RemoveUnaddedZwaveWeb");
+                VModule driverZwave = platform.GetDriverZwave();
+
+                if (driverZwave == null)
+                    return new List<string>() { "Is the Zwave driver running?" };
+
+                string removeResult = null;
+
+                SafeThread removeThread = new SafeThread(delegate() { removeResult = (string)driverZwave.OpaqueCall("RemoveDevice"); },
+                                                      "unadded zwave node remove", logger);
+                removeThread.Start();
+                removeThread.Join(new TimeSpan(0, 0, ZWaveAddRemoveTimeoutSecs));
+
+                logger.Log("Result of unadded zwave remove = " + removeResult);
+
+                if (removeResult == null)
+                {
+                    string abortResult = (string)driverZwave.OpaqueCall("AbortRemoveDevice");
+
+                    logger.Log("Result of AbortRemoveDevice = " + abortResult);
+
+                    return new List<string>() { "Remove operation timed out" };
+                }
+
+                if (removeResult.Contains("ZwaveNode::0"))
+                    return new List<string>() { "", removeResult };
+
+
+                //we ended up removing what we shouldn't
+                if (removeResult.Contains("ZwaveNode::"))
+                {
+                    var portToRemove = config.GetConfiguredPortUsingModuleFacingName(driverZwave.GetInfo().FriendlyName(), removeResult);
+                    
+                    if (portToRemove == null)
+                        return new List<string>() { "An added node was seemingly removed but its port was not found", removeResult };
+
+                    //now remove the port
+                    bool removePortResult = config.RemovePort(portToRemove);
+
+                    if (!removePortResult)
+                        return new List<string>() { String.Format("Could not remove port {0}", portToRemove.ToString()) };
+
+                    platform.RemoveAccessRulesForDevice(portToRemove.GetFriendlyName());
+
+                    return new List<string>() { "An added node was removed", removeResult, portToRemove.GetFriendlyName(), removePortResult.ToString() };
+                }
+
+                return new List<string>() { removeResult };
+            }
+            catch (Exception e)
+            {
+                logger.Log("Exception in UnaddedZwaveWeb: " + e.ToString());
+
+                return new List<string>() { "Got exception: " + e.Message };
+            }
+
+        }
+
+
         //if you are removing a device you have, the parameters are (deviceFriendlyName, “false”) 
         //if you are removing a device that does not exist any more, the parameters should be (nodeId, “true”)
+        //if you are removing a device that was accidentally removed from zwave (by removeunaddedzwaveweb), the parameters should be (deviceFriendlyName, "cleanup")
         public List<string> RemoveZwaveWeb(string deviceFriendlyName, string failedNode)
         {
             try
@@ -627,45 +663,50 @@ namespace HomeOS.Hub.Platform
                     return new List<string>() { deviceFriendlyName + " doesn't appear to be a zwave node. its modulefacingname is " + servicePort.ModuleFacingName() };
 
                 //now get removing
-                if (failedNode.Equals("false", StringComparison.CurrentCultureIgnoreCase))
+                switch (failedNode)
                 {
-                    string result = null;
+                    case "false":
+                    case "False":
+                        {
+                            string result = null;
 
-                    SafeThread addThread = new SafeThread(delegate() { result = (string)driverZwave.OpaqueCall("RemoveDevice"); },
-                                                          "zwave node removal", logger);
+                            SafeThread addThread = new SafeThread(delegate() { result = (string)driverZwave.OpaqueCall("RemoveDevice"); },
+                                                                  "zwave node removal", logger);
+                            addThread.Start();
+                            addThread.Join(new TimeSpan(0, 0, ZWaveAddRemoveTimeoutSecs));
 
-                    addThread.Start();
+                            logger.Log("Result of remove zwave = " + result);
 
-                addThread.Join(new TimeSpan(0, 0, ZWaveAddRemoveTimeoutSecs));
+                            if (result == null)
+                            {
+                                string abortResult = (string)driverZwave.OpaqueCall("AbortRemoveDevice");
+                                logger.Log("Result of AbortAddDevice = " + abortResult);
+                                return new List<string>() { "Add operation timed out" };
+                            }
+                        }
+                        break;
+                    case "True":
+                    case "true":
+                        {
+                            int startIndex = servicePort.ModuleFacingName().IndexOf("ZwaveNode::");
+                            string subString = servicePort.ModuleFacingName().Substring(startIndex + "ZwaveNode::".Length);
 
-                    logger.Log("Result of remove zwave = " + result);
+                            int nodeId;
+                            bool success = Int32.TryParse(subString, out nodeId);
 
-                    if (result == null)
-                    {
-                        string abortResult = (string)driverZwave.OpaqueCall("AbortRemoveDevice");
+                            if (!success)
+                            {
+                                logger.Log("Could not extract node id from {0}", servicePort.ModuleFacingName());
+                                return new List<string>() { "Could not extract nodeId from " + servicePort.ModuleFacingName() };
+                            }
 
-                        logger.Log("Result of AbortAddDevice = " + abortResult);
+                            string result = (string)driverZwave.OpaqueCall("RemoveFailedNode", nodeId);
 
-                        return new List<string>() { "Add operation timed out" };
-                    }
-                }
-                else
-                {
-                    int startIndex = servicePort.ModuleFacingName().IndexOf("ZwaveNode::");
-                    string subString = servicePort.ModuleFacingName().Substring(startIndex);
-
-                    int nodeId;
-                    bool success = Int32.TryParse(subString, out nodeId);
-
-                    if (!success)
-                    {
-                        logger.Log("Could not extract node id from {0}", servicePort.ModuleFacingName());
-                        return new List<string>() { "Could not extract nodeId from " + servicePort.ModuleFacingName() };
-                    }
-
-                    string result = (string)driverZwave.OpaqueCall("RemoveFailedNode", nodeId);
-
-                    logger.Log("result of removefailednode call = " + result);
+                            logger.Log("result of removefailednode call = " + result);
+                        }
+                        break;
+                    default:
+                        return new List<string>() { "Unknown failed node option " + failedNode };
                 }
 
                 //now remove the port
@@ -719,48 +760,41 @@ namespace HomeOS.Hub.Platform
         #endregion
 
         #region general utility functions
+
         /// <summary>
-        /// Send email
+        /// Send email using local SMTP Client, if that fails, use cloud relay service.
         /// </summary>
         /// <param name="dst">to:</param>
         /// <param name="subject">subject</param>
         /// <param name="body">body of the message</param>
         /// <returns>A tuple with true/false success and string exception message (if any)</returns>
-        public List<string> SendEmail(string dst, string subject, string body)
+        public Tuple<bool, string> SendEmail(string dst, string subject, string body)
         {
-            logger.Log("UICalled:SendEmail " + dst + " " + subject + " " + body);
+            return Utils.SendEmail(dst, subject, body, null, platform, logger);
+        }
 
-            //   <!--smtp server, smtp user, smtp password, email target, sms target -->
-            // <Args Count="5" val1="smtp.live.com" val2="homeos@live.com" val3="home123$" val4="homeos@live.com" val5="1234567890@txt.att.net" />
+        /// <summary>
+        /// Send email using local SMTP Client
+        /// </summary>
+        /// <param name="dst">to:</param>
+        /// <param name="subject">subject</param>
+        /// <param name="body">body of the message</param>
+        /// <returns>A tuple with true/false success and string exception message (if any)</returns>
+        public Tuple<bool, string> SendHubEmail(string dst, string subject, string body)
+        {
+            return Utils.SendHubEmail(dst, subject, body, null, platform, logger);
+        }
 
-            string smtpUser = "homeos@live.com";
-            string smtpPassword = "home123$";
-            string smtpServer = "smtp.live.com";
-            
-            MailMessage message = new MailMessage();
-
-            string from = string.IsNullOrEmpty(smtpUser) ? "homeos.placeholder@microsoft.com" : smtpUser;
-            message.From = new MailAddress(from);
-            message.To.Add(dst);
-
-            message.Subject = subject;
-            message.Body = body;
-            
-            try
-            {
-                SmtpClient smtpClient = new SmtpClient(smtpServer);
-                smtpClient.Credentials = new System.Net.NetworkCredential(smtpUser, smtpPassword);
-                smtpClient.EnableSsl = true;
-
-                smtpClient.Send(message);
-            }
-            catch (Exception exception)
-            {
-                logger.Log("Exception while sending message: {0}", exception.ToString());
-                return new List<string>() {exception.ToString()};
-            }
-            
-            return new List<string>() {""};
+        /// <summary>
+        /// Send email by using Cloud Relay Service Host
+        /// </summary>
+        /// <param name="dst">to:</param>
+        /// <param name="subject">subject</param>
+        /// <param name="body">body of the message</param>
+        /// <returns>A tuple with true/false success and string exception message (if any)</returns>
+        public Tuple<bool, string> SendCloudEmail(string dst, string subject, string body)
+        {
+            return Utils.SendCloudEmail(dst, subject, body, null, platform, logger);
         }
         #endregion
 
@@ -1119,7 +1153,7 @@ namespace HomeOS.Hub.Platform
 
                 List<string> retString = new List<string>();
 
-                var runningScoutNames = platform.GetAllScoutNames();
+                var runningScoutNames = platform.GetAllRunningScoutNames();
 
                 //first, get all scouted devices
                 foreach (var scoutName in runningScoutNames)
@@ -1156,7 +1190,7 @@ namespace HomeOS.Hub.Platform
                 foreach (var device in portList)
                 {
                     retString.Add(device.ModuleFacingName());
-                    retString.Add(Constants.OrphanedDeviceIndicator);
+                    retString.Add(Common.Constants.OrphanedDeviceIndicator);
                 }
 
                 retString.Insert(0, "");
@@ -1726,10 +1760,133 @@ namespace HomeOS.Hub.Platform
 
         #endregion
 
+        #region functions related to scouts
+
+        /// <summary>
+        /// Returns the list of scouts in the homestore
+        /// Each scout is a 5-tuple [name, description, rating, iconurl, whether-its-running]
+        /// </summary>
+        /// <returns></returns>
+        public List<string> GetScouts()
+        {
+            try
+            {
+                logger.Log("UICalled:GetScouts ");
+
+                List<string> scoutList = new List<string>();
+
+                foreach (HomeStoreScout homeStoreScout in homeStoreInfo.GetAllScouts())
+                {
+                    scoutList.Add(homeStoreScout.Name);
+                    scoutList.Add(homeStoreScout.Description);
+                    scoutList.Add(homeStoreScout.Rating.ToString());
+
+                    //add the icon url
+                    if (homeStoreScout.IconUrl == null)
+                        scoutList.Add("unknown");
+                    else
+                        scoutList.Add(homeStoreScout.IconUrl);
+
+                    bool running = platform.GetAllRunningScoutNames().Contains(homeStoreScout.Name);
+
+                    scoutList.Add(running.ToString());
+                }
+
+                scoutList.Insert(0, "");
+                return scoutList;
+            }
+            catch (Exception e)
+            {
+                logger.Log("Exception in GetScouts: " + e.ToString());
+
+                return new List<string>() { "Got exception: " + e.Message };
+            }
+        }
+
+        /// <summary>
+        /// Matches the list of running scouts to what is specified in the argument
+        /// </summary>
+        /// <returns></returns>
+        public List<string> SetScouts(string[] scoutsToRun)
+        {
+            try
+            {
+                logger.Log("UICalled:SetScouts: {0} socuts", scoutsToRun.Length.ToString());
+
+                List<string> runningScouts = platform.GetAllRunningScoutNames();
+
+                // ....... first stop the ones that we need to stop
+                foreach (var runningScout in runningScouts)
+                {
+                    bool shouldStop = true;
+
+                    foreach (var scoutToRun in scoutsToRun)
+                    {
+                        if (runningScout.Equals(scoutToRun))
+                        {
+                            shouldStop = false;
+                            break;
+                        }
+                    }
+
+                    if (shouldStop) 
+                    {
+                        try
+                        {
+                            platform.StopScout(runningScout);
+                            config.RemoveScout(runningScout);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.Log("Could not stop {0}: {1}", runningScout, ex.ToString());
+                        }
+                    }
+                }
+
+
+                //now start the ones that we need to start
+                foreach (var scoutToRun in scoutsToRun)
+                {
+
+                    bool shouldStart = ! runningScouts.Contains(scoutToRun);
+
+                    if (shouldStart)
+                    {
+                        HomeStoreScout hsScout = homeStoreInfo.GetScout(scoutToRun);
+
+                        if (hsScout == null)
+                            return new List<string>() { "The following scout was not found " + scoutsToRun };
+
+                        var sInfo = new HomeOS.Hub.Platform.DeviceScout.ScoutInfo(hsScout);
+
+                        try
+                        {
+                            platform.StartScout(sInfo);
+                            config.AddScout(sInfo);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.Log("Could not start {0}: {1}", scoutToRun, ex.ToString());
+                        }
+                    }
+
+                }
+
+                return new List<string>() { "" };
+            }
+            catch (Exception e)
+            {
+                logger.Log("Exception in SetScouts: " + e.ToString());
+
+                return new List<string>() { "Got exception: " + e.Message };
+            }
+        }
+
+        #endregion
 
         public List<string> GetRemoteAccessUrlWeb()
         {
-            string url = String.Format("https://{0}:{1}/{2}/{3}/index.html", Settings.GatekeeperURI, HomeOS.Shared.Gatekeeper.Settings.ClientPort, Settings.HomeId, Constants.GuiServiceSuffixWeb);
+            string url = String.Format("https://{0}:{1}/{2}/{3}/index.html", Settings.GatekeeperURI, HomeOS.Shared.Gatekeeper.Settings.ClientPort, Settings.HomeId, Common.Constants.GuiServiceSuffixWeb);
             return new List<string>() {"", url};
         }
 
@@ -1739,7 +1896,7 @@ namespace HomeOS.Hub.Platform
             {
                 logger.Log("UICalled: IsServiceReady {0}", absoluteUrl);
                 
-                string url = Constants.InfoServiceAddress + "/" + new Uri(absoluteUrl).LocalPath; 
+                string url = Common.Constants.InfoServiceAddress + "/" + new Uri(absoluteUrl).LocalPath; 
                 var request = System.Net.WebRequest.Create(url);
                 try
                 {
@@ -1811,7 +1968,7 @@ namespace HomeOS.Hub.Platform
 
                 foreach (var user in users)
                 {
-                    if (!user.Name.Equals(Constants.SystemLow) && !user.Name.Equals(Constants.SystemHigh))
+                    if (!user.Name.Equals(Common.Constants.SystemLow) && !user.Name.Equals(Common.Constants.SystemHigh))
                     {
                         retList.Add(user.Name);
                         retList.Add(user.LiveId);
@@ -1892,7 +2049,15 @@ namespace HomeOS.Hub.Platform
 
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
-        List<string> SendEmail(string dst, string subject, string body);
+        Tuple<bool, string> SendEmail(string dst, string subject, string body);
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        Tuple<bool, string> SendHubEmail(string dst, string subject, string body);
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        Tuple<bool, string> SendCloudEmail(string dst, string subject, string body);
 
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
@@ -1952,6 +2117,10 @@ namespace HomeOS.Hub.Platform
 
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        List<string> GetPrivateConfSettingWeb(string confKey);
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
         List<string> SetHomeIdWeb(string homeId, string password);
 
         [OperationContract]
@@ -1988,7 +2157,11 @@ namespace HomeOS.Hub.Platform
 
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
-        List<string> AddZwaveWeb();
+        List<string> AddZwaveWeb(string deviceType);
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        List<string> RemoveUnaddedZwaveWeb();
 
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
@@ -2053,6 +2226,14 @@ namespace HomeOS.Hub.Platform
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
         List<string> RemoveLiveIdUser(string userName);
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        List<string> GetScouts();
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        List<string> SetScouts(string[] scouts);
     }
 
     [ServiceContract]

@@ -361,6 +361,9 @@ namespace HomeOS.Hub.Common
         {
             var rejectEx = new WebFaultException<String>(message, status);
             rejectEx.Data.Add("HttpStatusCode", rejectEx.StatusCode);
+
+            //this exception is expected, as it triggers the authentication
+            //to ignore this error while running in VS debugger uncheck the "break when this exception is user handled" box
             throw rejectEx;
         }
 

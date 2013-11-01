@@ -561,8 +561,8 @@ namespace HomeOS.Hub.Scouts.Foscam
             string password = driverParams[2];
 
             //get the wifi credentials
-            string wifiSsid = platform.GetConfSetting("WifiSsid");
-            string wifiKey = platform.GetConfSetting("WifiKey");
+            string wifiSsid = platform.GetPrivateConfSetting("WifiSsid");
+            string wifiKey = platform.GetPrivateConfSetting("WifiKey");
 
             if (string.IsNullOrWhiteSpace(wifiSsid))
                 return new List<string>() { "WifiSsid is not configured in the hub" };

@@ -68,7 +68,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
-   <ItemGroup>
+  <ItemGroup>
     <Compile Include="GadgeteerScout.cs" />
     <Compile Include="IGadgeteerScoutSvc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -80,6 +80,9 @@
     <Content Include="index.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

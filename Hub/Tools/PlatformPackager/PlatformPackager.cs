@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Security.Cryptography;
 using System.Xml;
+using System.Xml.Linq;
 
 //needed for ArgumentHelper
 using HomeOS.Hub.Common;
@@ -14,72 +15,107 @@ namespace PlatformPackager
 {
     class PlatformPackager
     {
-        const string PLATFORM_DIRECTORY_NAME = "Platform";
-        const string PLATFORM_CONFIG_FILE_NAME = "HomeOS.Hub.Platform.exe.config";
+        const string platformBinaryName = "HomeOS.Hub.Platform";
+        const string DefaultHomeOSUpdateVersionValue = "0.0.0.0";
+        const string ConfigAppSettingKeyHomeOSUpdateVersion = "HomeOSUpdateVersion";
 
         static void Main(string[] args)
         {
             var argsDict = ProcessArguments(args);
 
-            string sourceBinaryDir = (string)argsDict["BinaryDir"];
+            string platformRootDir = (string)argsDict["PlatformRootDir"];
+            string repoDir = (string)argsDict["RepoDir"];
 
-            if (!Directory.Exists(sourceBinaryDir))
+            // check the platform binary is present
+            string platformExe = platformRootDir + "\\" + platformBinaryName + ".exe";
+            if (!File.Exists(platformExe))
             {
-                Console.Error.WriteLine("Binary directory {0} does not exist!", sourceBinaryDir);
-                System.Environment.Exit(1);
+                Console.Error.WriteLine("Platform binary {0} not found. Quitting.", platformExe);
+                return;
             }
 
-            //1. create a temporary directory and copy there the contents of the binary directory
-            var random = new Random();
-            string tmpDirectory = "tmp." + random.Next();
-            string tmpPlatformDir = tmpDirectory  + "\\" + PLATFORM_DIRECTORY_NAME;
+            Package(platformRootDir, platformBinaryName, repoDir);
 
-            Directory.CreateDirectory(tmpDirectory);
-            CopyFolder(sourceBinaryDir, tmpPlatformDir) ;
+        }
 
-            //2. pack the zip
-            string zipFile = tmpPlatformDir + ".zip";
-            bool result = PackZip(tmpPlatformDir, zipFile);
+        private static void Package(string platformDir, string platformBinaryName, string repoDir)
+        {
+
+            if (!Directory.Exists(platformDir))
+            {
+                Console.Error.WriteLine("Platform directory {0} does not exist?", platformDir);
+                return;
+            }
+
+            //get the zip dir
+            string zipDir = repoDir;
+
+            string[] parts = platformBinaryName.Split('.');
+
+            foreach (var part in parts)
+                zipDir += "\\" + part;
+
+            // Use HomeOSUpdateVersion from App.Config
+
+            string file = platformDir + "\\" + platformBinaryName + ".exe.config";
+            string homeosUpdateVersion = DefaultHomeOSUpdateVersionValue;
+            try
+            {
+                XElement xmlTree = XElement.Load(file);
+                IEnumerable<XElement> das =
+                    from el in xmlTree.DescendantsAndSelf()
+                    where el.Name == "add" && el.Parent.Name == "appSettings" && el.Attribute("key").Value == ConfigAppSettingKeyHomeOSUpdateVersion
+                    select el;
+                if (das.Count() > 0)
+                {
+                    homeosUpdateVersion = das.First().Attribute("value").Value;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine("Failed to parse {0}, exception: {1}", file, e.ToString());
+            }
+
+            if (homeosUpdateVersion == DefaultHomeOSUpdateVersionValue)
+            {
+                Console.WriteLine("Warning didn't find platform version in {0}, defaulting to {1}", file, homeosUpdateVersion);
+            }
+
+            zipDir += "\\" + homeosUpdateVersion;
+            Directory.CreateDirectory(zipDir);
+
+            //get the name of the zip file and pack it
+            string zipFile = zipDir + "\\" + platformBinaryName + ".zip";
+            string hashFile = zipDir + "\\" + platformBinaryName + ".md5";
+
+            bool result = PackZip(platformDir, zipFile);
 
             if (!result)
             {
-                Console.Error.WriteLine("Failed to pack zip. Quitting");
-                Directory.Delete(tmpDirectory);
-                System.Environment.Exit(1);
+                Console.Error.WriteLine("Failed to pack zip for {0}. Quitting", platformBinaryName);
+                return;
             }
 
-            //3. compute the md5 hash
             string md5hash = GetMD5HashOfFile(zipFile);
 
-            //4. read the app settings
-            var appSettings = GetAppSettings(tmpPlatformDir + "\\" + PLATFORM_CONFIG_FILE_NAME);
-
-            if (appSettings.ContainsKey("md5hash"))
-                appSettings["md5hash"] = md5hash;
-            else
-                appSettings.Add("md5hash", md5hash);
-
-            string configFileToUpload = tmpDirectory + "\\" + PLATFORM_CONFIG_FILE_NAME;
-            WriteAppSettings(appSettings, configFileToUpload);
-
-            Console.Out.WriteLine("Your package is ready in {0}.\n  - Upload {1} and {2}.zip at the right place. \n  - Then, you can delete {3}", tmpDirectory, PLATFORM_CONFIG_FILE_NAME, PLATFORM_DIRECTORY_NAME, tmpDirectory);
-        }
-
-        private static void WriteAppSettings(Dictionary<string, string> settings, string fileToWrite) 
-        {
-            var fileWriter = new StreamWriter(fileToWrite);
-
-            fileWriter.WriteLine("<configuration>");
-            fileWriter.WriteLine("<appSettings>");
-            foreach (string key in settings.Keys)
+            if (string.IsNullOrWhiteSpace(md5hash))
             {
-                fileWriter.WriteLine("<add key=\"{0}\" value=\"{1}\"/>", key, settings[key]);
+                return;
             }
-            fileWriter.WriteLine("</appSettings>");
-            fileWriter.WriteLine("</configuration>");
 
-            fileWriter.Close();
+            try
+            {
+                File.WriteAllText(hashFile, md5hash);
+            }
+            catch (Exception e)
+            {
+                Console.Out.WriteLine("Failed to write hash file {0}, Exception:{1}. Quitting", hashFile, e.ToString());
+                return;
+            }
+
+            Console.Out.WriteLine("Prepared platform package: {0}.\n Hash file: {1}", zipFile, hashFile);
         }
+
 
         /// <summary>
         /// Processes the command line arguments
@@ -97,11 +133,17 @@ namespace PlatformPackager
                     null,
                     "Display this help message."),
                new ArgumentSpec(
-                   "BinaryDir",
+                   "PlatformRootDir",
                    'b',
-                   "..\\..\\..\\..\\output\\binaries\\Platform",
+                   "..\\..\\..\\..\\output\\binaries",
                    "directory name",
-                   "The name of the directory where binaries are"),
+                   "The parent directory of the platform directory containing the binaries"),
+             new ArgumentSpec(
+                   "RepoDir",
+                   'r',
+                   "output\\HomeStore\\repository",
+                   "directory name",
+                   "Top-level directory where we should create the homestore repository")
             };
 
             ArgumentsDictionary args = new ArgumentsDictionary(arguments, argSpecs);
@@ -125,52 +167,6 @@ namespace PlatformPackager
             }
 
             return args;
-        }
-
-        private static void CopyFolder(string sourceFolder, string destFolder)
-        {
-            if (!Directory.Exists(destFolder))
-                Directory.CreateDirectory(destFolder);
-            string[] files = Directory.GetFiles(sourceFolder);
-            foreach (string file in files)
-            {
-                string name = Path.GetFileName(file);
-                string dest = Path.Combine(destFolder, name);
-
-                int numTries = 3;
-                while (numTries > 0)
-                {
-                    try
-                    {
-                        numTries--;
-
-                        File.Copy(file, dest, true);
-
-                        break;
-                    }
-                    catch (Exception e)
-                    {
-                        if (numTries > 0)
-                            System.Threading.Thread.Sleep(5 * 1000);
-                        else
-                            Console.WriteLine("Failed to copy " + file + "\n" + e.ToString(), true);
-                    }
-                }
-            }
-            string[] folders = Directory.GetDirectories(sourceFolder);
-            foreach (string folder in folders)
-            {
-                string name = Path.GetFileName(folder);
-                string dest = Path.Combine(destFolder, name);
-                try
-                {
-                    CopyFolder(folder, dest);
-                }
-                catch (Exception e)
-                {
-                    Console.Error.WriteLine(e.ToString(), true);
-                }
-            }
         }
 
         private static bool PackZip(string startPath, String zipPath)
@@ -211,51 +207,5 @@ namespace PlatformPackager
                 return "";
             }
         }
-
-        private static Dictionary<string, string> GetAppSettings(string fileUri)
-        {
-            Dictionary<string, string> retDict = new Dictionary<string, string>();
-
-            XmlDocument xmlDoc = new XmlDocument();
-            XmlReaderSettings xmlReaderSettings = new XmlReaderSettings();
-            xmlReaderSettings.IgnoreComments = true;
-            xmlReaderSettings.DtdProcessing = DtdProcessing.Parse;
-
-            XmlReader xmlReader = XmlReader.Create(fileUri, xmlReaderSettings);
-            xmlDoc.Load(xmlReader);
-
-            foreach (var child in xmlDoc.ChildNodes)
-            {
-                XmlElement root = child as XmlElement;
-
-                if (root == null || !root.Name.Equals("configuration"))
-                    continue;
-
-                foreach (XmlElement xmlDevice in root.ChildNodes)
-                {
-                    if (!String.Equals(xmlDevice.Name, "appSettings", StringComparison.OrdinalIgnoreCase))
-                        continue;
-
-                    foreach (XmlElement xmlKey in xmlDevice.ChildNodes)
-                    {
-                        if (!String.Equals(xmlKey.Name, "add", StringComparison.OrdinalIgnoreCase))
-                            continue;
-
-                        string key = xmlKey.GetAttribute("key");
-                        string value = xmlKey.GetAttribute("value");
-
-                        //to make our life easiers, let us not store empty/null values
-                        if (!String.IsNullOrEmpty(value))
-                            retDict.Add(key, value);
-                    }
-                }
-            }
-
-            xmlReader.Close();
-
-            return retDict;
-        }
-
-
     }
 }

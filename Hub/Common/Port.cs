@@ -15,31 +15,28 @@ namespace HomeOS.Hub.Common
         /// <summary>
         /// The class that is the key to the dictionaries that contain information about operation handlers and subscribers
         /// </summary>
-        private class RoleOperationPair : IEquatable<RoleOperationPair>
+        private class OperationKey : IEquatable<OperationKey>
         {
-            public string RoleName { get; private set; }
             public string OperationName { get; private set; }
 
-            public RoleOperationPair(string roleName, string opName)
+            public OperationKey(string opName)
             {
-                RoleName = roleName;
                 OperationName = opName;
             }
 
             public override int GetHashCode()
             {
-                return RoleName.ToLower().GetHashCode() ^ OperationName.ToLower().GetHashCode();
+                return OperationName.ToLower().GetHashCode();
             }
 
-            public bool Equals(RoleOperationPair otherPair)
+            public bool Equals(OperationKey otherPair)
             {
-                return RoleName.Equals(otherPair.RoleName, StringComparison.CurrentCultureIgnoreCase) &
-                       OperationName.Equals(otherPair.OperationName, StringComparison.CurrentCultureIgnoreCase);
+                return OperationName.Equals(otherPair.OperationName, StringComparison.CurrentCultureIgnoreCase);
             }
 
             public override string ToString()
             {
-                return RoleName + "->" + OperationName;
+                return OperationName;
             }
         }
 
@@ -93,12 +90,12 @@ namespace HomeOS.Hub.Common
         /// <summary>
         /// This dictionary contains handlers to call when an operation is invoked
         /// </summary>
-        Dictionary<RoleOperationPair, OperationDelegate> operationDelegates;
+        Dictionary<OperationKey, OperationDelegate> operationDelegates;
 
         /// <summary>
         /// This dictionary contains active subscriptions for operations
         /// </summary>
-        Dictionary<RoleOperationPair, List<SubscriptionInfo>> subscribedPorts;
+        Dictionary<OperationKey, List<SubscriptionInfo>> subscribedPorts;
 
         /// <summary>
         /// The function to call when notifications arrive at this port from other ports
@@ -120,14 +117,14 @@ namespace HomeOS.Hub.Common
             this.logger = logger;
             this.handler = handler;
 
-            this.subscribedPorts = new Dictionary<RoleOperationPair, List<SubscriptionInfo>>();
-            this.operationDelegates = new Dictionary<RoleOperationPair,OperationDelegate>();
+            this.subscribedPorts = new Dictionary<OperationKey, List<SubscriptionInfo>>();
+            this.operationDelegates = new Dictionary<OperationKey,OperationDelegate>();
 
             foreach (HomeOS.Hub.Platform.Views.VRole role in info.GetRoles())
             {
                 foreach (HomeOS.Hub.Platform.Views.VOperation operation in role.GetOperations())
                 {
-                    this.operationDelegates[new RoleOperationPair(role.Name(), operation.Name())] = null;
+                    this.operationDelegates[new OperationKey(operation.Name())] = null;
                 }
             }
 
@@ -143,7 +140,7 @@ namespace HomeOS.Hub.Common
         public void SetOperationDelegate(string roleName, string opName, OperationDelegate handler)
         {
 
-            RoleOperationPair roleOpPair = new RoleOperationPair(roleName, opName);
+            OperationKey roleOpPair = new OperationKey(opName);
 
             bool operationFound = false;
 
@@ -195,7 +192,7 @@ namespace HomeOS.Hub.Common
 
             lock (this.subscribedPorts)
             {
-                RoleOperationPair roleOpPair = new RoleOperationPair(roleName, opName);
+                OperationKey roleOpPair = new OperationKey(opName);
 
                 //if we don't have anyone subscribed create the list
                 if (!this.subscribedPorts.ContainsKey(roleOpPair))
@@ -234,7 +231,7 @@ namespace HomeOS.Hub.Common
         {
             lock (this.subscribedPorts)
             {
-                RoleOperationPair roleOpPair = new RoleOperationPair(roleName, opName);
+                OperationKey roleOpPair = new OperationKey(opName);
 
                 if (!this.subscribedPorts.ContainsKey(roleOpPair)) 
                 {
@@ -273,7 +270,7 @@ namespace HomeOS.Hub.Common
         {
             TimeSpan timeout = Constants.nominalTimeout;
             IList<HomeOS.Hub.Platform.Views.VParamType> retval = null;
-            RoleOperationPair roleOpPair = new RoleOperationPair(roleName, opName);
+            OperationKey roleOpPair = new OperationKey(opName);
 
             if (!operationDelegates.ContainsKey(roleOpPair) || operationDelegates[roleOpPair] == null)
             {
@@ -330,11 +327,10 @@ namespace HomeOS.Hub.Common
         /// can be optionally null</param>
         /// <param name="payload">The message payload</param>
         public void Notify(string roleName, string opName, IList<HomeOS.Hub.Platform.Views.VParamType> retVals)
-        //public void Notify(string roleName, string opName, params HomeOS.Hub.Platform.Views.VParamType[] retVals)
         {
             lock (this.subscribedPorts)
             {
-                RoleOperationPair roleOpPair = new RoleOperationPair(roleName, opName);
+                OperationKey roleOpPair = new OperationKey(opName);
 
                 if (subscribedPorts.ContainsKey(roleOpPair))
                 {

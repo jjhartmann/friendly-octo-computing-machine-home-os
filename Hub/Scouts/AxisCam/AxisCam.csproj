@@ -39,7 +39,7 @@
     <OutputPath>$(TeamBuildOutDir)\$(SolutionName)\output\binaries\Scouts\HomeOS.Hub.Scouts.AxisCam\</OutputPath>
     <CustomPath>$(TeamBuildOutDir)\$(SolutionName)</CustomPath>
   </PropertyGroup>
- <ItemGroup>
+  <ItemGroup>
     <Reference Include="HomeOS.Hub.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Common.dll</HintPath>
@@ -65,7 +65,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
-   <ItemGroup>
+  <ItemGroup>
     <Compile Include="AxisCamScout.cs" />
     <Compile Include="IAxisCamScoutSvc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -88,6 +88,9 @@
     <Content Include="index.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

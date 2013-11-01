@@ -43,7 +43,7 @@
     <OutputPath>$(TeamBuildOutDir)\$(SolutionName)\output\binaries\Pipeline\AddIns\HomeOS.Hub.Apps.Dummy\</OutputPath>
     <CustomPath>$(TeamBuildOutDir)\$(SolutionName)</CustomPath>
   </PropertyGroup>
-  <ItemGroup >
+  <ItemGroup>
     <Reference Include="Accessibility">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
@@ -100,6 +100,9 @@
     <Content Include="Styles\Dummy.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

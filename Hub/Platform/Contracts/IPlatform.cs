@@ -23,6 +23,7 @@ namespace HomeOS.Hub.Platform.Contracts
         bool IsValidUser(string username, string password);
         
         string GetConfSetting(string paramName);
+        string GetPrivateConfSetting(string paramName);
         string GetDeviceIpAddress(string deviceId);
         void UpdateState(IModule module, IModuleState state);
         void CancelAllSubscriptions(IModule module , IPort controlPort, ICapability controlportcap);

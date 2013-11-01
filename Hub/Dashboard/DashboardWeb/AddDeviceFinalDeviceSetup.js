@@ -32,10 +32,7 @@ $(document).ready(
  
             var isZwave = IsZwaveDevice(DEVICEID);
 
-            if (isZwave) 
-                $("#divAddZwaveTypeOptions").show(); //if DEVICEID contains ZwaveNode:: then show the dropdown asking what type of zwave device it is
-
-            //if ZWAVE OR Orphaned skip starting the driver
+         //if ZWAVE OR Orphaned skip starting the driver
             if (isZwave || (qs.Orphan != undefined && qs.Orphan == "1"))
                 GetAllLocations(GetAllLocationsCallback);
             else 
@@ -258,12 +255,7 @@ function ConfigureDevice() {
     //get the friendly name and location
     var friendlyName = $('#friendlyName').val();
 
-    //If device is a zwave device, get the type from the drop down list and encode in friendly name
-    if (IsZwaveDevice(DEVICEID)) {
-        var zwaveType = $('#zwaveDeviceList option:selected').val();
-        friendlyName = friendlyName + "::" + zwaveType;
-    }
-
+   
     var locationTmp = $('#locationList option:selected').val();
   
     var APPS_USER_PERMITS_NAME = "apps";

@@ -138,9 +138,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebCam", "Scouts\WebCam\Web
 		{6F879B8B-C4B1-4E8D-9BF2-C6376B05E4EC} = {6F879B8B-C4B1-4E8D-9BF2-C6376B05E4EC}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dummy", "Scouts\Dummy\Dummy.csproj", "{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2B68B717-75D4-44CE-B6E8-64249A5F9A70} = {2B68B717-75D4-44CE-B6E8-64249A5F9A70}
+		{71272F38-FC7D-4170-8411-51E27200C791} = {71272F38-FC7D-4170-8411-51E27200C791}
+		{74363882-6ECC-40F5-A7E7-139DD95B52D3} = {74363882-6ECC-40F5-A7E7-139DD95B52D3}
+		{6F879B8B-C4B1-4E8D-9BF2-C6376B05E4EC} = {6F879B8B-C4B1-4E8D-9BF2-C6376B05E4EC}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 20
+		SccNumberOfProjects = 21
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
 		SccProjectUniqueName0 = Platform\\Adapters\\Adapters.csproj
@@ -262,6 +270,12 @@ Global
 		SccAuxPath19 = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
 		SccLocalPath19 = Scouts\\WebCam
 		SccProvider19 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccProjectUniqueName20 = Scouts\\Dummy\\Dummy.csproj
+		SccProjectTopLevelParentUniqueName20 = Core.sln
+		SccProjectName20 = Scouts/Dummy
+		SccAuxPath20 = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
+		SccLocalPath20 = Scouts\\Dummy
+		SccProvider20 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		ClientDebug|Any CPU = ClientDebug|Any CPU
@@ -716,6 +730,27 @@ Global
 		{D3394DA2-560D-4A25-9486-A68503B9E360}.Release|Win32.ActiveCfg = Release|Any CPU
 		{D3394DA2-560D-4A25-9486-A68503B9E360}.Release|x64.ActiveCfg = Release|Any CPU
 		{D3394DA2-560D-4A25-9486-A68503B9E360}.Release|x86.ActiveCfg = Release|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.ClientDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.ClientDebug|Any CPU.Build.0 = Debug|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.ClientDebug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.ClientDebug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.ClientDebug|Win32.ActiveCfg = Debug|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.ClientDebug|x64.ActiveCfg = Debug|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.ClientDebug|x86.ActiveCfg = Debug|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.Release|Win32.ActiveCfg = Release|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.Release|x64.ActiveCfg = Release|Any CPU
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -749,5 +784,6 @@ Global
 		{7C1E0409-69EF-407F-B063-29057BE04992} = {20200902-FF8F-419B-8A53-08897DAFF3E6}
 		{239CA191-4A9B-4C7D-BC61-D1B82CD678D5} = {20200902-FF8F-419B-8A53-08897DAFF3E6}
 		{D3394DA2-560D-4A25-9486-A68503B9E360} = {E4C3C6A8-59E2-4BEF-8B56-9EB8169C32B9}
+		{C72DC6E2-E4DB-4259-94CF-71BF0A4A71A5} = {E4C3C6A8-59E2-4BEF-8B56-9EB8169C32B9}
 	EndGlobalSection
 EndGlobal

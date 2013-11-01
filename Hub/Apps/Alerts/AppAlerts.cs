@@ -357,28 +357,32 @@ namespace HomeOS.Hub.Apps.Alerts
         }
 
         void SendEmail(string subject, string message, List<Attachment> attachmentList)
-        {
-            Notification notification = new Notification();
-            notification.subject = subject;
-            notification.body = message;
-            notification.toAddress = emailAdrs;
-            notification.attachmentList = attachmentList;
-           
-            bool success = SendEmail(notification);
+        {           
+            Tuple<bool,string> result = base.SendEmail(emailAdrs, subject, message, attachmentList);
 
-            logger.Log("Email notification succeeded = {0}", success.ToString());
+            if (result.Item1)
+            {
+                logger.Log("Email notification succeeded");
+            }
+            else
+            {
+                logger.Log("Email notification failed with error:{0}", result.Item2);
+            }
         }
 
 
         void SendSms(string subject, string message)
         {
-            Notification notification = new Notification();
-            notification.subject = subject;
-            notification.body = message;
+            Tuple<bool, string> result = base.SendEmail(emailAdrs, subject, message, null);
 
-            bool success = SendEmail(notification);
-
-            logger.Log("Sms Notification result = {0}", success.ToString());
+            if (result.Item1)
+            {
+                logger.Log("SMS notification succeeded");
+            }
+            else
+            {
+                logger.Log("SMS notification failed with error:{0}", result.Item2);
+            }
         }
 
              

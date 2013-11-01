@@ -4,10 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.NetworkInformation;
+using System.Net.Mail;
 using HomeOS.Hub.Platform.Views;
 using System.Management;
 using System.IO;
 using System.Security.Cryptography;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace HomeOS.Hub.Common
 {
@@ -434,6 +437,161 @@ namespace HomeOS.Hub.Common
             foreach (string message in messages)
                 s.Append("[" + message + "]");
             logger.Log(s.ToString());
+        }
+
+        private static Notification BuildNotification(string dest, string subject, string body, List<Attachment> attachmentList)
+        {
+            Notification notification = null;
+
+            if (string.IsNullOrWhiteSpace(dest))
+            {
+                return notification;
+            }
+
+            notification = new Notification();
+
+            notification.toAddress = dest;
+            notification.subject = subject;
+            notification.body = body;
+            notification.attachmentList = attachmentList;
+
+            return notification;
+        }
+
+        /// <summary>
+        /// Send email by trying to send from Hub first, if that fails, send using cloud relay.
+        /// </summary>
+        /// <param name="dst">to:</param>
+        /// <param name="subject">subject</param>
+        /// <param name="body">body of the message</param>
+        /// <returns>A tuple with true/false success and string exception message (if any)</returns>
+        public static Tuple<bool, string> SendEmail(string dst, string subject, string body, List<Attachment> attachmentList, VPlatform platform, VLogger logger)
+        {
+            logger.Log("Utils.SendEmail called with  " + dst + " " + subject + " " + body);
+
+            Tuple<bool, string> result = SendHubEmail(dst, subject, body, attachmentList, platform, logger);
+            if (!result.Item1)
+            {
+                logger.Log("SendHubEmail failed with error={0}", result.Item2);
+                result = SendCloudEmail(dst, subject, body, attachmentList, platform, logger);
+            }
+            return result;
+        }
+            
+        /// <summary>
+        /// Send email from Hub.
+        /// </summary>
+        /// <param name="dst">to:</param>
+        /// <param name="subject">subject</param>
+        /// <param name="body">body of the message</param>
+        /// <returns>A tuple with true/false success and string exception message (if any)</returns>
+        public static Tuple<bool, string> SendHubEmail(string dst, string subject, string body, List<Attachment> attachmentList, VPlatform platform, VLogger logger)
+        {
+            string error = "";
+            logger.Log("Utils.SendHubEmail called with " + dst + " " + subject + " " + body);
+
+            string smtpServer = platform.GetPrivateConfSetting("SmtpServer");
+            string smtpUser = platform.GetPrivateConfSetting("SmtpUser");
+            string smtpPassword = platform.GetPrivateConfSetting("SmtpPassword");
+            string bodyLocal;
+
+            Emailer emailer = new Emailer(smtpServer, smtpUser, smtpPassword, logger);
+
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                bodyLocal = platform.GetPrivateConfSetting("NotificationEmail");
+            }
+            else
+            {
+                bodyLocal = body;
+            }
+
+            Notification notification = BuildNotification(dst, subject, body, attachmentList);
+            if (null == notification)
+            {
+                error = "Destination for the email not set";
+                logger.Log(error);
+                return new Tuple<bool, string>(false, error);
+            }
+
+            return emailer.Send(notification);
+        }
+
+        public static Tuple<bool, string> SendCloudEmail(string dst, string subject, string body, List<Attachment> attachmentList, VPlatform platform, VLogger logger)
+        {
+            string error = "";
+            logger.Log("Utils.SendCloudEmail called with " + dst + " " + subject + " " + body);
+
+            string smtpServer = platform.GetPrivateConfSetting("SmtpServer");
+            string smtpUser = platform.GetPrivateConfSetting("SmtpUser");
+            string smtpPassword = platform.GetPrivateConfSetting("SmtpPassword");
+            Uri serviceHostUri = new Uri("https://" + platform.GetConfSetting("EmailServiceHost") + ":" + Shared.Constants.EmailServiceSecurePort + "/" +
+                                   Shared.Constants.EmailServiceWcfEndPointUrlSuffix);
+
+            string bodyLocal;
+
+            CloudEmailer emailer = new CloudEmailer(serviceHostUri, smtpServer, smtpUser, smtpPassword, logger);
+
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                bodyLocal = platform.GetPrivateConfSetting("NotificationEmail");
+            }
+            else
+            {
+                bodyLocal = body;
+            }
+
+            Notification notification = BuildNotification(dst, subject, body, attachmentList);
+            if (null == notification)
+            {
+                error = "Destination for the email not set";
+                logger.Log(error);
+                return new Tuple<bool, string>(false, error);
+            }
+
+            return emailer.Send(notification);
+        }
+
+        public static byte[] CreateTestJpegImage(
+                int maxXCells,
+                int maxYCells,
+                int cellXPosition,
+                int cellYPosition,
+                int boxSize)
+        {
+            using (var bmp = new System.Drawing.Bitmap(maxXCells * boxSize + 1, maxYCells * boxSize + 1))
+            {
+                using (Graphics g = Graphics.FromImage(bmp))
+                {
+                    g.Clear(Color.Yellow);
+                    Pen pen = new Pen(Color.Black);
+                    pen.Width = 1;
+
+                    //Draw red rectangle to go behind cross
+                    Rectangle rect = new Rectangle(boxSize * (cellXPosition - 1), boxSize * (cellYPosition - 1), boxSize, boxSize);
+                    g.FillRectangle(new SolidBrush(Color.Red), rect);
+
+                    //Draw cross
+                    g.DrawLine(pen, boxSize * (cellXPosition - 1), boxSize * (cellYPosition - 1), boxSize * cellXPosition, boxSize * cellYPosition);
+                    g.DrawLine(pen, boxSize * (cellXPosition - 1), boxSize * cellYPosition, boxSize * cellXPosition, boxSize * (cellYPosition - 1));
+
+                    //Draw horizontal lines
+                    for (int i = 0; i <= maxXCells; i++)
+                    {
+                        g.DrawLine(pen, (i * boxSize), 0, i * boxSize, boxSize * maxYCells);
+                    }
+
+                    //Draw vertical lines            
+                    for (int i = 0; i <= maxYCells; i++)
+                    {
+                        g.DrawLine(pen, 0, (i * boxSize), boxSize * maxXCells, i * boxSize);
+                    }
+                }
+
+                var memStream = new MemoryStream();
+                bmp.Save(memStream, ImageFormat.Jpeg);
+                return memStream.ToArray();
+            }
         }
     }
 }

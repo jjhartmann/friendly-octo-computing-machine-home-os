@@ -30,5 +30,12 @@ netsh advfirewall firewall delete rule name="Hub Platform" dir=in program=%outpu
 netsh advfirewall firewall add rule name="Hub Platform" dir=in program=%outputPath%HomeOS.Hub.Platform.exe action=allow enable=yes profile=private,public localip=any remoteip=any protocol=TCP localport=any remoteport=any
 netsh advfirewall firewall add rule name="Hub Platform" dir=in program=%outputPath%HomeOS.Hub.Platform.exe action=allow enable=yes profile=private,public localip=any remoteip=any protocol=UDP localport=any remoteport=any 
 
+
+:: enable network discovery and sharing
+netsh advfirewall firewall set rule group="Network Discovery" new enable=Yes
+netsh advfirewall firewall set rule group="File and Printer Sharing" new enable=Yes
+
+
+
 :: start the platform
-binaries\Platform\HomeOS.Hub.Platform.exe -c %configDir% -l :stdout
+binaries\Platform\HomeOS.Hub.Platform.exe -c %configDir% 

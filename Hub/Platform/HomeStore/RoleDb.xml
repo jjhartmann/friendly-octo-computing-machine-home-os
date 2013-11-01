@@ -18,4 +18,5 @@
   <Role Name=":depthcam:" />
   <Role Name=":skeletontracker:" />
   <Role Name=":actuator:" />
+  <Role Name=":sensormultilevel:"/>
 </Roles>

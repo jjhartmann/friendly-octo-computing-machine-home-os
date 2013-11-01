@@ -14,6 +14,7 @@ namespace HomeOS.Hub.Platform
         public Dictionary<string, Role> roleDb = new Dictionary<string, Role>();
         public Dictionary<string, HomeStoreApp> moduleDb = new Dictionary<string, HomeStoreApp>();
         public Dictionary<string, HomeStoreDevice> deviceDb = new Dictionary<string, HomeStoreDevice>();
+        public Dictionary<string, HomeStoreScout> scoutDb = new Dictionary<string, HomeStoreScout>();
 
         VLogger logger;
 
@@ -54,6 +55,16 @@ namespace HomeOS.Hub.Platform
             {
                 logger.Log("Exception while reading device db: {0}", exception.ToString());
             }
+
+            try
+            {
+                ReadHomeStoreScouts(new Uri(Settings.HomeStoreBase + "\\" + Constants.ScoutDbFileName));
+            }
+            catch (Exception exception)
+            {
+                logger.Log("Exception while reading scout db: {0}", exception.ToString());
+            }
+
         }
 
         public void ReadRoleDb(Uri fileName)
@@ -132,6 +143,44 @@ namespace HomeOS.Hub.Platform
             xmlReader.Close();
         }
 
+        public void ReadHomeStoreScouts(Uri fileName)
+        {
+            System.Net.WebRequest req = System.Net.WebRequest.Create(fileName);
+            System.Net.WebResponse resp;
+            try
+            {
+                resp = req.GetResponse();
+            }
+            catch (System.Net.WebException)
+            {
+                logger.Log("error reading HomeStoreApps from {0}", fileName.ToString());
+                return;
+            }
+
+            XmlDocument xmlDoc = new XmlDocument();
+            XmlReader xmlReader = XmlReader.Create(resp.GetResponseStream(), xmlReaderSettings);
+            xmlDoc.Load(xmlReader);
+            XmlElement root = xmlDoc.FirstChild as XmlElement;
+
+            if (!root.Name.Equals("Scouts"))
+                throw new Exception(fileName + " doesn't start with Scouts");
+
+            foreach (XmlElement xmlModule in root.ChildNodes)
+            {
+                try
+                {
+                    HomeStoreScout homeStoreScout = ReadHomeStoreScoutFromXml(fileName, xmlModule);
+                    AddScoutToDB(homeStoreScout);
+                }
+                catch (Exception ex)
+                {
+                    logger.Log("Error reading/adding a home store app: " + ex.ToString());
+                }
+            }
+
+            xmlReader.Close();
+        }
+
         public void ReadHomeStoreDevices(Uri fileName)
         {
             System.Net.WebRequest req = System.Net.WebRequest.Create(fileName);
@@ -167,6 +216,11 @@ namespace HomeOS.Hub.Platform
         private void AddAppToDB(HomeStoreApp app)
         {
             moduleDb.Add(app.AppName, app);
+        }
+
+        private void AddScoutToDB(HomeStoreScout scout)
+        {
+            scoutDb.Add(scout.Name, scout);
         }
 
         private void AddDeviceToDB(HomeStoreDevice dev)
@@ -248,6 +302,56 @@ namespace HomeOS.Hub.Platform
             homeStoreApp.CompatibleWithHome = false;
 
             return homeStoreApp;
+        }
+
+        /// <summary>
+        /// Takes an xml node which describes a homestore scout and returns
+        /// a HomeStoreScout structure
+        /// </summary>
+        /// <param name="xmlScout">the xml subtree of the app</param>
+        /// <returns>The relevant HomeStoreScout structure</returns>
+        private HomeStoreScout ReadHomeStoreScoutFromXml(Uri baseUri, XmlElement xmlScout)
+        {
+            if (!xmlScout.Name.Equals("Scout"))
+                throw new Exception("child is not a Scout in " + xmlScout);
+
+            HomeStoreScout homeStoreScout = new HomeStoreScout();
+
+            homeStoreScout.Name = xmlScout.GetAttribute("Name");
+            homeStoreScout.DllName = xmlScout.GetAttribute("DllName").Replace(".dll", "");
+            homeStoreScout.Description = xmlScout.GetAttribute("Description");
+            homeStoreScout.Rating = int.Parse(xmlScout.GetAttribute("Rating"));
+
+            homeStoreScout.IconUrl = null;
+            try
+            {
+                string iconUrlString = xmlScout.GetAttribute("IconUrl");
+                if (!String.IsNullOrWhiteSpace(iconUrlString))
+                {
+                    //this function does the right thing if iconUrlString is already absolute
+                    homeStoreScout.IconUrl = new Uri(baseUri, iconUrlString).ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Log("exception in parsing IconUrl for {0}: {1}", homeStoreScout.Name, ex.ToString());
+            }
+
+            homeStoreScout.Version = null;
+            try
+            {
+                string versionString = xmlScout.GetAttribute("Version");
+                if (!String.IsNullOrWhiteSpace(versionString))
+                {
+                    homeStoreScout.Version = versionString;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Log("exception in parsing Version for {0}: {1}", homeStoreScout.Name, ex.ToString());
+            }
+
+            return homeStoreScout;
         }
 
         /// <summary>
@@ -421,5 +525,25 @@ namespace HomeOS.Hub.Platform
                 return storeDb.moduleDb.Values.ToList();
             }
         }
+
+        public List<HomeStoreScout> GetAllScouts()
+        {
+            lock (this)
+            {
+                return storeDb.scoutDb.Values.ToList();
+            }
+        }
+
+        public HomeStoreScout GetScout(string scoutName)
+        {
+            lock (this)
+            {
+                if (storeDb.scoutDb.ContainsKey(scoutName))
+                    return storeDb.scoutDb[scoutName];
+
+                return null;
+            }
+        }
+
     }
 }

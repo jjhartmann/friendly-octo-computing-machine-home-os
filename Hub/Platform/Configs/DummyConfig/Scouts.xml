@@ -1,3 +1,4 @@
 ﻿<Scouts>
+  <Scout Name="HomeOS.Hub.Scouts.Dummy" DllName="HomeOS.Hub.Scouts.Dummy.dll"/>
   <Scout Name="HomeOS.Hub.Scouts.WebCam" DllName="HomeOS.Hub.Scouts.WebCam.dll"/>
 </Scouts>

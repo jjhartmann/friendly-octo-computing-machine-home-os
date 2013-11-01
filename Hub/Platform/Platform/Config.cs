@@ -57,6 +57,7 @@ namespace HomeOS.Hub.Platform
         string RulesFile { get { return directory + "\\" + Constants.RulesFileName; } }
         string ScoutsFile { get { return directory + "\\" + Constants.ScoutsFileName; } }
         string SettingsFile { get { return directory + "\\" + Constants.SettingsFileName; } }
+        string PrivateSettingsFile { get { return directory + "\\" + Constants.PrivateSettingsFileName; } }
 
         public Configuration(string directory)
         {
@@ -78,6 +79,7 @@ namespace HomeOS.Hub.Platform
         {
             xmlReaderSettings.IgnoreComments = true;
 
+            ReadPrivateSettings();
             ReadLocationTree();
             ReadModuleList();
             ReadServicesList();
@@ -222,7 +224,7 @@ namespace HomeOS.Hub.Platform
                 ScoutInfo sInfo = new ScoutInfo(scoutName, driverBinaryName);
 
                 if (!String.IsNullOrEmpty(version))
-                    sInfo.setVersion(version);
+                    sInfo.SetVersion(version);
 
                 allScouts.Add(scoutName, sInfo);
             }
@@ -230,11 +232,61 @@ namespace HomeOS.Hub.Platform
             xmlReader.Close();
         }
 
-        //we assume that allScouts is 
         public void WriteScoutsList()
         {
-            throw new NotImplementedException("Why do we need this function? The scouts list is not dynamically updated. Right?");
+            XmlDocument xmlDoc = new XmlDocument();
+
+            XmlElement root = xmlDoc.CreateElement("Scouts");
+            xmlDoc.AppendChild(root);
+
+            foreach (var scout in allScouts.Values)
+            {
+                XmlElement xmlScout = xmlDoc.CreateElement("Scout");
+
+                xmlScout.SetAttribute("Name", scout.Name);
+                xmlScout.SetAttribute("DllName", scout.DllName);
+
+                if (!String.IsNullOrEmpty(scout.Version))  
+                    xmlScout.SetAttribute("Version", scout.Version);
+
+                root.AppendChild(xmlScout);
+            }
+
+            xmlDoc.Save(ScoutsFile);
         }
+
+        public bool AddScout(ScoutInfo sInfo, bool writeToDisk = true)
+        {
+            lock (allScouts)
+            {
+                if (allScouts.ContainsKey(sInfo.Name))
+                    return false;
+
+                allScouts.Add(sInfo.Name, sInfo);
+
+                if (writeToDisk)
+                    WriteScoutsList();
+
+                return true;
+            }
+        }
+
+        public bool RemoveScout(string scoutName, bool writeToDisk = true)
+        {
+            lock (allScouts)
+            {
+                if (!allScouts.ContainsKey(scoutName))
+                    return false;
+
+                allScouts.Remove(scoutName);
+
+                if (writeToDisk)
+                    WriteScoutsList();
+
+                return true;
+            }
+        }
+
         #endregion
 
         #region read and write settings
@@ -284,6 +336,56 @@ namespace HomeOS.Hub.Platform
             }
 
             PersistentWrite(xmlDoc, SettingsFile);
+        }
+        #endregion
+
+        #region read and write private settings
+        private void ReadPrivateSettings()
+        {
+            XmlDocument xmlDoc = new XmlDocument();
+            XmlReader xmlReader = XmlReader.Create(PrivateSettingsFile, xmlReaderSettings);
+
+            xmlDoc.Load(xmlReader);
+            XmlElement root = xmlDoc.FirstChild as XmlElement;
+
+            if (!root.Name.Equals("PrivateSettings"))
+                throw new Exception(SettingsFile + " doesn't start with Settings");
+
+            foreach (XmlElement xmlParam in root.ChildNodes)
+            {
+                if (!xmlParam.Name.Equals("Param"))
+                    throw new Exception("child is not a Param in " + SettingsFile);
+
+                string name = xmlParam.GetAttribute("Name");
+                string value = xmlParam.GetAttribute("Value");
+
+                Settings.SetPrivateParameter(name, value);
+            }
+
+            xmlReader.Close();
+        }
+
+        private void WritePrivateSettings()
+        {
+            XmlDocument xmlDoc = new XmlDocument();
+
+            XmlElement root = xmlDoc.CreateElement("PrivateSettings");
+            xmlDoc.AppendChild(root);
+
+            lock (Settings.PrivateSettingsTable)
+            {
+                foreach (string paramName in Settings.PrivateSettingsTable.Keys)
+                {
+                    XmlElement xmlDevice = xmlDoc.CreateElement("Param");
+
+                    xmlDevice.SetAttribute("Name", paramName);
+                    xmlDevice.SetAttribute("Value", Settings.PrivateSettingsTable[paramName].Value.ToString());
+
+                    root.AppendChild(xmlDevice);
+                }
+            }
+
+            PersistentWrite(xmlDoc, PrivateSettingsFile);
         }
         #endregion
 
@@ -541,7 +643,7 @@ namespace HomeOS.Hub.Platform
                 }
             }
         }
-        //***
+
         #region methods to remove ports from config at runtime -rayman
         private bool RemoveConfiguredPort(PortInfo portInfo,  bool writeToDisk = true)
         {
@@ -618,8 +720,6 @@ namespace HomeOS.Hub.Platform
 
 
         #endregion 
-
-        //***
 
         private void WriteLocationTree()
         {
@@ -1845,6 +1945,31 @@ namespace HomeOS.Hub.Platform
             }
         }
 
+        public string GetPrivateConfSetting(string paramName)
+        {
+            lock (Settings.PrivateSettingsTable)
+            {
+                try
+                {
+                    return Settings.GetPrivateParameter(paramName).ToString();
+                }
+                catch (Exception e)
+                {
+                    logger.Log("Exception while getting private configuration param: {0}", paramName);
+                    return null;
+                }
+            }
+        }
+
+        public void UpdatePrivateConfSetting(string paramName, object paramValue)
+        {
+            Settings.SetPrivateParameter(paramName, paramValue);
+            lock (Settings.PrivateSettingsTable)
+            {
+                WritePrivateSettings();
+            }
+        }
+
 
         //get an unconfigured service (port) that corresponds to a device with the input uniqueDeviceId
         //the assumption is that the module facing name of the port contains the device 
@@ -1931,6 +2056,21 @@ namespace HomeOS.Hub.Platform
             return retList;
         }
 
+        public PortInfo GetConfiguredPortUsingModuleFacingName(string moduleName, string moduleFacingName)
+        {
+            lock (configuredPorts)
+            {
+                //since we enforce uniqueness on friendlyname, there should be only one
+                foreach (PortInfo pInfo in configuredPorts.Values)
+                {
+                    if (pInfo.ModuleFriendlyName().Equals(moduleName) && 
+                        pInfo.ModuleFacingName().Equals(moduleFacingName))
+                        return pInfo;
+                }
+            }
+
+            return null;
+        }
 
         public ModuleInfo GetModule(string friendlyName)
         {

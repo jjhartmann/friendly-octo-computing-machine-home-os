@@ -208,8 +208,8 @@ namespace HomeOS.Hub.Scouts.Gadgeteer
                             //InsertDevice(device);
 
                             //send wifi credentials to the device
-                            string wifiSsid = platform.GetConfSetting("WifiSsid");
-                            string wifiKey = platform.GetConfSetting("WifiKey");
+                            string wifiSsid = platform.GetPrivateConfSetting("WifiSsid");
+                            string wifiKey = platform.GetPrivateConfSetting("WifiKey");
 
                             if (wifiSsid == null)
                             {
@@ -343,8 +343,8 @@ namespace HomeOS.Hub.Scouts.Gadgeteer
                 return new List<string>() { "Could not find the device in my current list" };
 
             //get the wifi credentials
-            string wifiSsid = platform.GetConfSetting("WifiSsid");
-            string wifiKey = platform.GetConfSetting("WifiKey");
+            string wifiSsid = platform.GetPrivateConfSetting("WifiSsid");
+            string wifiKey = platform.GetPrivateConfSetting("WifiKey");
 
             if (wifiSsid == null)
                 return new List<string>() { "WifiSsid is not configured in the hub" };

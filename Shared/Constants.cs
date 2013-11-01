@@ -51,5 +51,16 @@ namespace HomeOS.Shared
         /// This is the maximum value that can be set for the heart beat interval
         /// </summary>
         public static readonly UInt32 MaxHeartbeatIntervalInMins = 15;
+
+        /// <summary>
+        /// Email service end point Https port
+        /// </summary>
+        public static readonly UInt32 EmailServiceSecurePort = 7443;
+
+        /// <summary>
+        /// Email service end point Url suffix
+        /// </summary>
+        public static string EmailServiceWcfEndPointUrlSuffix = "EmailService.svc";
+
     }
 }

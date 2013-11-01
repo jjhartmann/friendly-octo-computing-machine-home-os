@@ -64,7 +64,7 @@ namespace HomeOS.Hub.Platform.DeviceScout
                 {
                     upnpDevices.Add(device);
 
-                    logger.Log("UPnPDevice: model={0} present={1} type={2} sn={3} upc={4} udn={5}", device.ModelURL, device.PresentationURL, device.Type, device.SerialNumber, device.UPC, device.UniqueDeviceName);
+                    //logger.Log("UPnPDevice: model={0} present={1} type={2} sn={3} upc={4} udn={5}", device.ModelURL, device.PresentationURL, device.Type, device.SerialNumber, device.UPC, device.UniqueDeviceName);
                 }
             }
 

@@ -97,7 +97,8 @@ namespace HomeOS.Hub.Drivers.Foscam
             //add the camera service port
             VPortInfo pInfo = GetPortInfoFromPlatform("foscam-" + cameraId);
 
-            List<VRole> roles = new List<VRole>() {RoleCamera.Instance, RolePTCamera.Instance};
+            //List<VRole> roles = new List<VRole>() {RoleCamera.Instance, RolePTCamera.Instance};
+            List<VRole> roles = new List<VRole>() { RolePTCamera.Instance };
 
             cameraPort = InitPort(pInfo);
             BindRoles(cameraPort, roles, OnOperationInvoke);

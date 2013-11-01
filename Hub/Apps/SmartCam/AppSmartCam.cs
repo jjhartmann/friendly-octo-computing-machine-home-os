@@ -41,7 +41,7 @@ namespace HomeOS.Hub.Apps.SmartCam
 
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     [ServiceKnownType(typeof(SmartCam.CameraControl))]
-    [AddIn("HomeOS.Hub.Apps.SmartCam", Version = "1.0.0.0")]
+    [AddIn("HomeOS.Hub.Apps.SmartCam")]
     public class SmartCam : ModuleBase
     {
         const int VIDEO_FPS_NUM = 24;
@@ -589,17 +589,17 @@ namespace HomeOS.Hub.Apps.SmartCam
 
         public void SendEmail(string toAddress, string subject, string body, string[] attachmentUrls)
         {
-            Notification notification = new Notification();
-            notification.toAddress = toAddress;
-            notification.subject = subject;
-            notification.body = body;
+            Tuple<bool,string> result = base.SendEmail(toAddress, subject, body, null);
 
-            // TODO - how to attach links to the images?
-
-            bool success = SendEmail(notification);
-
-            logger.Log("Email notification succeeded = {0}", success.ToString());
-        }
+            if (result.Item1)
+            {
+                logger.Log("Email notification succeeded");
+            }
+            else
+            {
+                logger.Log("Email notification failed with error:{0}", result.Item2);
+            }
+        }        
 
 
         public void SendMsgToCamera(string cameraControl, string cameraFriendlyName)

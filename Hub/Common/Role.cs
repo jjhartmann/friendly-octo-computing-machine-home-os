@@ -126,8 +126,8 @@ namespace HomeOS.Hub.Common
     public class RoleDummy : Role
     {
         public const string RoleName = ":dummy:";
-        public const string OpEchoName = "echo";
-        public const string OpEchoSubName = "echosub";
+        public const string OpEchoName = RoleName + "->" + "echo";
+        public const string OpEchoSubName = RoleName + "->" + "echosub";
 
         private static RoleDummy _instance;
 
@@ -164,8 +164,8 @@ namespace HomeOS.Hub.Common
     public class RoleDoorjamb : Role
     {
         public const string RoleName = ":doorjamb:";
-        public const string OpEchoName = "echo";
-        public const string OpEchoSubName = "echosub";
+        public const string OpEchoName = RoleName + "->" + "echo";
+        public const string OpEchoSubName = RoleName + "->" + "echosub";
 
         private static RoleDoorjamb _instance;
 
@@ -301,7 +301,7 @@ namespace HomeOS.Hub.Common
     public class RoleSensor : Role
     {
         public const string RoleName = ":sensor:";
-        public const string OpGetName = "get";
+        public const string OpGetName = RoleName + "->" + "get";
 
         private static RoleSensor _instance;
 
@@ -326,10 +326,132 @@ namespace HomeOS.Hub.Common
         }
     }
 
+    public class RolePowerSensor : RoleSensorMultiLevel
+    {
+        public new const string RoleName = ":sensormultilevel::powersensor:";
+
+        private static Role _instance;
+
+        public new static Role Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    new RolePowerSensor();
+                return _instance;
+            }
+        }
+
+        protected RolePowerSensor()
+        {
+            SetName(RoleName);
+            _instance = this;
+        }
+    }
+
+    public class RoleTemperatureSensor : RoleSensorMultiLevel
+    {
+        public new const string RoleName = ":sensormultilevel::temperaturesensor:";
+
+        private static Role _instance;
+
+        public new static Role Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    new RoleTemperatureSensor();
+                return _instance;
+            }
+        }
+
+        protected RoleTemperatureSensor()
+        {
+            SetName(RoleName);
+            _instance = this;
+        }
+    }
+
+    public class RoleHumiditySensor : RoleSensorMultiLevel
+    {
+        public new const string RoleName = ":sensormultilevel::humiditysensor:";
+
+        private static Role _instance;
+
+        public new static Role Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    new RoleHumiditySensor();
+                return _instance;
+            }
+        }
+
+        protected RoleHumiditySensor()
+        {
+            SetName(RoleName);
+            _instance = this;
+        }
+    }
+
+    public class RoleLuminositySensor : RoleSensorMultiLevel
+    {
+        public new const string RoleName = ":sensormultilevel::luminositysensor:";
+
+        private static Role _instance;
+
+        public new static Role Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    new RoleLuminositySensor();
+                return _instance;
+            }
+        }
+
+        protected RoleLuminositySensor()
+        {
+            SetName(RoleName);
+            _instance = this;
+        }
+    }
+
+    public class RoleSensorMultiLevel : Role
+    {
+        public const string RoleName = ":sensormultilevel:";
+        public const string OpGetName = RoleName + "->" + "get";
+
+        private static Role _instance;
+
+        public static Role Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    new RoleSensorMultiLevel();
+                return _instance;
+            }
+        }
+
+        protected RoleSensorMultiLevel()
+        {
+            SetName(RoleName);
+            _instance = this;
+
+            {
+                List<VParamType> args = new List<VParamType>();
+                List<VParamType> retVals = new List<VParamType>() { new ParamType(0.0) };
+                AddOperation(new Operation(OpGetName, args, retVals, true));
+            }
+        }
+    }
+
     public class RoleActuator : Role
     {
         public const string RoleName = ":actuator:";
-        public const string OpPutName = "put";
+        public const string OpPutName = RoleName + "->" + "put";
 
         private static RoleActuator _instance;
 
@@ -357,8 +479,8 @@ namespace HomeOS.Hub.Common
     public class RoleSwitchMultiLevel : Role
     {
         public const string RoleName = ":switchmultilevel:";
-        public const string OpSetName = "set";
-        public const string OpGetName = "get";
+        public const string OpSetName = RoleName + "->" + "set";
+        public const string OpGetName = RoleName + "->" + "get";
 
         private static Role _instance;
 
@@ -394,8 +516,8 @@ namespace HomeOS.Hub.Common
     public class RoleSwitchBinary : Role
     {
         public const string RoleName = ":switchbinary:";
-        public const string OpSetName = "set";
-        public const string OpGetName = "get";
+        public const string OpSetName = RoleName + "->" + "set";
+        public const string OpGetName = RoleName + "->" + "get";
 
         private static RoleSwitchBinary _instance;
 
@@ -431,10 +553,10 @@ namespace HomeOS.Hub.Common
     public class RoleDepthCam : Role
     {
         public const string RoleName = ":depthcam:";
-        public const string OpGetLastDepthImgName = "lastdepthimg";
-        public const string OpRcvDepthStreamName = "rcvdepthstream";
-        public const string OpGetLastDepthArrayName = "lastdeptharray";
-        public const string OpRcvDepthArrayName = "rcvdeptharray";
+        public const string OpGetLastDepthImgName = RoleName + "->" + "lastdepthimg";
+        public const string OpRcvDepthStreamName = RoleName + "->" + "rcvdepthstream";
+        public const string OpGetLastDepthArrayName = RoleName + "->" + "lastdeptharray";
+        public const string OpRcvDepthArrayName = RoleName + "->" + "rcvdeptharray";
 
         private static RoleDepthCam _instance;
 
@@ -483,7 +605,7 @@ namespace HomeOS.Hub.Common
     public class RoleMicrophone : Role
     {
         public const string RoleName = ":microphone:";
-        public const string OpRecAudioName = "recaudio";
+        public const string OpRecAudioName = RoleName + "->" + "recaudio";
 
         private static RoleMicrophone _instance;
 
@@ -518,8 +640,8 @@ namespace HomeOS.Hub.Common
     public class RoleSkeletonTracker : Role
     {
         public const string RoleName = ":skeletontracker:";
-        public const string OpGetLastskeletonName = "lastskeleton";
-        public const string OpRcvSkeletonStreamName = "rcvskeletonstream";
+        public const string OpGetLastskeletonName = RoleName + "->" + "lastskeleton";
+        public const string OpRcvSkeletonStreamName = RoleName + "->" + "rcvskeletonstream";
 
         private static RoleSkeletonTracker _instance;
 
@@ -556,8 +678,8 @@ namespace HomeOS.Hub.Common
     public class RoleCamera : Role
     {
         public const string RoleName = ":camera:";
-        public const string OpGetImageName = "getimage";
-        public const string OpGetVideo = "getvideo";
+        public const string OpGetImageName = RoleName + "->" + "getimage";
+        public const string OpGetVideo = RoleName + "->" + "getvideo";
 
         private static RoleCamera _instance;
 
@@ -594,10 +716,10 @@ namespace HomeOS.Hub.Common
     public class RolePTCamera : RoleCamera
     {
         public new const string RoleName = ":camera::ptcamera:";
-        public const string OpUpName = "up";
-        public const string OpDownName = "down";
-        public const string OpLeftName = "left";
-        public const string OpRightName = "right";
+        public const string OpUpName = RoleName + "->" + "up";
+        public const string OpDownName = RoleName + "->" + "down";
+        public const string OpLeftName = RoleName + "->" + "left";
+        public const string OpRightName = RoleName + "->" + "right";
 
         private static RolePTCamera _instance;
 
@@ -629,8 +751,8 @@ namespace HomeOS.Hub.Common
     public class RolePTZCamera : RolePTCamera
     {
         public new const string RoleName = ":camera::ptcamera::ptzcamera:";
-        public const string OpZoomInName = "zoomin";
-        public const string OpZommOutName = "zoomout";
+        public const string OpZoomInName = RoleName + "->" + "zoomin";
+        public const string OpZommOutName = RoleName + "->" + "zoomout";
 
         private static RolePTZCamera _instance;
 
@@ -661,7 +783,7 @@ namespace HomeOS.Hub.Common
     public class RoleCouch: Role
     {
         public const string RoleName = ":couch:";
-        public const string OpGoHappyName = "gohappy";
+        public const string OpGoHappyName = RoleName + "->" + "gohappy";
         //public const string OpUpName = "up";
         //public const string OpDownName = "down";
         //public const string OpLeftName = "left";
@@ -701,23 +823,23 @@ namespace HomeOS.Hub.Common
     public class RoleHueBridge : Role
     {
         public const string RoleName = ":huebridge:";
-        public const string OpToggleAll = "toggleall";
-        public const string OpTurnOffAll = "turnoffall";
-        public const string OpTurnOnAll = "turnonall";
-        public const string OpResetAll = "resetall";
-        public const string OpUnlockAll = "unlockall";
-        public const string OpSetColorAll = "setcolorall";
-        public const string OpSetBrightnessAll = "setbrightnessall";
+        public const string OpToggleAll = RoleName + "->" + "toggleall";
+        public const string OpTurnOffAll = RoleName + "->" + "turnoffall";
+        public const string OpTurnOnAll = RoleName + "->" + "turnonall";
+        public const string OpResetAll = RoleName + "->" + "resetall";
+        public const string OpUnlockAll = RoleName + "->" + "unlockall";
+        public const string OpSetColorAll = RoleName + "->" + "setcolorall";
+        public const string OpSetBrightnessAll = RoleName + "->" + "setbrightnessall";
 
-        public const string OpToggleBulb = "togglebulb";
-        public const string OpTurnOffBulb = "turnoffbulb";
-        public const string OpTurnOnBulb = "turnonbulb";
-        public const string OpResetBulb = "resetbulb";
-        public const string OpUnlockBulb = "unlockbulb";
-        public const string OpSetColorBulb = "setcolorbulb";
-        public const string OpGetColorBulb = "getcolorbulb";
-        public const string OpSetBrightnessBulb = "setbrightnessbulb";
-        public const string OpBumpBulb = "bumpbulb";
+        public const string OpToggleBulb = RoleName + "->" + "togglebulb";
+        public const string OpTurnOffBulb = RoleName + "->" + "turnoffbulb";
+        public const string OpTurnOnBulb = RoleName + "->" + "turnonbulb";
+        public const string OpResetBulb = RoleName + "->" + "resetbulb";
+        public const string OpUnlockBulb = RoleName + "->" + "unlockbulb";
+        public const string OpSetColorBulb = RoleName + "->" + "setcolorbulb";
+        public const string OpGetColorBulb = RoleName + "->" + "getcolorbulb";
+        public const string OpSetBrightnessBulb = RoleName + "->" + "setbrightnessbulb";
+        public const string OpBumpBulb = RoleName + "->" + "bumpbulb";
 
         private static Role _instance;
 

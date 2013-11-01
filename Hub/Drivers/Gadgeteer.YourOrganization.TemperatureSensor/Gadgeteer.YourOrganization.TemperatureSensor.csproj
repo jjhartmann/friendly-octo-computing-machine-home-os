@@ -7,8 +7,8 @@
     <ProjectGuid>{3B158D17-BDDB-49B4-911A-7AE30C9E84F2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Gadgeteer.YourOrganization.TemperatureSensor</RootNamespace>
-    <AssemblyName>Gadgeteer.YourOrganization.TemperatureSensor</AssemblyName>
+    <RootNamespace>HomeOS.Hub.Drivers.Gadgeteer.YourOrganization.TemperatureSensor</RootNamespace>
+    <AssemblyName>HomeOS.Hub.Drivers.Gadgeteer.YourOrganization.TemperatureSensor</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
@@ -35,16 +35,16 @@
     <WarningLevel>4</WarningLevel>
     <CustomPath>..\..</CustomPath>
   </PropertyGroup>
-<PropertyGroup Condition="$(TeamBuildOutDir) != '' ">
+  <PropertyGroup Condition="$(TeamBuildOutDir) != '' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>$(TeamBuildOutDir)\$(SolutionName)\output\binaries\Pipeline\AddIns\HomeOS.Hub.Drivers.Gadgeteer.YourOrganization.TemperatureSensor\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-  <CustomPath>$(TeamBuildOutDir)\$(SolutionName)</CustomPath>
+    <CustomPath>$(TeamBuildOutDir)\$(SolutionName)</CustomPath>
   </PropertyGroup>
-<ItemGroup>
+  <ItemGroup>
     <Reference Include="HomeOS.Hub.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Common.dll</HintPath>
@@ -70,6 +70,9 @@
     </Compile>
     <Compile Include="DriverYourOrganizationTemperatureSensor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

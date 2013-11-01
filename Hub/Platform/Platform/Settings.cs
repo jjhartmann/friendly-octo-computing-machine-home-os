@@ -27,7 +27,6 @@ namespace HomeOS.Hub.Platform
             }
         }
 
-
         /// <summary>
         /// organization id
         /// </summary>
@@ -137,7 +136,11 @@ namespace HomeOS.Hub.Platform
         /// Azure datastore account key
         /// </summary>
         public static string DataStoreAccountKey { get; private set; }
-            
+
+        /// <summary>
+        /// Where to send email for cloud relay
+        /// </summary>
+        public static string EmailServiceHost { get; private set; }
 
 
         #endregion
@@ -200,21 +203,25 @@ namespace HomeOS.Hub.Platform
         #endregion
 
          /// <summary>
-        /// The dictionary in which we store settings
+        /// The dictionary in which we store (non-private) settings
         /// </summary>
         public static Dictionary<string, SettingsRef<object>> SettingsTable = null;
+
+        /// <summary>
+        /// The dictionary in which we store private settings
+        /// </summary>
+        public static Dictionary<string, SettingsRef<object>> PrivateSettingsTable = null;
 
         public static void Initiatlize()
         {
             Settings.SettingsTable = new Dictionary<string, SettingsRef<object>>();
+            Settings.PrivateSettingsTable = new Dictionary<string, SettingsRef<object>>();
 
             try
             {
                 SettingsTable["OrgId"] = new SettingsRef<object>(() => Settings.OrgId, v => { Settings.OrgId = v.ToString(); });
                 SettingsTable["StudyId"] = new SettingsRef<object>(() => Settings.StudyId, v => { Settings.StudyId = v.ToString(); });
                 SettingsTable["HomeId"] = new SettingsRef<object>(() => Settings.HomeId, v => { Settings.HomeId = v.ToString(); });
-                SettingsTable["WifiSsid"] = new SettingsRef<object>(() => Settings.WifiSsid, v => { Settings.WifiSsid = v.ToString(); });
-                SettingsTable["WifiKey"] = new SettingsRef<object>(() => Settings.WifiKey, v => { Settings.WifiKey = v.ToString(); });
 
                 SettingsTable["ConfigDir"] = new SettingsRef<object>(() => Settings.ConfigDir, v => { Settings.ConfigDir = v.ToString(); });
                 SettingsTable["ModuleWorkingDirBase"] = new SettingsRef<object>(() => Settings.ModuleWorkingDirBase, v => { Settings.ModuleWorkingDirBase = v.ToString(); });
@@ -255,12 +262,17 @@ namespace HomeOS.Hub.Platform
                 SettingsTable["HeartbeatIntervalMins"] = new SettingsRef<object>(() => Settings.HeartbeatIntervalMins, v => { Settings.HeartbeatIntervalMins = Convert.ToUInt32(v); });
 
 
-                SettingsTable["SmtpServer"] = new SettingsRef<object>(() => Settings.SmtpServer, v => { Settings.SmtpServer = v.ToString(); });
-                SettingsTable["SmtpUser"] = new SettingsRef<object>(() => Settings.SmtpUser, v => { Settings.SmtpUser = v.ToString(); });
-                SettingsTable["SmtpPassword"] = new SettingsRef<object>(() => Settings.SmtpPassword, v => { Settings.SmtpPassword = v.ToString(); });
-                SettingsTable["NotificationEmail"] = new SettingsRef<object>(() => Settings.NotificationEmail, v => { Settings.NotificationEmail = v.ToString(); });
+                SettingsTable["EmailServiceHost"] = new SettingsRef<object>(() => Settings.EmailServiceHost, v => { Settings.EmailServiceHost = v.ToString(); });
 
-                Settings.AssignDefaultValues();
+                PrivateSettingsTable["SmtpServer"] = new SettingsRef<object>(() => Settings.SmtpServer, v => { Settings.SmtpServer = v.ToString(); });
+                PrivateSettingsTable["SmtpUser"] = new SettingsRef<object>(() => Settings.SmtpUser, v => { Settings.SmtpUser = v.ToString(); });
+                PrivateSettingsTable["SmtpPassword"] = new SettingsRef<object>(() => Settings.SmtpPassword, v => { Settings.SmtpPassword = v.ToString(); });
+                PrivateSettingsTable["NotificationEmail"] = new SettingsRef<object>(() => Settings.NotificationEmail, v => { Settings.NotificationEmail = v.ToString(); });
+
+                PrivateSettingsTable["WifiSsid"] = new SettingsRef<object>(() => Settings.WifiSsid, v => { Settings.WifiSsid = v.ToString(); });
+                PrivateSettingsTable["WifiKey"] = new SettingsRef<object>(() => Settings.WifiKey, v => { Settings.WifiKey = v.ToString(); });
+
+                AssignDefaultValues();
             }
             catch (FormatException e)
             {
@@ -299,6 +311,36 @@ namespace HomeOS.Hub.Platform
             }
         }
 
+        public static void SetPrivateParameter(string name, object value)
+        {
+            lock (PrivateSettingsTable)
+            {
+                try
+                {
+                    Settings.PrivateSettingsTable[name].Value = value;
+                }
+                catch (KeyNotFoundException e)
+                {
+                    throw new KeyNotFoundException("Parameter:" + name + " being updated is invalid." + " " + e);
+                }
+            }
+        }
+
+        public static object GetPrivateParameter(string name)
+        {
+            lock (PrivateSettingsTable)
+            {
+                try
+                {
+                    return Settings.PrivateSettingsTable[name].Value;
+                }
+                catch (KeyNotFoundException e)
+                {
+                    throw new KeyNotFoundException("Parameter:" + name + " being updated is invalid." + " " + e);
+                }
+            }
+        }
+
         /// <summary>
         /// Assigns default values to various settings
         /// </summary>
@@ -313,8 +355,6 @@ namespace HomeOS.Hub.Platform
 
             // homeid has no default
             HomeId = String.Empty;
-            WifiSsid = String.Empty;
-            WifiKey = String.Empty;
 
             ConfigDir = Constants.PlatformBinaryDir + "\\..\\..\\Configs\\Config";
             ModuleWorkingDirBase = Constants.PlatformBinaryDir + "\\..\\..\\Data";
@@ -353,10 +393,17 @@ namespace HomeOS.Hub.Platform
             HeartbeatServiceMode = "Off"; // options: Off, Production
             HeartbeatIntervalMins = 1;
 
+            EmailServiceHost = "www.lab-of-things.net";
+
+            // .... the following settings are private and sit in PrivateSettings.xml
+
             NotificationEmail = String.Empty;
             SmtpServer = "smtp.live.com";
-            SmtpUser = "homeos@live.com";
-            SmtpPassword = "home123$";
+            SmtpUser = "your-email@live.com";
+            SmtpPassword = "your-password";
+
+            WifiSsid = String.Empty;
+            WifiKey = String.Empty;
         }
     }
 

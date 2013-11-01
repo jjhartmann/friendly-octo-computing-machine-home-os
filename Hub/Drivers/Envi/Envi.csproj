@@ -39,7 +39,7 @@
     <OutputPath>$(TeamBuildOutDir)\$(SolutionName)\output\binaries\Pipeline\AddIns\HomeOS.Hub.Drivers.Envi\</OutputPath>
     <CustomPath>$(TeamBuildOutDir)\$(SolutionName)</CustomPath>
   </PropertyGroup>
-<ItemGroup>
+  <ItemGroup>
     <Reference Include="HomeOS.Hub.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Common.dll</HintPath>
@@ -64,7 +64,9 @@
     <Compile Include="DriverEnvi.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="Current Cost Envi Sensor Driver\PL2303_Prolific_GPS_AllInOne_1013.exe" />
     <Content Include="Current Cost Envi Sensor Driver\Readme.txt" />

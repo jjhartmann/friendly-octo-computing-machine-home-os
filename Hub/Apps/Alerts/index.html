@@ -21,7 +21,9 @@
                 //Set up to refresh alerts every 2 seconds
                 alertCheck = setInterval(function () { RefreshAlerts() }, 2000);
                 //To stop do this: clearInterval(alertCheck);
-                new PlatformServiceHelper().MakeServiceCall("../GuiWeb/webapp/GetConfSettingWeb", '{"confKey":"NotificationEmail"}', GetSettingsEmailCallback);
+                //new PlatformServiceHelper().MakeServiceCall("../GuiWeb/webapp/GetConfSettingWeb", '{"confKey":"NotificationEmail"}', GetSettingsEmailCallback);
+
+                new PlatformServiceHelper().MakeServiceCall("../GuiWeb/webapp/GetPrivateConfSettingWeb", '{"confKey":"NotificationEmail"}', GetSettingsEmailCallback);
             }
         );
     

@@ -117,7 +117,7 @@ using (AutoEnterExitTrace aeet = new AutoEnterExitTrace(wd, wd.WebTrace, "Forwar
         public void Close()
         {
 #region ENTER
-using (AutoEnterExitTrace aeet = new AutoEnterExitTrace(wd, wd.WebTrace, "Forwarder_ForwarderCloseHandler()"))
+using (AutoEnterExitTrace aeet = new AutoEnterExitTrace(wd, wd.WebTrace, "Forwarder_Close()"))
 {
 #endregion ENTER
             if (Interlocked.Exchange(ref this.closing, 1) == 1)

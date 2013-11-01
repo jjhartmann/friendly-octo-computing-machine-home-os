@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 using System.Net;
+using System.Net.Mail;
 using System.Threading;
 using System.AddIn.Hosting;
 using HomeOS.Hub.Common;
@@ -16,6 +17,7 @@ using System.IO;
 using System.IO.Compression;
 using HomeOS.Hub.Platform.Authentication;
 using System.Xml;
+using System.Xml.Linq;
 
 using System.Diagnostics;
 
@@ -264,8 +266,10 @@ namespace HomeOS.Hub.Platform
             return new Logger(logFileName, Settings.LogRotationThreshold, logArchivalDirectory);
         }
 
-        private void StartScout(ScoutInfo sInfo)
+        public void StartScout(ScoutInfo sInfo)
         {
+            lock (runningScouts)
+            {
             if (runningScouts.ContainsKey(sInfo.Name))
             {
                 logger.Log("Error: Scout {0} is already running; cannot start again");
@@ -273,7 +277,7 @@ namespace HomeOS.Hub.Platform
             }
 
             string baseDir = Constants.ScoutRoot + "\\" + sInfo.Name;
-            string dllPath =  baseDir + "\\" + sInfo.DllName+".dll";
+                string dllPath = baseDir + "\\" + sInfo.DllName + ".dll";
             string baseUrl = GetBaseUrl() + "/" + Constants.ScoutsSuffixWeb + "/" + sInfo.Name;
 
             
@@ -286,7 +290,7 @@ namespace HomeOS.Hub.Platform
                     GetScoutFromRep(sInfo); // now attempt to start what we got (if we did)
                 else
                 {
-                    string currentScoutVersion = FileVersionInfo.GetVersionInfo(dllFullPath).FileVersion;
+                    string currentScoutVersion = GetHomeOSUpdateVersion(dllFullPath + ".config");
                     // we are using file versions for the Versioning and not Assembly versions because to read that 
                     // the assembly needs to be loaded. But unloading the assembly is a pain (in case of version mismatch)
 
@@ -313,6 +317,7 @@ namespace HomeOS.Hub.Platform
             {
                 logger.Log("Got exception while starting {0}: {1}", sInfo.Name, e.ToString());
             }
+        }
         }
 
         private string GetBaseUrl()
@@ -982,6 +987,11 @@ namespace HomeOS.Hub.Platform
             return config.GetConfSetting(paramName);
         }
 
+        public string GetPrivateConfSetting(string paramName)
+        {
+            return config.GetPrivateConfSetting(paramName);
+        }
+
         public string GetDeviceIpAddress(string deviceId)
         {
             return config.GetDeviceIpAddress(deviceId);
@@ -1053,7 +1063,12 @@ namespace HomeOS.Hub.Platform
             Exception e = (Exception)args.ExceptionObject;
             logger.Log("Got unhandled exception from {0}: {1}\nException: {2}", sender.ToString(), args.ToString(), e.ToString());
         }
-    
+
+        private string GetAddInConfigFilepath(string moduleName)
+        {
+            return Constants.AddInRoot + "\\AddIns\\" + moduleName + "\\" + moduleName + ".dll.config";
+        }
+
         /// <summary>
         /// Starts a module by searching for a matching token
         /// </summary>
@@ -1066,7 +1081,7 @@ namespace HomeOS.Hub.Platform
             foreach (AddInToken token in allAddinTokens)
             {
                 if (token.Name.Equals(moduleInfo.BinaryName()) &&
-                    (!exactlyMatchVersions || CompareModuleVersions(moduleInfo.GetVersion(), token.Version)))
+                    (!exactlyMatchVersions || CompareModuleVersions(moduleInfo.GetVersion(), GetHomeOSUpdateVersion(GetAddInConfigFilepath(moduleInfo.BinaryName())))))
                 {
                     if (startedModule != null)
                     {
@@ -1120,10 +1135,11 @@ namespace HomeOS.Hub.Platform
         {
             VModule startedModule = null;
 
-            if (!CompareModuleVersions(moduleInfo.GetVersion(), token.Version))
+            string moduleVersion = GetHomeOSUpdateVersion(GetAddInConfigFilepath(moduleInfo.BinaryName()));
+            if (!CompareModuleVersions(moduleInfo.GetVersion(), moduleVersion))
             {
                 logger.Log("WARNING: Starting an inexact match for {0}", moduleInfo.FriendlyName());
-                moduleInfo.SetVersion(token.Version);
+                moduleInfo.SetVersion(moduleVersion);
             }
 
             switch (Constants.ModuleIsolationLevel)
@@ -1760,7 +1776,8 @@ namespace HomeOS.Hub.Platform
                                             {
                                                 Console.Write("AddInToken : {0}",token.Name.ToString()); 
                                              //   if(token.Version!=null)
-                                                    Console.Write(", Version: {0}", token.Version);
+                                                    // Console.Write(", Version: {0}", token.Version);
+                                                    Console.Write(", Version: {0}", GetHomeOSUpdateVersion(GetAddInConfigFilepath(token.Name)));
                                               //  if(token.Publisher!=null)
                                                     Console.Write(", Publisher: {0}", token.Publisher);
                                                // if(token.AssemblyName!=null)
@@ -1816,15 +1833,44 @@ namespace HomeOS.Hub.Platform
                             break;
                         case "sendemail":
                             {
-                                Notification notification = new Notification();
-                                notification.toAddress = words[1];
-                                notification.subject = "homeos testing";
-                                notification.body = "This should just be fine, cheers";
+                                string dest = words[1];
+                                string subject = "homeos testing";
+                                string body = "This should be fine, cheers";
+                                string mimeType = "image/jpeg";
+                                List<Attachment> attachmentList = new List<Attachment>();                                
+                                Attachment attachment = new Attachment(new MemoryStream(Common.Utils.CreateTestJpegImage(10,10,9,9,30)), "test.jpg", mimeType);
+                                attachmentList.Add(attachment);
 
-                                Emailer emailer = new Emailer(Settings.SmtpServer, Settings.SmtpUser, Settings.SmtpPassword);
+                                Tuple<bool,string> result = Utils.SendEmail(dest, subject, body, attachmentList, this, logger);
+                                logger.Log("result of email: Succeeded = " + result.Item1 + " " + "Message=" + result.Item2);
+                            }
+                            break;
+                        case "sendhubemail":
+                            {
+                                string dest = words[1];
+                                string subject = "homeos testing";
+                                string body = "This should be fine, cheers";
+                                string mimeType = "image/jpeg";
+                                List<Attachment> attachmentList = new List<Attachment>();
+                                Attachment attachment = new Attachment(new MemoryStream(Common.Utils.CreateTestJpegImage(10, 10, 9, 9, 30)), "test.jpg", mimeType);
+                                attachmentList.Add(attachment);
 
-                                bool result = emailer.Send(notification, logger);
-                                logger.Log("result of email = " + result);
+                                Tuple<bool, string> result = Utils.SendHubEmail(dest, subject, body, attachmentList, this, logger);
+                                logger.Log("result of email: Succeeded = " + result.Item1 + " " + "Message=" + result.Item2);
+                            }
+                            break;
+                        case "sendcloudemail":
+                            {
+                                string dest = words[1];
+                                string subject = "homeos testing";
+                                string body = "This should be fine, cheers";
+                                string mimeType = "image/jpeg";
+                                List<Attachment> attachmentList = new List<Attachment>();
+                                Attachment attachment = new Attachment(new MemoryStream(Common.Utils.CreateTestJpegImage(10, 10, 9, 9, 30)), "test.jpg", mimeType);
+                                attachmentList.Add(attachment);
+
+                                Tuple<bool, string> result = Utils.SendCloudEmail(dest, subject, body, attachmentList, this, logger);
+                                logger.Log("result of email: Succeeded = " + result.Item1 + " " + "Message=" + result.Item2);
                             }
                             break;
                         case "stopmodule":
@@ -1957,6 +2003,19 @@ namespace HomeOS.Hub.Platform
                                 PrintGuiCallResult(result);
                             }
                             break;
+                        case "setscouts":
+                            {
+                                string[] scouts = new string[words.Length - 1];
+
+                                for (int index = 1; index < words.Length; index++)
+                                {
+                                    scouts[index - 1] = words[index];
+                                }
+
+                                var result = guiService.SetScouts(scouts);
+                                PrintGuiCallResult(result);
+                            }
+                            break;
                         case "removezwavenode":
                             {
                                 // get and check the zwave driver
@@ -1987,6 +2046,31 @@ namespace HomeOS.Hub.Platform
                     PrintInteractiveUsage();
                 }
             }
+        }
+
+        private string GetHomeOSUpdateVersion(string configFile)
+        {
+            const string DefaultHomeOSUpdateVersionValue = "0.0.0.0";
+            const string ConfigAppSettingKeyHomeOSUpdateVersion = "HomeOSUpdateVersion";
+
+            string homeosUpdateVersion = DefaultHomeOSUpdateVersionValue;
+            try
+            {
+                XElement xmlTree = XElement.Load(configFile);
+                IEnumerable<XElement> das =
+                    from el in xmlTree.DescendantsAndSelf()
+                    where el.Name == "add" && el.Parent.Name == "appSettings" && el.Attribute("key").Value == ConfigAppSettingKeyHomeOSUpdateVersion
+                    select el;
+                if (das.Count() > 0)
+                {
+                    homeosUpdateVersion = das.First().Attribute("value").Value;
+                }
+            }
+            catch (Exception e)
+            {
+                logger.Log(String.Format("Failed to parse {0}, exception: {1}", configFile, e.ToString()));
+            }
+            return homeosUpdateVersion;
         }
 
         private void PrintGuiCallResult(List<string> result)
@@ -2385,7 +2469,7 @@ namespace HomeOS.Hub.Platform
             return runningScouts[scoutName].GetDevices();
         }
 
-        public List<string> GetAllScoutNames()
+        public List<string> GetAllRunningScoutNames()
         {
             var retList = new List<string>();
 
@@ -2395,6 +2479,22 @@ namespace HomeOS.Hub.Platform
             }
 
             return retList;
+        }
+
+        public bool StopScout(string scoutName)
+        {
+            lock (runningScouts)
+            {
+                if (!runningScouts.ContainsKey(scoutName))
+                    return false;
+
+                logger.Log("Stopping scout: " + scoutName);
+                runningScouts[scoutName].Dispose();
+
+                runningScouts.Remove(scoutName);
+
+                return true;
+            }            
         }
 
         public VModule GetDriverZwave()

@@ -144,6 +144,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="SmartRecorder\app.aps" />
     <None Include="SmartRecorder\SmartRecorder.vcxproj" />
     <None Include="SmartRecorder\SmartRecorder.vcxproj.filters" />

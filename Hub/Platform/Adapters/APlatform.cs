@@ -92,6 +92,11 @@ namespace HomeOS.Hub.Platform.Adapters
             return _view.GetConfSetting(paramName);
         }
 
+        public string GetPrivateConfSetting(string paramName)
+        {
+            return _view.GetPrivateConfSetting(paramName);
+        }
+
         public string GetDeviceIpAddress(string deviceId)
         {
             return _view.GetDeviceIpAddress(deviceId);
@@ -183,6 +188,11 @@ namespace HomeOS.Hub.Platform.Adapters
         public string GetConfSetting(string paramName)
         {
             return _contract.GetConfSetting(paramName);
+        }
+
+        public string GetPrivateConfSetting(string paramName)
+        {
+            return _contract.GetPrivateConfSetting(paramName);
         }
 
         public string GetDeviceIpAddress(string deviceId)

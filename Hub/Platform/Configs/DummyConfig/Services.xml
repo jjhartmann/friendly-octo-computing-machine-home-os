@@ -1,5 +1,5 @@
 ﻿<Services>
-  <Service Location="Living room" FriendlyName="port-DriverDummy" Module="DriverDummy" ModuleFacingName="port" >
+  <!--<Service Location="Living room" FriendlyName="port-DriverDummy" Module="DriverDummy" ModuleFacingName="port" >
     <Role Name=":dummy:" />
-  </Service>
+  </Service>-->
 </Services>
