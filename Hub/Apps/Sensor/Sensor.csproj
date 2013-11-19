@@ -24,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CustomPath>..\..</CustomPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,23 +33,28 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CustomPath>..\..</CustomPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TeamBuildOutDir) != '' ">
+    <OutputPath>$(TeamBuildOutDir)\$(SolutionName)\output\binaries\Pipeline\AddIns\HomeOS.Hub.Apps.Sensor\</OutputPath>
+    <CustomPath>$(TeamBuildOutDir)\$(SolutionName)</CustomPath>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="HomeOS.Hub.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\output\binaries\Platform\HomeOS.Hub.Common.dll</HintPath>
+      <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Common.dll</HintPath>
     </Reference>
     <Reference Include="HomeOS.Hub.Common.DataStore, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\output\binaries\Platform\HomeOS.Hub.Common.DataStore.dll</HintPath>
+      <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Common.DataStore.dll</HintPath>
     </Reference>
     <Reference Include="HomeOS.Hub.Platform.Views">
-      <HintPath>..\..\output\binaries\Platform\HomeOS.Hub.Platform.Views.dll</HintPath>
+      <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Platform.Views.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HomeOS.Shared, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\output\binaries\Platform\HomeOS.Shared.dll</HintPath>
+      <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Shared.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.AddIn" />
@@ -73,7 +79,7 @@
     <Content Include="index.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Styles\Dummy.css">
+    <Content Include="Styles\Sensor.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

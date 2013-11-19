@@ -475,7 +475,7 @@ namespace HomeOS.Hub.Apps.SmartCam
             {
                 fileArray = Directory.GetFiles(directory, "*.mp4", SearchOption.AllDirectories);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 fileArray = new string[0];
             }

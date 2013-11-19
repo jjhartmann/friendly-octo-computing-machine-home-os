@@ -124,7 +124,7 @@ namespace HomeOS.Hub.Apps.Doorjamb
                 }
 
             }
-            catch (Exception e)
+            catch (Exception /*e*/)
             {
                 //logger.Log("Error while calling echo request: {0}", e.ToString());
             }

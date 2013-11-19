@@ -5,16 +5,20 @@ using System.AddIn;
 using HomeOS.Hub.Common;
 using System.ServiceModel;
 using HomeOS.Hub.Platform.Views;
+using System.Drawing;
 
 namespace HomeOS.Hub.Apps.Switch
 {
-    public enum SwitchType { Multi, Binary };
+    public enum SwitchType { Binary, Multi };
 
     class SwitchInfo
     {
         public VCapability Capability { get; set; }
-        public byte Level { get; set; }
+        public double Level { get; set; }
         public SwitchType Type { get; set; }
+
+        public bool IsColored { get; set; }
+        public Color Color {get; set;}
     }
 
     [AddIn("HomeOS.Hub.Apps.Switch")]
@@ -39,7 +43,7 @@ namespace HomeOS.Hub.Apps.Switch
 
             appServer = new WebFileServer(moduleInfo.BinaryDir(), moduleInfo.BaseURL(), logger);
 
-            logger.Log("simplex camera service is open for business at " + moduleInfo.BaseURL());
+            logger.Log("switch controller is open for business at " + moduleInfo.BaseURL());
 
             //..... get the list of current ports from the platform
             IList<VPort> allPortsList = GetAllPortsFromPlatform();
@@ -49,7 +53,7 @@ namespace HomeOS.Hub.Apps.Switch
             }
         }
 
-        internal byte GetLevel(string switchFriendlyName)
+        internal double GetLevel(string switchFriendlyName)
         {
             if (switchFriendlyNames.ContainsKey(switchFriendlyName))
                 return registeredSwitches[switchFriendlyNames[switchFriendlyName]].Level;
@@ -61,19 +65,67 @@ namespace HomeOS.Hub.Apps.Switch
         {
             lock (this)
             {
-                if (registeredSwitches.ContainsKey(senderPort))
-                {
-                    if (RoleSwitchMultiLevel.OpGetName.Equals(opName, StringComparison.CurrentCultureIgnoreCase) &&
-                        retVals.Count >= 1 && retVals[0].Value() != null)
-                    {
-                        byte level = (byte) (int) retVals[0].Value();
+                if (!registeredSwitches.ContainsKey(senderPort))
+                    throw new Exception("Got notification from an unknown port " + senderPort.ToString());
 
-                        registeredSwitches[senderPort].Level = level;
-                    }
-                    else
-                    {
-                        logger.Log("{0} got bad result for getlevel subscription from {1}", this.ToString(), senderPort.ToString());
-                    }
+                switch (opName)
+                {
+                    case RoleSwitchBinary.OpGetName:
+                        {
+                            if (retVals.Count >= 1 && retVals[0].Value() != null)
+                            {
+                                bool level = (bool)retVals[0].Value();
+
+                                registeredSwitches[senderPort].Level = (level)? 1 : 0;
+                            }
+                            else
+                            {
+                                logger.Log("{0} got bad result for getlevel subscription from {1}", this.ToString(), senderPort.ToString());
+                            }
+                        }
+                        break;
+                    case RoleSwitchMultiLevel.OpGetName:
+                        {
+                            if (retVals.Count >= 1 && retVals[0].Value() != null)
+                            {
+                                double level = (double)retVals[0].Value();
+
+                                registeredSwitches[senderPort].Level = level;
+                            }
+                            else
+                            {
+                                logger.Log("{0} got bad result for getlevel subscription from {1}", this.ToString(), senderPort.ToString());
+                            }
+                        }
+                        break;
+                    case RoleLightColor.OpGetName:
+                        {
+                            if (!registeredSwitches[senderPort].IsColored)
+                            {
+                                logger.Log("Got {0} for non-colored switch {1}", opName, senderPort.ToString());
+
+                                return;
+                            }
+
+                            if (retVals.Count >= 3)
+                            {
+                                byte red, green, blue;
+
+                                red = Math.Min(Math.Max((byte)(int)retVals[0].Value(), (byte)0), (byte)255);
+                                green = Math.Min(Math.Max((byte)(int)retVals[1].Value(), (byte)0), (byte)255);
+                                blue = Math.Min(Math.Max((byte)(int)retVals[2].Value(), (byte)0), (byte)255);
+
+                                registeredSwitches[senderPort].Color = Color.FromArgb(red, green, blue);
+                            }
+                            else
+                            {
+                                logger.Log("{0} got bad result for getlevel subscription from {1}", this.ToString(), senderPort.ToString());
+                            }
+                        }
+                        break;
+                    default:
+                        logger.Log("Got notification from incomprehensible operation: " + opName);
+                        break;
                 }
             }
         }
@@ -96,13 +148,17 @@ namespace HomeOS.Hub.Apps.Switch
         {
              lock (this)
             {
-                if (Role.ContainsRole(port, RoleSwitchMultiLevel.RoleName) || Role.ContainsRole(port, RoleSwitchBinary.RoleName))
+                if (Role.ContainsRole(port, RoleSwitchMultiLevel.RoleName) || 
+                    Role.ContainsRole(port, RoleSwitchBinary.RoleName) || 
+                    Role.ContainsRole(port, RoleLightColor.RoleName))
                 {
                     if (!registeredSwitches.ContainsKey(port))
                     {
                         var switchType = (Role.ContainsRole(port, RoleSwitchMultiLevel.RoleName))? SwitchType.Multi : SwitchType.Binary;
 
-                        InitSwitch(port, switchType);
+                        bool colored = Role.ContainsRole(port, RoleLightColor.RoleName);
+
+                        InitSwitch(port, switchType, colored);
                     }
                     else
                     {
@@ -130,7 +186,8 @@ namespace HomeOS.Hub.Apps.Switch
             }
         }
 
-        void InitSwitch(VPort switchPort, SwitchType switchType) {
+        void InitSwitch(VPort switchPort, SwitchType switchType, bool isColored)
+        {
 
             logger.Log("{0} adding switch {1} {2}", this.ToString(), switchType.ToString(), switchPort.ToString());
 
@@ -138,6 +195,9 @@ namespace HomeOS.Hub.Apps.Switch
             switchInfo.Capability = GetCapability(switchPort, Constants.UserSystem);
             switchInfo.Level = 0;
             switchInfo.Type = switchType;
+
+            switchInfo.IsColored = isColored;
+            switchInfo.Color = Color.Black;
 
             registeredSwitches.Add(switchPort, switchInfo);
 
@@ -155,6 +215,14 @@ namespace HomeOS.Hub.Apps.Switch
 
                     switchPort.Subscribe(RoleSwitchMultiLevel.RoleName, RoleSwitchMultiLevel.OpGetName, ControlPort, switchInfo.Capability, ControlPortCapability);
 
+                    if (retVals[0].Maintype() < 0)
+                    {
+                        logger.Log("SwitchController could not get current level for {0}", switchFriendlyName);
+                    }
+                    else
+                    {
+                        switchInfo.Level = (double)retVals[0].Value();
+                    }
                 }
                 else
                 {
@@ -162,20 +230,44 @@ namespace HomeOS.Hub.Apps.Switch
                     ControlPort, switchInfo.Capability, ControlPortCapability);
 
                     switchPort.Subscribe(RoleSwitchBinary.RoleName, RoleSwitchBinary.OpGetName, ControlPort, switchInfo.Capability, ControlPortCapability);
+
+                    if (retVals[0].Maintype() < 0)
+                    {
+                        logger.Log("SwitchController could not get current level for {0}", switchFriendlyName);
+                    }
+                    else
+                    {
+                        bool boolLevel = (bool)retVals[0].Value();
+                        switchInfo.Level = (boolLevel) ? 1 : 0;
+                    }
                 }
 
-                if (retVals[0].Maintype() < 0)
-                {
-                    logger.Log("SwitchController could not get current level for {0}", switchFriendlyName);
-                }
-                else
-                {
-                    switchInfo.Level = (byte) (int) (retVals[0].Value());
-                }
+                //fix the color up now
 
+                if (isColored)
+                {
+                    var retValsColor = switchPort.Invoke(RoleLightColor.RoleName, RoleLightColor.OpGetName, null,
+                                                          ControlPort, switchInfo.Capability, ControlPortCapability);
+
+                    switchPort.Subscribe(RoleLightColor.RoleName, RoleLightColor.OpGetName, ControlPort, switchInfo.Capability, ControlPortCapability);
+
+                    if (retVals[0].Maintype() < 0)
+                    {
+                        logger.Log("SwitchController could not get color for {0}", switchFriendlyName);
+                    }
+                    else
+                    {
+                        byte red, green, blue;
+
+                        red = Math.Min(Math.Max((byte) (int) retValsColor[0].Value(), (byte) 0), (byte) 255);
+                        green = Math.Min(Math.Max((byte) (int) retValsColor[1].Value(), (byte) 0), (byte)255);
+                        blue = Math.Min(Math.Max((byte) (int) retValsColor[2].Value(), (byte) 0), (byte)255);
+
+                        switchInfo.Color = Color.FromArgb(red, green, blue);
+                    }
+                }
             }
         }
-
         /// <summary>
         ///  Called when a new port is registered with the platform
         /// </summary>
@@ -195,7 +287,7 @@ namespace HomeOS.Hub.Apps.Switch
 
             registeredSwitches.Remove(switchPort);
 
-            logger.Log("{0} removed camera port {1}", this.ToString(), switchPort.ToString());
+            logger.Log("{0} removed switch/light port {1}", this.ToString(), switchPort.ToString());
         }
 
         public void Log(string format, params string[] args)
@@ -203,7 +295,7 @@ namespace HomeOS.Hub.Apps.Switch
             logger.Log(format, args);
         }
 
-        internal void SetLevel(string switchFriendlyName, byte level)
+        internal void SetLevel(string switchFriendlyName, double level)
         {
             if (switchFriendlyNames.ContainsKey(switchFriendlyName))
             {
@@ -215,15 +307,15 @@ namespace HomeOS.Hub.Apps.Switch
 
                     IList<VParamType> args = new List<VParamType>();
 
+                    //make sure that the level is between zero and 1
+                    if (level < 0) level = 0;
+                    if (level > 1) level = 1;
+
                     if (switchInfo.Type == SwitchType.Multi)
                     {
-                        //args.Add(new ParamType(level));
-                        //switchPort.Invoke(RoleSwitchMultiLevel.RoleName, RoleSwitchMultiLevel.OpSetName, args,
-                        //                  ControlPort, switchInfo.Capability, ControlPortCapability);
-
                         var retVal = Invoke(switchPort, RoleSwitchMultiLevel.Instance, RoleSwitchMultiLevel.OpSetName, new ParamType(level));
 
-                        if (retVal!= null && retVal.Count == 1 && retVal[0].Maintype() == (int) ParamType.SimpleType.error) 
+                        if (retVal != null && retVal.Count == 1 && retVal[0].Maintype() == (int)ParamType.SimpleType.error)
                         {
                             logger.Log("Error in setting level: {0}", retVal[0].Value().ToString());
 
@@ -232,12 +324,10 @@ namespace HomeOS.Hub.Apps.Switch
                     }
                     else
                     {
-                        if (level > 0) level = 255;
-                        //args.Add(new ParamType(level));
-                        //switchPort.Invoke(RoleSwitchBinary.RoleName, RoleSwitchBinary.OpSetName, args,
-                        //                  ControlPort, switchInfo.Capability, ControlPortCapability);
+                        //interpret all non-zero values as ON
+                        bool boolLevel = (level > 0)? true : false;
 
-                        var retVal = Invoke(switchPort, RoleSwitchBinary.Instance, RoleSwitchBinary.OpSetName, new ParamType(level));
+                        var retVal = Invoke(switchPort, RoleSwitchBinary.Instance, RoleSwitchBinary.OpSetName, new ParamType(boolLevel));
 
                         if (retVal != null && retVal.Count == 1 && retVal[0].Maintype() == (int)ParamType.SimpleType.error)
                         {
@@ -253,10 +343,7 @@ namespace HomeOS.Hub.Apps.Switch
                         this.lastSet = DateTime.Now;
                     }
 
-                    if (level != switchInfo.Level)
-                    {
-                        switchInfo.Level = level;
-                    }
+                    switchInfo.Level = level;
                 }
             }
             else
@@ -265,7 +352,77 @@ namespace HomeOS.Hub.Apps.Switch
             }
         }
 
-        //returns a 4-tuples for each switch: (name, location, type, level)
+        internal void SetColor(string switchFriendlyName, Color color)
+        {
+            if (switchFriendlyNames.ContainsKey(switchFriendlyName))
+            {
+                VPort switchPort = switchFriendlyNames[switchFriendlyName];
+
+                if (registeredSwitches.ContainsKey(switchPort))
+                {
+                    SwitchInfo switchInfo = registeredSwitches[switchPort];
+
+                    if (!switchInfo.IsColored)
+                        throw new Exception("SetColor called on non-color switch " + switchFriendlyName);
+
+                    IList<VParamType> args = new List<VParamType>();
+
+                    var retVal = Invoke(switchPort, RoleLightColor.Instance, RoleLightColor.OpSetName,
+                                        new ParamType(color.R), new ParamType(color.G), new ParamType(color.B));
+
+                    if (retVal != null && retVal.Count == 1 && retVal[0].Maintype() == (int)ParamType.SimpleType.error)
+                    {
+                        logger.Log("Error in setting color: {0}", retVal[0].Value().ToString());
+                        throw new Exception(retVal[0].Value().ToString());
+                    }
+
+                    lock (this)
+                    {
+                        this.lastSet = DateTime.Now;
+                    }
+
+                    switchInfo.Color = color;
+                }
+                else
+                {
+                    throw new Exception("Switch with friendly name " + switchFriendlyName + " is not registered");
+                }
+            }
+            else
+            {
+                throw new Exception("Switch with friendly name " + switchFriendlyName + " not found");
+            }
+        }
+
+        internal Color GetColor(string switchFriendlyName)
+        {
+            if (switchFriendlyNames.ContainsKey(switchFriendlyName))
+            {
+                VPort switchPort = switchFriendlyNames[switchFriendlyName];
+
+                if (registeredSwitches.ContainsKey(switchPort))
+                    {
+                    SwitchInfo switchInfo = registeredSwitches[switchPort];
+
+                    if (!switchInfo.IsColored)
+                        throw new Exception("GetColor called on non-color switch " + switchFriendlyName);
+
+                    return switchInfo.Color;
+                    }
+                else
+                {
+                    throw new Exception("Switch with friendly name " + switchFriendlyName + " is not registered");
+                }
+            }
+            else
+            {
+                throw new Exception("Switch with friendly name " + switchFriendlyName + " not found");
+            }
+        }
+
+
+
+        //returns a 8-tuple for each switch: (name, location, type, level, isColored, red, green, blue)
         internal List<string> GetAllSwitches()
         {
             List<string> retList = new List<string>();
@@ -279,6 +436,11 @@ namespace HomeOS.Hub.Apps.Switch
                 retList.Add(switchPort.GetInfo().GetLocation().ToString());
                 retList.Add(switchInfo.Type.ToString());
                 retList.Add(switchInfo.Level.ToString());
+
+                retList.Add(switchInfo.IsColored.ToString());
+                retList.Add(switchInfo.Color.R.ToString());
+                retList.Add(switchInfo.Color.G.ToString());
+                retList.Add(switchInfo.Color.B.ToString());
             }
 
             return retList;

@@ -25,9 +25,6 @@ namespace DriverDoorjamb
         Port doorjambPort;
         SafeThread worker = null;
 
-        string baseUrl;
-        private WebFileServer imageServer;
-
         private int dataPort = -1;
         private string doorjambDeviceName;
 

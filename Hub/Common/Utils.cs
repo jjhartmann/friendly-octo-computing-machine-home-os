@@ -593,5 +593,46 @@ namespace HomeOS.Hub.Common
                 return memStream.ToArray();
             }
         }
+
+        #region argument printing and handling
+
+        public static void configLog(string type, params string[] messages)
+        {
+            if (type == "ER") type = "ERROR";
+            else if (type == "I") type = "INFO";
+            else if (type == "E") type = "EXCEPTION";
+            else if (type == "W") type = "WARNING";
+
+            StringBuilder s = new StringBuilder();
+            s.Append("[" + type + "]");
+            foreach (string message in messages)
+                s.Append("[" + message + "]");
+            Console.WriteLine(s.ToString());
+        }
+
+        /// <summary>
+        /// die after printing given message
+        /// </summary>
+        /// <param name="message"></param>
+        public static void die(string message)
+        {
+            Console.WriteLine(message);
+            System.Environment.Exit(0);
+        }
+
+        public static string missingArgumentMessage(string argumentName)
+        {
+            return "Argument: " + argumentName + " is missing. Use --Help for help.";
+        }
+
+        public static void printArgumentsDictionary(ArgumentsDictionary dict)
+        {
+            foreach (string key in dict.Keys)
+            {
+                Console.WriteLine(key + " : " + dict[key]);
+            }
+
+        }
+        #endregion 
     }
 }

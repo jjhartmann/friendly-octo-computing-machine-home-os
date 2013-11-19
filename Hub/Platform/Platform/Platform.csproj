@@ -203,6 +203,9 @@ REM copy libraries needed for webcam and smartcamrecorder
 copy "$(windir)\system32\msvcr110d.dll" "$(TargetDir)"
 copy "$(windir)\system32\msvcp110d.dll" "$(TargetDir)"
 
+REM copy newtonsoft stuff
+copy "$(SolutionDir)\packages\Newtonsoft.Json.5.0.8\lib\net45\Newtonsoft.Json.dll" "$(TargetDir)"
+
 REM copy scripts
 copy "$(ProjectDir)*.bat"  "$(TargetDir)..\..\..\output"
 copy "$(ProjectDir)..\..\..\Dashboard.url"  "$(TargetDir)..\..\..\output"</PostBuildEvent>

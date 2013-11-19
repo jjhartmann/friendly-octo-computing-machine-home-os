@@ -143,7 +143,7 @@ namespace HomeOS.Hub.Scouts.Foscam
                             currDeviceList.InsertDevice(device);
                         }
                     }
-                    catch (SocketException socketex)
+                    catch (SocketException)
                     {
                         //we expect this error becuase of timeout
                     }

@@ -207,27 +207,27 @@ namespace HomeOS.Hub.Drivers.HueBridge
         /// <param name="strLightsIP"></param>
         /// <param name="strUser"></param>
         /// <param name="iBulbCount"></param>
-        private void Load(IPAddress strLightsIP, string strUser, int iBulbCount)
-        {
-            m_strLightsIP = strLightsIP;
-            m_strUser = strUser;
+        //private void Load(IPAddress strLightsIP, string strUser, int iBulbCount)
+        //{
+        //    m_strLightsIP = strLightsIP;
+        //    m_strUser = strUser;
 
-            List<int> listIDs = new List<int>();
-            for (int i = 0; i < iBulbCount; ++i)
-            {
-                m_listLightStates.Add(new LightState());
-                listIDs.Add(i);
-            }
+        //    List<int> listIDs = new List<int>();
+        //    for (int i = 0; i < iBulbCount; ++i)
+        //    {
+        //        m_listLightStates.Add(new LightState());
+        //        listIDs.Add(i);
+        //    }
 
-            // Add the all set. Don't call the standard method for all lights so there isn't any accidents if there are more lights than the program knows about.
-            LightGroup group = new LightGroup(0, "All", listIDs.ToArray());
-            m_listLightGroup.Add(group);
+        //    // Add the all set. Don't call the standard method for all lights so there isn't any accidents if there are more lights than the program knows about.
+        //    LightGroup group = new LightGroup(0, "All", listIDs.ToArray());
+        //    m_listLightGroup.Add(group);
 
-            ResetAllBulbs();
+        //    ResetAllBulbs();
 
-            m_updateTimer.Elapsed += Update;
-            m_updateTimer.Start();
-        }
+        //    m_updateTimer.Elapsed += Update;
+        //    m_updateTimer.Start();
+        //}
 
         /// <summary>
         /// Initializes the light states
@@ -298,498 +298,498 @@ namespace HomeOS.Hub.Drivers.HueBridge
         }
 
 
-        /// <summary>
-        /// Adds a light group to the system.
-        /// </summary>
-        /// <param name="iId"></param>
-        /// <param name="arLightIds"></param>
-        public void AddGroup(string strname, int[] arLightIds)
-        {
-            LightGroup group = new LightGroup(m_listLightGroup.Count, strname,  arLightIds);
-
-            m_listLightGroup.Add(group);
-
-            // Push over the group to the bridge.
-            string json = "{ \"name\": \"" + strname + "\", \"lights\":[";
-            foreach (int i in group.LightSet)
-            {
-                json += "\"" + (i+1) + "\",";
-            }
-            json += "]}";
-            MakeLightRequest("/api/" + m_strUser + "/groups/" + group.ID + "/action", "PUT", json);
-        }
-
-        /// <summary>
-        /// Matches the group name to the string.
-        /// </summary>
-        /// <param name="strName"></param>
-        /// <returns></returns>
-        public LightGroup GetGroup(string strName)
-        {
-            foreach (LightGroup group in m_listLightGroup)
-            {
-                if (group.Name == strName)
-                {
-                    return group;
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Get the color of a given light.
-        /// </summary>
-        /// <param name="iLight"></param>
-        /// <returns></returns>
-        public Color GetLightColor(int iLight)
-        {
-            if (iLight < 0 || iLight >= m_listLightStates.Count)
-            {
-                return Color.White;
-            }
-
-            return m_listLightStates[iLight].Color;
-        }
-
-        /// <summary>
-        /// Update the state of lights that were queued up while the requests were blocking.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        public void Update(object source, ElapsedEventArgs e)
-        {
-            if (!m_bMakingtRequest)
-            {
-                // If a light needs to be bumped.
-                if (m_iBumpedLightIndex >= 0)
-                {
-                    MakeLightRequest("/api/" + m_strUser + "/lights/" + (m_iBumpedLightIndex + 1) + "/state", "PUT", m_bumpState.ToJSON());
-                    m_iBumpedLightIndex = -1;
-                }
-                else if (m_queLightUpdateOrder.Count > 0)
-                {
-                    KeyValuePair<int, bool> pairUpdateRequest = m_queLightUpdateOrder.Dequeue();
-
-                    if (pairUpdateRequest.Value)
-                    {
-                        // Update a group of lights.
-                        LightGroup group = m_listLightGroup[pairUpdateRequest.Key];
-                        MakeLightRequest("/api/" + m_strUser + "/groups/" + group.ID + "/action", "PUT", group.State.ToJSON());
-                    }
-                    else
-                    {
-                        // Update a single light.
-                        LightState state = m_listLightStates[(int)pairUpdateRequest.Key];
-                        MakeLightRequest("/api/" + m_strUser + "/lights/" + (pairUpdateRequest.Key + 1) + "/state", "PUT", state.ToJSON());
-                    }
-                }
-            }   
-        }
-
-        /// <summary>
-        /// Set the level at which the lights can interact.
-        /// </summary>
-        public void SetAllLockLevel(int iLockLevel)
-        {
-            foreach (LightState state in m_listLightStates)
-            {
-                state.PriorityLock = iLockLevel;
-            }
-        }
-
-        /// <summary>
-        /// Set the lock level for a single light.
-        /// </summary>
-        /// <param name="iIndex"></param>
-        /// <param name="iLockLevel"></param>
-        public void SetSingleLockLevel(int iIndex, int iLockLevel)
-        {
-            if (iIndex >= m_listLightStates.Count || iIndex < 0)
-            {
-                return;
-            }
-
-            m_listLightStates[iIndex].PriorityLock = iLockLevel;
-        }
-
-        /// <summary>
-        /// Turn on all lights.
-        /// </summary>
-        public void TurnAllLightsOn()
-        {
-            TurnGroupOn("All");
-        }
-
-        /// <summary>
-        /// Turn off all lights.
-        /// </summary>
-        public void TurnAllLightsOff()
-        {
-            TurnGroupOff("All");
-        }
-
-        /// <summary>
-        /// Turn off all lights.
-        /// </summary>
-        public void ToggleAllLights()
-        {
-            ToggleGroup("All");
-        }
-
-        /// <summary>
-        /// Turn on a specific group of lights.
-        /// </summary>
-        /// <param name="strGroup"></param>
-        public void TurnGroupOn(string strGroupName)
-        {
-            LightGroup group = GetGroup(strGroupName);
-            if (group == null)
-            {
-                return;
-            }
-
-            //If the state is different, or it has been marked that one of the individual lights have changed.
-            if (!group.State.Enabled || group.Dirty)
-            {
-                foreach (int iLightId in group.LightSet)
-                {
-                    m_listLightStates[iLightId].Enabled = true;
-                    m_listLightStates[iLightId].PriorityLock = 1;
-                }
-
-                group.State.Enabled = true;
-
-                UpdateGroupState(group.ID);
-            }
-        }
-
-        /// <summary>
-        /// Turn off a specific group of lights.
-        /// </summary>
-        /// <param name="strGroup"></param>
-        public void TurnGroupOff(string strGroupName)
-        {
-            LightGroup group = GetGroup(strGroupName);
-            if (group == null)
-            {
-                return;
-            }
-
-            //If the state is different, or it has been marked that one of the individual lights have changed.
-            if (group.State.Enabled || group.Dirty)
-            {
-                foreach (int iLightId in group.LightSet)
-                {
-                    m_listLightStates[iLightId].Enabled = false;
-                    m_listLightStates[iLightId].PriorityLock = 1;
-                }
-
-                group.State.Enabled = false;
-
-                UpdateGroupState(group.ID);
-            }
-        }
-
-        /// <summary>
-        /// Turn all of a group on or off based on the last setting of the camera group.
-        /// </summary>
-        /// <param name="strGroupName"></param>
-        public void ToggleGroup(string strGroupName)
-        {
-            LightGroup group = GetGroup(strGroupName);
-            if (group == null)
-            {
-                return;
-            }
-
-            group.State.Enabled = !group.State.Enabled;
-            foreach (int iLightId in group.LightSet)
-            {
-                m_listLightStates[iLightId].Enabled = group.State.Enabled;
-                m_listLightStates[iLightId].PriorityLock = 1;
-            }
-
-
-            UpdateGroupState(group.ID);
-        }
-
-
-        /// <summary>
-        /// Set a group of lights to a specific color. If the lights are off, this will turn them on.
-        /// </summary>
-        /// <param name="strGroup"></param>
-        /// <param name="color"></param>
-        public void SetGroupColor(string strGroupName, Color color)
-        {
-            LightGroup group = GetGroup(strGroupName);
-            if (group == null)
-            {
-                return;
-            }
-
-            //If the state is different, or it has been marked that one of the individual lights have changed.
-            if (!group.State.Enabled || group.State.Color != color || group.Dirty)
-            {
-                foreach (int iLightId in group.LightSet)
-                {
-                    m_listLightStates[iLightId].Enabled = true;
-                    m_listLightStates[iLightId].Color = color;
-                    m_listLightStates[iLightId].PriorityLock = 1;
-                }
-
-                group.State.Enabled = true;
-                group.State.Color = color;
-
-                UpdateGroupState(group.ID);
-            }
-        }
-
-        /// <summary>
-        /// Sets the brightness of a light in the white color spectrum.
-        /// </summary>
-        /// <param name="iIndex"></param>
-        /// <param name="fBrightNormalized"></param>
-        public void SetGroupBrightness(string strGroupName, float fBrightNormalized)
-        {
-            int iColorValue = (int)(255.0f * fBrightNormalized);
-            Color color = Color.FromArgb(255, iColorValue, iColorValue, iColorValue);
-            SetGroupColor(strGroupName, color);
-        }
-
-        /// <summary>
-        /// Turn on a single bulb.
-        /// </summary>
-        /// <param name="iIndex"></param>
-        public void TurnOnBulb(int iIndex, int iLockLevel=0)
-        {
-            if (iIndex >= m_listLightStates.Count)
-            {
-                return;
-            }
-
-            LightState state = m_listLightStates[iIndex];
-
-            if (state.PriorityLock <= iLockLevel && !state.Enabled)
-            {
-                state.PriorityLock = iLockLevel;
-
-                //Notify all groups of the light changing in case it affects them.
-                foreach (LightGroup group in m_listLightGroup)
-                {
-                    group.OnSingleLightChange(iIndex);
-                }
-
-                state.Enabled = true;
-                UpdateLightState(iIndex);
-            }
-        }
-
-        /// <summary>
-        /// Turn off a single bulb.
-        /// </summary>
-        /// <param name="iIndex"></param>
-        public void TurnOffBulb(int iIndex, int iLockLevel = 0)
-        {
-            if (iIndex >= m_listLightStates.Count)
-            {
-                return;
-            }
-
-            LightState state = m_listLightStates[iIndex];
-            if (state.PriorityLock <= iLockLevel && state.Enabled)
-            {
-                state.PriorityLock = iLockLevel;
-
-                //Notify all groups of the light changing in case it affects them.
-                foreach (LightGroup group in m_listLightGroup)
-                {
-                    group.OnSingleLightChange(iIndex);
-                }
-
-                state.Enabled = false;
-                UpdateLightState(iIndex);
-            }
-        }
-
-        /// <summary>
-        /// Change the bulb to on or off depending what it's currently set to.
-        /// </summary>
-        /// <param name="iIndex"></param>
-        public void ToggleBulb(int iIndex, int iLockLevel = 0)
-        {
-            if (iIndex >= m_listLightStates.Count)
-            {
-                return;
-            }
-
-            //Notify all groups of the light changing in case it affects them.
-            foreach (LightGroup group in m_listLightGroup)
-            {
-                group.OnSingleLightChange(iIndex);
-            }
-
-            LightState state = m_listLightStates[iIndex];
-            if (state.PriorityLock <= iLockLevel)
-            {
-                state.PriorityLock = iLockLevel;
-                state.Enabled = !state.Enabled;
-                UpdateLightState(iIndex);
-            }
-        }
-
-        /// <summary>
-        /// Have the light wink as a given event for focus.
-        /// </summary>
-        /// <param name="iIndex"></param>
-        /// <param name="iLockLevel"></param>
-        public void BumpBulb(int iIndex)
-        {
-            if (iIndex >= m_listLightStates.Count)
-            {
-                return;
-            }
-
-            LightState state = m_listLightStates[iIndex];
-
-            m_bumpState.Copy(state);
-
-            if (!m_bumpState.Enabled ||
-                (m_bumpState.Color.R == 0 &&
-                m_bumpState.Color.G == 0 &&
-                m_bumpState.Color.B == 0))
-            {
-                m_bumpState.Color = Color.FromArgb(10, 10, 10);
-                m_bumpState.Enabled = true;
-            }
-            else
-            {
-                const int iOffset = 90;
-                m_bumpState.Color = Color.FromArgb(Math.Max((int)state.Color.R - iOffset, 1),
-                    Math.Max((int)state.Color.G - iOffset, 1),
-                    Math.Max((int)state.Color.B - iOffset, 1));
-            }
-            UpdateLightState(iIndex);
-
-
-            m_iBumpedLightIndex = iIndex;
-        }
-
-        /// <summary>
-        /// Turn all the bulbs off and reset their color.  Bug: Does not work if lights are already off.
-        /// </summary>
-        public void ResetAllBulbs()
-        {
-            foreach (LightState state in m_listLightStates)
-            {
-                state.Reset();
-            }
-
-            foreach (LightGroup group in m_listLightGroup)
-            {
-                group.State.Reset();
-                group.Dirty = false;
-            }
-
-            UpdateGroupState(0);
-        }
-
-        /// <summary>
-        /// Reset a bulb to white and turn it off.
-        /// </summary>
-        /// <param name="uiIndex"></param>
-        public void ResetBulb(int iIndex)
-        {
-            if (iIndex >= m_listLightStates.Count || iIndex < 0)
-            {
-                return;
-            }
-
-            //Notify all groups of the light changing in case it affects them.
-            foreach (LightGroup group in m_listLightGroup)
-            {
-                group.OnSingleLightChange(iIndex);
-            }
-
-            LightState state = m_listLightStates[iIndex];
-            state.Color = Color.White;
-            state.Enabled = false;
-            state.PriorityLock = 0;
-
-            UpdateLightState(iIndex);
-        }
-
-        /// <summary>
-        /// Assign a new color to a specific light.
-        /// </summary>
-        /// <param name="uiIndex"></param>
-        /// <param name="color"></param>
-        public void SetLightColor(int iIndex, Color color, int iLockLevel=0)
-        {
-            if (iIndex >= m_listLightStates.Count || iIndex < 0)
-            {
-                return;
-            }
-
-
-            LightState state = m_listLightStates[iIndex];
-            if (iLockLevel >= state.PriorityLock && (!state.Enabled || state.Color != color))
-            {
-                state.PriorityLock = iLockLevel;
-
-                //Notify all groups of the light changing in case it affects them.
-                foreach (LightGroup group in m_listLightGroup)
-                {
-                    group.OnSingleLightChange(iIndex);
-                }
-
-                state.Enabled = color.R != 0 && color.B != 0 && color.G != 0 ;
-                state.Color = color;
-                UpdateLightState(iIndex);
-            }
-
-        }
-
-        /// <summary>
-        /// Sets the brightness of the light based on a normalized scalar value.  Will turn the light into a gray scale color.
-        /// </summary>
-        /// <param name="uiIndex">Light index</param>
-        /// <param name="fBrightNormalized">Scale of what the brightness should be set to.</param>
-        public void SetLightBrightness(int iIndex, float fBrightNormalized, int iLockLevel = 0)
-        {
-            int iColorValue = (int)(255.0f * fBrightNormalized);
-            Color colorLight = Color.FromArgb(255, iColorValue, iColorValue, iColorValue);
-
-            SetLightColor(iIndex, colorLight, iLockLevel);
-        }
-
-        /// <summary>
-        /// Either push the light state over if not waiting or add to the waiting queue.
-        /// </summary>
-        /// <param name="uiIndex"></param>
-        private void UpdateLightState(int iIndex)
-        {
-            KeyValuePair<int, bool> entry = new KeyValuePair<int,bool>(iIndex, false);
-            // If an already existing request is being made, add the request to the queue.
-            if (!m_queLightUpdateOrder.Contains(entry))
-            {
-                m_queLightUpdateOrder.Enqueue(entry);
-            }
-        }
+        ///// <summary>
+        ///// Adds a light group to the system.
+        ///// </summary>
+        ///// <param name="iId"></param>
+        ///// <param name="arLightIds"></param>
+        //public void AddGroup(string strname, int[] arLightIds)
+        //{
+        //    LightGroup group = new LightGroup(m_listLightGroup.Count, strname,  arLightIds);
+
+        //    m_listLightGroup.Add(group);
+
+        //    // Push over the group to the bridge.
+        //    string json = "{ \"name\": \"" + strname + "\", \"lights\":[";
+        //    foreach (int i in group.LightSet)
+        //    {
+        //        json += "\"" + (i+1) + "\",";
+        //    }
+        //    json += "]}";
+        //    MakeLightRequest("/api/" + m_strUser + "/groups/" + group.ID + "/action", "PUT", json);
+        //}
+
+        ///// <summary>
+        ///// Matches the group name to the string.
+        ///// </summary>
+        ///// <param name="strName"></param>
+        ///// <returns></returns>
+        //public LightGroup GetGroup(string strName)
+        //{
+        //    foreach (LightGroup group in m_listLightGroup)
+        //    {
+        //        if (group.Name == strName)
+        //        {
+        //            return group;
+        //        }
+        //    }
+
+        //    return null;
+        //}
+
+        ///// <summary>
+        ///// Get the color of a given light.
+        ///// </summary>
+        ///// <param name="iLight"></param>
+        ///// <returns></returns>
+        //public Color GetLightColor(int iLight)
+        //{
+        //    if (iLight < 0 || iLight >= m_listLightStates.Count)
+        //    {
+        //        return Color.White;
+        //    }
+
+        //    return m_listLightStates[iLight].Color;
+        //}
+
+        ///// <summary>
+        ///// Update the state of lights that were queued up while the requests were blocking.
+        ///// </summary>
+        ///// <param name="sender"></param>
+        ///// <param name="e"></param>
+        //public void Update(object source, ElapsedEventArgs e)
+        //{
+        //    if (!m_bMakingtRequest)
+        //    {
+        //        // If a light needs to be bumped.
+        //        if (m_iBumpedLightIndex >= 0)
+        //        {
+        //            MakeLightRequest("/api/" + m_strUser + "/lights/" + (m_iBumpedLightIndex + 1) + "/state", "PUT", m_bumpState.ToJSON());
+        //            m_iBumpedLightIndex = -1;
+        //        }
+        //        else if (m_queLightUpdateOrder.Count > 0)
+        //        {
+        //            KeyValuePair<int, bool> pairUpdateRequest = m_queLightUpdateOrder.Dequeue();
+
+        //            if (pairUpdateRequest.Value)
+        //            {
+        //                // Update a group of lights.
+        //                LightGroup group = m_listLightGroup[pairUpdateRequest.Key];
+        //                MakeLightRequest("/api/" + m_strUser + "/groups/" + group.ID + "/action", "PUT", group.State.ToJSON());
+        //            }
+        //            else
+        //            {
+        //                // Update a single light.
+        //                LightState state = m_listLightStates[(int)pairUpdateRequest.Key];
+        //                MakeLightRequest("/api/" + m_strUser + "/lights/" + (pairUpdateRequest.Key + 1) + "/state", "PUT", state.ToJSON());
+        //            }
+        //        }
+        //    }   
+        //}
+
+        ///// <summary>
+        ///// Set the level at which the lights can interact.
+        ///// </summary>
+        //public void SetAllLockLevel(int iLockLevel)
+        //{
+        //    foreach (LightState state in m_listLightStates)
+        //    {
+        //        state.PriorityLock = iLockLevel;
+        //    }
+        //}
+
+        ///// <summary>
+        ///// Set the lock level for a single light.
+        ///// </summary>
+        ///// <param name="iIndex"></param>
+        ///// <param name="iLockLevel"></param>
+        //public void SetSingleLockLevel(int iIndex, int iLockLevel)
+        //{
+        //    if (iIndex >= m_listLightStates.Count || iIndex < 0)
+        //    {
+        //        return;
+        //    }
+
+        //    m_listLightStates[iIndex].PriorityLock = iLockLevel;
+        //}
+
+        ///// <summary>
+        ///// Turn on all lights.
+        ///// </summary>
+        //public void TurnAllLightsOn()
+        //{
+        //    TurnGroupOn("All");
+        //}
+
+        ///// <summary>
+        ///// Turn off all lights.
+        ///// </summary>
+        //public void TurnAllLightsOff()
+        //{
+        //    TurnGroupOff("All");
+        //}
+
+        ///// <summary>
+        ///// Turn off all lights.
+        ///// </summary>
+        //public void ToggleAllLights()
+        //{
+        //    ToggleGroup("All");
+        //}
+
+        ///// <summary>
+        ///// Turn on a specific group of lights.
+        ///// </summary>
+        ///// <param name="strGroup"></param>
+        //public void TurnGroupOn(string strGroupName)
+        //{
+        //    LightGroup group = GetGroup(strGroupName);
+        //    if (group == null)
+        //    {
+        //        return;
+        //    }
+
+        //    //If the state is different, or it has been marked that one of the individual lights have changed.
+        //    if (!group.State.Enabled || group.Dirty)
+        //    {
+        //        foreach (int iLightId in group.LightSet)
+        //        {
+        //            m_listLightStates[iLightId].Enabled = true;
+        //            m_listLightStates[iLightId].PriorityLock = 1;
+        //        }
+
+        //        group.State.Enabled = true;
+
+        //        UpdateGroupState(group.ID);
+        //    }
+        //}
+
+        ///// <summary>
+        ///// Turn off a specific group of lights.
+        ///// </summary>
+        ///// <param name="strGroup"></param>
+        //public void TurnGroupOff(string strGroupName)
+        //{
+        //    LightGroup group = GetGroup(strGroupName);
+        //    if (group == null)
+        //    {
+        //        return;
+        //    }
+
+        //    //If the state is different, or it has been marked that one of the individual lights have changed.
+        //    if (group.State.Enabled || group.Dirty)
+        //    {
+        //        foreach (int iLightId in group.LightSet)
+        //        {
+        //            m_listLightStates[iLightId].Enabled = false;
+        //            m_listLightStates[iLightId].PriorityLock = 1;
+        //        }
+
+        //        group.State.Enabled = false;
+
+        //        UpdateGroupState(group.ID);
+        //    }
+        //}
+
+        ///// <summary>
+        ///// Turn all of a group on or off based on the last setting of the camera group.
+        ///// </summary>
+        ///// <param name="strGroupName"></param>
+        //public void ToggleGroup(string strGroupName)
+        //{
+        //    LightGroup group = GetGroup(strGroupName);
+        //    if (group == null)
+        //    {
+        //        return;
+        //    }
+
+        //    group.State.Enabled = !group.State.Enabled;
+        //    foreach (int iLightId in group.LightSet)
+        //    {
+        //        m_listLightStates[iLightId].Enabled = group.State.Enabled;
+        //        m_listLightStates[iLightId].PriorityLock = 1;
+        //    }
+
+
+        //    UpdateGroupState(group.ID);
+        //}
+
+
+        ///// <summary>
+        ///// Set a group of lights to a specific color. If the lights are off, this will turn them on.
+        ///// </summary>
+        ///// <param name="strGroup"></param>
+        ///// <param name="color"></param>
+        //public void SetGroupColor(string strGroupName, Color color)
+        //{
+        //    LightGroup group = GetGroup(strGroupName);
+        //    if (group == null)
+        //    {
+        //        return;
+        //    }
+
+        //    //If the state is different, or it has been marked that one of the individual lights have changed.
+        //    if (!group.State.Enabled || group.State.Color != color || group.Dirty)
+        //    {
+        //        foreach (int iLightId in group.LightSet)
+        //        {
+        //            m_listLightStates[iLightId].Enabled = true;
+        //            m_listLightStates[iLightId].Color = color;
+        //            m_listLightStates[iLightId].PriorityLock = 1;
+        //        }
+
+        //        group.State.Enabled = true;
+        //        group.State.Color = color;
+
+        //        UpdateGroupState(group.ID);
+        //    }
+        //}
+
+        ///// <summary>
+        ///// Sets the brightness of a light in the white color spectrum.
+        ///// </summary>
+        ///// <param name="iIndex"></param>
+        ///// <param name="fBrightNormalized"></param>
+        //public void SetGroupBrightness(string strGroupName, float fBrightNormalized)
+        //{
+        //    int iColorValue = (int)(255.0f * fBrightNormalized);
+        //    Color color = Color.FromArgb(255, iColorValue, iColorValue, iColorValue);
+        //    SetGroupColor(strGroupName, color);
+        //}
+
+        ///// <summary>
+        ///// Turn on a single bulb.
+        ///// </summary>
+        ///// <param name="iIndex"></param>
+        //public void TurnOnBulb(int iIndex, int iLockLevel=0)
+        //{
+        //    if (iIndex >= m_listLightStates.Count)
+        //    {
+        //        return;
+        //    }
+
+        //    LightState state = m_listLightStates[iIndex];
+
+        //    if (state.PriorityLock <= iLockLevel && !state.Enabled)
+        //    {
+        //        state.PriorityLock = iLockLevel;
+
+        //        //Notify all groups of the light changing in case it affects them.
+        //        foreach (LightGroup group in m_listLightGroup)
+        //        {
+        //            group.OnSingleLightChange(iIndex);
+        //        }
+
+        //        state.Enabled = true;
+        //        UpdateLightState(iIndex);
+        //    }
+        //}
+
+        ///// <summary>
+        ///// Turn off a single bulb.
+        ///// </summary>
+        ///// <param name="iIndex"></param>
+        //public void TurnOffBulb(int iIndex, int iLockLevel = 0)
+        //{
+        //    if (iIndex >= m_listLightStates.Count)
+        //    {
+        //        return;
+        //    }
+
+        //    LightState state = m_listLightStates[iIndex];
+        //    if (state.PriorityLock <= iLockLevel && state.Enabled)
+        //    {
+        //        state.PriorityLock = iLockLevel;
+
+        //        //Notify all groups of the light changing in case it affects them.
+        //        foreach (LightGroup group in m_listLightGroup)
+        //        {
+        //            group.OnSingleLightChange(iIndex);
+        //        }
+
+        //        state.Enabled = false;
+        //        UpdateLightState(iIndex);
+        //    }
+        //}
+
+        ///// <summary>
+        ///// Change the bulb to on or off depending what it's currently set to.
+        ///// </summary>
+        ///// <param name="iIndex"></param>
+        //public void ToggleBulb(int iIndex, int iLockLevel = 0)
+        //{
+        //    if (iIndex >= m_listLightStates.Count)
+        //    {
+        //        return;
+        //    }
+
+        //    //Notify all groups of the light changing in case it affects them.
+        //    foreach (LightGroup group in m_listLightGroup)
+        //    {
+        //        group.OnSingleLightChange(iIndex);
+        //    }
+
+        //    LightState state = m_listLightStates[iIndex];
+        //    if (state.PriorityLock <= iLockLevel)
+        //    {
+        //        state.PriorityLock = iLockLevel;
+        //        state.Enabled = !state.Enabled;
+        //        UpdateLightState(iIndex);
+        //    }
+        //}
+
+        ///// <summary>
+        ///// Have the light wink as a given event for focus.
+        ///// </summary>
+        ///// <param name="iIndex"></param>
+        ///// <param name="iLockLevel"></param>
+        //public void BumpBulb(int iIndex)
+        //{
+        //    if (iIndex >= m_listLightStates.Count)
+        //    {
+        //        return;
+        //    }
+
+        //    LightState state = m_listLightStates[iIndex];
+
+        //    m_bumpState.Copy(state);
+
+        //    if (!m_bumpState.Enabled ||
+        //        (m_bumpState.Color.R == 0 &&
+        //        m_bumpState.Color.G == 0 &&
+        //        m_bumpState.Color.B == 0))
+        //    {
+        //        m_bumpState.Color = Color.FromArgb(10, 10, 10);
+        //        m_bumpState.Enabled = true;
+        //    }
+        //    else
+        //    {
+        //        const int iOffset = 90;
+        //        m_bumpState.Color = Color.FromArgb(Math.Max((int)state.Color.R - iOffset, 1),
+        //            Math.Max((int)state.Color.G - iOffset, 1),
+        //            Math.Max((int)state.Color.B - iOffset, 1));
+        //    }
+        //    UpdateLightState(iIndex);
+
+
+        //    m_iBumpedLightIndex = iIndex;
+        //}
+
+        ///// <summary>
+        ///// Turn all the bulbs off and reset their color.  Bug: Does not work if lights are already off.
+        ///// </summary>
+        //public void ResetAllBulbs()
+        //{
+        //    foreach (LightState state in m_listLightStates)
+        //    {
+        //        state.Reset();
+        //    }
+
+        //    foreach (LightGroup group in m_listLightGroup)
+        //    {
+        //        group.State.Reset();
+        //        group.Dirty = false;
+        //    }
+
+        //    UpdateGroupState(0);
+        //}
+
+        ///// <summary>
+        ///// Reset a bulb to white and turn it off.
+        ///// </summary>
+        ///// <param name="uiIndex"></param>
+        //public void ResetBulb(int iIndex)
+        //{
+        //    if (iIndex >= m_listLightStates.Count || iIndex < 0)
+        //    {
+        //        return;
+        //    }
+
+        //    //Notify all groups of the light changing in case it affects them.
+        //    foreach (LightGroup group in m_listLightGroup)
+        //    {
+        //        group.OnSingleLightChange(iIndex);
+        //    }
+
+        //    LightState state = m_listLightStates[iIndex];
+        //    state.Color = Color.White;
+        //    state.Enabled = false;
+        //    state.PriorityLock = 0;
+
+        //    UpdateLightState(iIndex);
+        //}
+
+        ///// <summary>
+        ///// Assign a new color to a specific light.
+        ///// </summary>
+        ///// <param name="uiIndex"></param>
+        ///// <param name="color"></param>
+        //public void SetLightColor(int iIndex, Color color, int iLockLevel=0)
+        //{
+        //    if (iIndex >= m_listLightStates.Count || iIndex < 0)
+        //    {
+        //        return;
+        //    }
+
+
+        //    LightState state = m_listLightStates[iIndex];
+        //    if (iLockLevel >= state.PriorityLock && (!state.Enabled || state.Color != color))
+        //    {
+        //        state.PriorityLock = iLockLevel;
+
+        //        //Notify all groups of the light changing in case it affects them.
+        //        foreach (LightGroup group in m_listLightGroup)
+        //        {
+        //            group.OnSingleLightChange(iIndex);
+        //        }
+
+        //        state.Enabled = color.R != 0 && color.B != 0 && color.G != 0 ;
+        //        state.Color = color;
+        //        UpdateLightState(iIndex);
+        //    }
+
+        //}
+
+        ///// <summary>
+        ///// Sets the brightness of the light based on a normalized scalar value.  Will turn the light into a gray scale color.
+        ///// </summary>
+        ///// <param name="uiIndex">Light index</param>
+        ///// <param name="fBrightNormalized">Scale of what the brightness should be set to.</param>
+        //public void SetLightBrightness(int iIndex, float fBrightNormalized, int iLockLevel = 0)
+        //{
+        //    int iColorValue = (int)(255.0f * fBrightNormalized);
+        //    Color colorLight = Color.FromArgb(255, iColorValue, iColorValue, iColorValue);
+
+        //    SetLightColor(iIndex, colorLight, iLockLevel);
+        //}
 
         /// <summary>
         /// Either push the light state over if not waiting or add to the waiting queue.
         /// </summary>
         /// <param name="uiIndex"></param>
-        private void UpdateGroupState(int iIndex)
-        {
-            KeyValuePair<int, bool> entry = new KeyValuePair<int, bool>(iIndex, true);
-            // If an already existing request is being made, add the request to the queue.
-            if (!m_queLightUpdateOrder.Contains(entry))
-            {
-                m_queLightUpdateOrder.Enqueue(entry);
-            }
-        }
+        //private void UpdateLightState(int iIndex)
+        //{
+        //    KeyValuePair<int, bool> entry = new KeyValuePair<int,bool>(iIndex, false);
+        //    // If an already existing request is being made, add the request to the queue.
+        //    if (!m_queLightUpdateOrder.Contains(entry))
+        //    {
+        //        m_queLightUpdateOrder.Enqueue(entry);
+        //    }
+        //}
+
+        /// <summary>
+        /// Either push the light state over if not waiting or add to the waiting queue.
+        /// </summary>
+        /// <param name="uiIndex"></param>
+        //private void UpdateGroupState(int iIndex)
+        //{
+        //    KeyValuePair<int, bool> entry = new KeyValuePair<int, bool>(iIndex, true);
+        //    // If an already existing request is being made, add the request to the queue.
+        //    if (!m_queLightUpdateOrder.Contains(entry))
+        //    {
+        //        m_queLightUpdateOrder.Enqueue(entry);
+        //    }
+        //}
 
         /// <summary>
         /// Set a request to the light bridge to update state or give a command.
@@ -851,6 +851,14 @@ namespace HomeOS.Hub.Drivers.HueBridge
 
             //change the value first
             lstate.Brightness = bValue;
+
+            MakeLightRequest("/api/" + m_strUser + "/lights/" + (lstate.Index + 1) + "/state", "PUT", lstate.ToJSON());
+        }
+
+        internal void SetLightColor(LightState lstate, Color color)
+        {
+            //change the value first
+            lstate.Color = color;
 
             MakeLightRequest("/api/" + m_strUser + "/lights/" + (lstate.Index + 1) + "/state", "PUT", lstate.ToJSON());
         }

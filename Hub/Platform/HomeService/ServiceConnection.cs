@@ -478,7 +478,7 @@ namespace HomeOS.Hub.Platform.Gatekeeper
             {
                 result = GetStream().BeginWrite(this.streamBufState.Buffer, this.streamBufState.Offset, this.streamBufState.Length, this.WriteAsyncCallback, null);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 this.ShutdownAndClose();
                 return;
@@ -728,7 +728,7 @@ namespace HomeOS.Hub.Platform.Gatekeeper
             {
                 BytesTransferred = GetStream().EndRead(result);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // -
                 // If something failed, close the connection.

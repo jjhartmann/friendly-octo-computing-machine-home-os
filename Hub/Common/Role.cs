@@ -161,6 +161,7 @@ namespace HomeOS.Hub.Common
         }
     }
 
+
     public class RoleDoorjamb : Role
     {
         public const string RoleName = ":doorjamb:";
@@ -198,7 +199,7 @@ namespace HomeOS.Hub.Common
         }
     }
 
-    #region old incomplete roles
+    #region old roles with obsolete definition styles
     //public class RoleIRLearner : Role
     //{
     //    public const string RoleName = "IRLearner";
@@ -298,6 +299,7 @@ namespace HomeOS.Hub.Common
     //}
     #endregion
 
+    #region roles related to sensors
     public class RoleSensor : Role
     {
         public const string RoleName = ":sensor:";
@@ -447,6 +449,7 @@ namespace HomeOS.Hub.Common
             }
         }
     }
+    #endregion
 
     public class RoleActuator : Role
     {
@@ -476,43 +479,6 @@ namespace HomeOS.Hub.Common
         }
     }
 
-    public class RoleSwitchMultiLevel : Role
-    {
-        public const string RoleName = ":switchmultilevel:";
-        public const string OpSetName = RoleName + "->" + "set";
-        public const string OpGetName = RoleName + "->" + "get";
-
-        private static Role _instance;
-
-        public static Role Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    new RoleSwitchMultiLevel();
-                return _instance;
-            }
-        }
-
-        protected RoleSwitchMultiLevel()
-        {
-            SetName(RoleName);
-            _instance = this;
-
-            {
-                List<VParamType> args = new List<VParamType>() { new ParamType(0) };
-                List<VParamType> retVals = new List<VParamType>();
-                AddOperation(new Operation(OpSetName, args, retVals));
-            }
-
-            {
-                List<VParamType> args = new List<VParamType>();
-                List<VParamType> retVals = new List<VParamType>() { new ParamType(0) };
-                AddOperation(new Operation(OpGetName, args, retVals, true));
-            }
-        }
-    }
-
     public class RoleSwitchBinary : Role
     {
         public const string RoleName = ":switchbinary:";
@@ -537,67 +503,91 @@ namespace HomeOS.Hub.Common
             _instance = this;
 
             {
-                List<VParamType> args = new List<VParamType>() { new ParamType(0) };
+                List<VParamType> args = new List<VParamType>() { new ParamType(false) };
                 List<VParamType> retVals = new List<VParamType>();
                 AddOperation(new Operation(OpSetName, args, retVals));
             }
 
             {
                 List<VParamType> args = new List<VParamType>();
-                List<VParamType> retVals = new List<VParamType>() {new ParamType(0)};
+                List<VParamType> retVals = new List<VParamType>() { new ParamType(false) };
                 AddOperation(new Operation(OpGetName, args, retVals, true));
             }
         }
     }
 
-    public class RoleDepthCam : Role
+    public class RoleSwitchMultiLevel : Role
     {
-        public const string RoleName = ":depthcam:";
-        public const string OpGetLastDepthImgName = RoleName + "->" + "lastdepthimg";
-        public const string OpRcvDepthStreamName = RoleName + "->" + "rcvdepthstream";
-        public const string OpGetLastDepthArrayName = RoleName + "->" + "lastdeptharray";
-        public const string OpRcvDepthArrayName = RoleName + "->" + "rcvdeptharray";
+        public const string RoleName = ":switchmultilevel:";
+        public const string OpSetName = RoleName + "->" + "set";
+        public const string OpGetName = RoleName + "->" + "get";
 
-        private static RoleDepthCam _instance;
+        private static Role _instance;
 
-        public static RoleDepthCam Instance
+        public static Role Instance
         {
             get
             {
                 if (_instance == null)
-                    new RoleDepthCam();
+                    new RoleSwitchMultiLevel();
                 return _instance;
             }
         }
 
-        public RoleDepthCam()
-            : base(RoleName)
+        protected RoleSwitchMultiLevel()
         {
             SetName(RoleName);
             _instance = this;
 
             {
-                List<HomeOS.Hub.Platform.Views.VParamType> retVals = new List<HomeOS.Hub.Platform.Views.VParamType>();
-                retVals.Add(new ParamType(ParamType.SimpleType.jpegimage, "byteImg", null));
-                AddOperation(new Operation(RoleDepthCam.OpGetLastDepthImgName, null, retVals));
+                List<VParamType> args = new List<VParamType>() { new ParamType(0.0) };
+                List<VParamType> retVals = new List<VParamType>();
+                AddOperation(new Operation(OpSetName, args, retVals));
             }
 
             {
-                List<HomeOS.Hub.Platform.Views.VParamType> retVals = new List<HomeOS.Hub.Platform.Views.VParamType>();
-                retVals.Add(new ParamType(ParamType.SimpleType.jpegimage, "byteImg", null));
-                AddOperation(new Operation(RoleDepthCam.OpRcvDepthStreamName, null, retVals, true));
+                List<VParamType> args = new List<VParamType>();
+                List<VParamType> retVals = new List<VParamType>() {new ParamType(0.0)};
+                AddOperation(new Operation(OpGetName, args, retVals, true));
+            }
+        }
+    }
+
+    public class RoleLightColor : Role
+    {
+        public const string RoleName = ":lightcolor:";
+        public const string OpSetName = RoleName + "->" + "set";
+        public const string OpGetName = RoleName + "->" + "get";
+
+        private static Role _instance;
+
+        public static Role Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    new RoleLightColor();
+                return _instance;
+            }
+        }
+
+        protected RoleLightColor()
+        {
+            SetName(RoleName);
+            _instance = this;
+
+            {
+                //the three parameters are red, green, and blue
+                List<VParamType> args = new List<VParamType>() { new ParamType(0), new ParamType(0), new ParamType(0) };
+                List<VParamType> retVals = new List<VParamType>();
+                AddOperation(new Operation(OpSetName, args, retVals));
             }
 
             {
-                List<HomeOS.Hub.Platform.Views.VParamType> retVals = new List<HomeOS.Hub.Platform.Views.VParamType>();
-                retVals.Add(new ParamType(ParamType.SimpleType.list, "depthArray", null));
-                AddOperation(new Operation(RoleDepthCam.OpGetLastDepthArrayName, null, retVals));
-            }
-
-            {
-                List<HomeOS.Hub.Platform.Views.VParamType> retVals = new List<HomeOS.Hub.Platform.Views.VParamType>();
-                retVals.Add(new ParamType(ParamType.SimpleType.list, "depthArray", null));
-                AddOperation(new Operation(RoleDepthCam.OpRcvDepthArrayName, null, retVals, true));
+                List<VParamType> args = new List<VParamType>();
+                //the three parameters are red, green, and blue
+                List<VParamType> retVals = new List<VParamType>() { new ParamType(0), new ParamType(0), new ParamType(0) };
+                AddOperation(new Operation(OpGetName, args, retVals, true));
             }
         }
     }
@@ -674,7 +664,7 @@ namespace HomeOS.Hub.Common
         }
     }
 
-
+    #region roles related to cameras
     public class RoleCamera : Role
     {
         public const string RoleName = ":camera:";
@@ -778,6 +768,60 @@ namespace HomeOS.Hub.Common
             AddOperation(new Operation(OpZommOutName, emptyParamList, emptyParamList));
         }
     }
+
+    public class RoleDepthCam : Role
+    {
+        public const string RoleName = ":depthcam:";
+        public const string OpGetLastDepthImgName = RoleName + "->" + "lastdepthimg";
+        public const string OpRcvDepthStreamName = RoleName + "->" + "rcvdepthstream";
+        public const string OpGetLastDepthArrayName = RoleName + "->" + "lastdeptharray";
+        public const string OpRcvDepthArrayName = RoleName + "->" + "rcvdeptharray";
+
+        private static RoleDepthCam _instance;
+
+        public static RoleDepthCam Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    new RoleDepthCam();
+                return _instance;
+            }
+        }
+
+        public RoleDepthCam()
+            : base(RoleName)
+        {
+            SetName(RoleName);
+            _instance = this;
+
+            {
+                List<HomeOS.Hub.Platform.Views.VParamType> retVals = new List<HomeOS.Hub.Platform.Views.VParamType>();
+                retVals.Add(new ParamType(ParamType.SimpleType.jpegimage, "byteImg", null));
+                AddOperation(new Operation(RoleDepthCam.OpGetLastDepthImgName, null, retVals));
+            }
+
+            {
+                List<HomeOS.Hub.Platform.Views.VParamType> retVals = new List<HomeOS.Hub.Platform.Views.VParamType>();
+                retVals.Add(new ParamType(ParamType.SimpleType.jpegimage, "byteImg", null));
+                AddOperation(new Operation(RoleDepthCam.OpRcvDepthStreamName, null, retVals, true));
+            }
+
+            {
+                List<HomeOS.Hub.Platform.Views.VParamType> retVals = new List<HomeOS.Hub.Platform.Views.VParamType>();
+                retVals.Add(new ParamType(ParamType.SimpleType.list, "depthArray", null));
+                AddOperation(new Operation(RoleDepthCam.OpGetLastDepthArrayName, null, retVals));
+            }
+
+            {
+                List<HomeOS.Hub.Platform.Views.VParamType> retVals = new List<HomeOS.Hub.Platform.Views.VParamType>();
+                retVals.Add(new ParamType(ParamType.SimpleType.list, "depthArray", null));
+                AddOperation(new Operation(RoleDepthCam.OpRcvDepthArrayName, null, retVals, true));
+            }
+        }
+    }
+
+    #endregion
 
     //Not sure if we want to have the couch as mulitple different roles (lights, pressure)
     public class RoleCouch: Role

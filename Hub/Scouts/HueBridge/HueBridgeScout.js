@@ -19,7 +19,7 @@ $(document).ready(
 );
 
 function SetAPIUsername() {
-    $("#cameraCreds").hide();  //may need to be hidden
+    $("#hueInstructions").hide();  
     updateInformationText("Setting API access to the bridge");
     var url2 = "webapp/SetAPIUsername";
     var data2 = '{"uniqueDeviceId": "' + DEVICEID + '","username": "' + API_USER_NAME + '"}';
@@ -33,16 +33,31 @@ function SetAPIUsernameCallback(context, result) {
     if (result[0] == "") {
         UpdateDebugInfo(context, "API username set");  
 
-        GoToFinalSetup(DEVICEID);
+        // Just need to start the driver for hue
+        updateInformationText("Starting Driver");
+        new PlatformServiceHelper().MakeServiceCall("../../GuiWeb/webapp/StartDriver", '{"uniqueDeviceId": "' + DEVICEID + '"}', StartDriverCallback);
+        
     }
     else {
-        
-        //retry button
         $("#retryButton").show();
         updateInformationText(result[0]);
-        //show cancel button
         $("#cButton").show();
     }
+
+}
+
+function StartDriverCallback(context, result) {
+    if (result[0] == "") {
+        updateInformationText("Hue bridge connected, go to add devices to add lights");
+        $("#dButton").show();
+    }
+    else {
+
+        $("#retryButton").show();
+        updateInformationText(result[0]);
+        $("#cButton").show();
+    }
+
 
 }
 
@@ -55,26 +70,6 @@ function clearInformationText() {
     $("#divInformationText").html("");
 }
 
-function GetInstructionsCallback(context, result) {
-    UpdateDebugInfo(context, result);
-    if (result[0] == "") {
-        updateInformationText(result[1]);
-        $("#goButton").show();
-    }
-
-    else {
-        UpdateDebugInfo(this, "GetInstructionsCallback:" + result[0]);
-
-    }
-
-}
-
-//Wired cameras don't need any network passwords so we go straight to final setup
-function WiredCameraSetup() {
-    //go to the final setup
-    $("#wirelessQuestion").hide();
-    GoToFinalSetup(DEVICEID);
-}
 
 function RetryButton() {
     $("#retryButton").hide();

@@ -1178,7 +1178,7 @@ namespace HomeOS.Hub.Platform
                             }
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         logger.Log("Exception in getting or processing device list from scout {0}", scoutName);
                     }

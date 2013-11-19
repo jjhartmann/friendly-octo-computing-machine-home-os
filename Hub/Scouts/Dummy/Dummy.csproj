@@ -24,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CustomPath>..\..</CustomPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,16 +33,21 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CustomPath>..\..</CustomPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TeamBuildOutDir) != '' ">
+    <OutputPath>$(TeamBuildOutDir)\$(SolutionName)\output\binaries\Scouts\HomeOS.Hub.Scouts.Dummy\</OutputPath>
+    <CustomPath>$(TeamBuildOutDir)\$(SolutionName)</CustomPath>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="HomeOS.Hub.Common">
-      <HintPath>..\..\output\binaries\Platform\HomeOS.Hub.Common.dll</HintPath>
+      <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Common.dll</HintPath>
     </Reference>
     <Reference Include="HomeOS.Hub.Platform.DeviceScout">
-      <HintPath>..\..\output\binaries\Platform\HomeOS.Hub.Platform.DeviceScout.dll</HintPath>
+      <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Platform.DeviceScout.dll</HintPath>
     </Reference>
     <Reference Include="HomeOS.Hub.Platform.Views">
-      <HintPath>..\..\output\binaries\Platform\HomeOS.Hub.Platform.Views.dll</HintPath>
+      <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Platform.Views.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

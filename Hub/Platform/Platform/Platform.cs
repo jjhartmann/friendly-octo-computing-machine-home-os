@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Text;
 using System.Net;
 using System.Net.Mail;
 using System.Threading;
@@ -12,14 +11,10 @@ using HomeOS.Hub.Platform.DeviceScout;
 using HomeOS.Hub.Platform.Views;
 using System.Linq;
 
-using System.Management;
-using System.IO;
-using System.IO.Compression;
 using HomeOS.Hub.Platform.Authentication;
 using System.Xml;
 using System.Xml.Linq;
 
-using System.Diagnostics;
 
 //using HomeOS.Hub.Platform.VirtualRouter.Wlan;
 
@@ -1076,7 +1071,6 @@ namespace HomeOS.Hub.Platform
         public VModule StartModule(ModuleInfo moduleInfo, bool exactlyMatchVersions = false)
         {
             VModule startedModule = null;
-            bool exceptionOcurred = false;
 
             foreach (AddInToken token in allAddinTokens)
             {
@@ -1545,7 +1539,7 @@ namespace HomeOS.Hub.Platform
                                     if (mPortDeregThread.IsAlive())
                                        mPortDeregThread.Abort();
                                 }
-                                catch (Exception e)
+                                catch (Exception)
                                 {
                                     //The PortDeregistered() calls when aborted (if so) will raise an exception
                                 }
@@ -1852,8 +1846,16 @@ namespace HomeOS.Hub.Platform
                                 string body = "This should be fine, cheers";
                                 string mimeType = "image/jpeg";
                                 List<Attachment> attachmentList = new List<Attachment>();
-                                Attachment attachment = new Attachment(new MemoryStream(Common.Utils.CreateTestJpegImage(10, 10, 9, 9, 30)), "test.jpg", mimeType);
-                                attachmentList.Add(attachment);
+                                Attachment attachment1 = new Attachment(new MemoryStream(Common.Utils.CreateTestJpegImage(10, 10, 3, 3, 30)), "test1.jpg", mimeType);
+                                Attachment attachment2 = new Attachment(new MemoryStream(Common.Utils.CreateTestJpegImage(10, 10, 4, 4, 30)), "test2.jpg", mimeType);
+                                Attachment attachment3 = new Attachment(new MemoryStream(Common.Utils.CreateTestJpegImage(10, 10, 5, 5, 30)), "test3.jpg", mimeType);
+                                Attachment attachment4 = new Attachment(new MemoryStream(Common.Utils.CreateTestJpegImage(10, 10, 6, 6, 30)), "test4.jpg", mimeType);
+                                Attachment attachment5 = new Attachment(new MemoryStream(Common.Utils.CreateTestJpegImage(10, 10, 7, 7, 30)), "test5.jpg", mimeType);
+                                attachmentList.Add(attachment1);
+                                attachmentList.Add(attachment2);
+                                attachmentList.Add(attachment3);
+                                attachmentList.Add(attachment4);
+                                attachmentList.Add(attachment5);
 
                                 Tuple<bool, string> result = Utils.SendHubEmail(dest, subject, body, attachmentList, this, logger);
                                 logger.Log("result of email: Succeeded = " + result.Item1 + " " + "Message=" + result.Item2);
@@ -1866,8 +1868,16 @@ namespace HomeOS.Hub.Platform
                                 string body = "This should be fine, cheers";
                                 string mimeType = "image/jpeg";
                                 List<Attachment> attachmentList = new List<Attachment>();
-                                Attachment attachment = new Attachment(new MemoryStream(Common.Utils.CreateTestJpegImage(10, 10, 9, 9, 30)), "test.jpg", mimeType);
-                                attachmentList.Add(attachment);
+                                Attachment attachment1 = new Attachment(new MemoryStream(Common.Utils.CreateTestJpegImage(10, 10, 3, 3, 30)), "test1.jpg", mimeType);
+                                Attachment attachment2 = new Attachment(new MemoryStream(Common.Utils.CreateTestJpegImage(10, 10, 4, 4, 30)), "test2.jpg", mimeType);
+                                Attachment attachment3 = new Attachment(new MemoryStream(Common.Utils.CreateTestJpegImage(10, 10, 5, 5, 30)), "test3.jpg", mimeType);
+                                Attachment attachment4 = new Attachment(new MemoryStream(Common.Utils.CreateTestJpegImage(10, 10, 6, 6, 30)), "test4.jpg", mimeType);
+                                Attachment attachment5 = new Attachment(new MemoryStream(Common.Utils.CreateTestJpegImage(10, 10, 7, 7, 30)), "test5.jpg", mimeType);
+                                attachmentList.Add(attachment1);
+                                attachmentList.Add(attachment2);
+                                attachmentList.Add(attachment3);
+                                attachmentList.Add(attachment4);
+                                attachmentList.Add(attachment5);
 
                                 Tuple<bool, string> result = Utils.SendCloudEmail(dest, subject, body, attachmentList, this, logger);
                                 logger.Log("result of email: Succeeded = " + result.Item1 + " " + "Message=" + result.Item2);
@@ -1905,7 +1915,7 @@ namespace HomeOS.Hub.Platform
                                     //string url = words[1];
 
                                     string url = "http://localhost:51430/ratul/GuiWeb/webapp/GetAllUnconfiguredDevices";
-                                    string json = ""; // Your JSON message
+                                    // string json = ""; // Your JSON message
                                     WebRequest request = WebRequest.Create(url);
                                     //request.Method = "POST";
                                     //var postData = Encoding.UTF8.GetBytes(json);
@@ -2706,7 +2716,7 @@ namespace HomeOS.Hub.Platform
                             aiController.Shutdown();
                             done = true;
                         }
-                        catch (CannotUnloadAppDomainException e)
+                        catch (CannotUnloadAppDomainException)
                         {
                             logger.Log("AppDomain Unload did not succeed. Retrying.");
                             System.Threading.Thread.Sleep(1000);
@@ -3050,7 +3060,7 @@ namespace HomeOS.Hub.Platform
                     logger.Log("URI: " + url + " has unhandled type");
                 }
             }
-            catch (WebException webEx)
+            catch (WebException)
             {
                 logger.Log("URI: " + url + " is invalid. Got WebException.");
             }

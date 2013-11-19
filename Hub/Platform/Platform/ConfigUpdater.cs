@@ -8,18 +8,14 @@ namespace HomeOS.Hub.Platform
     using Microsoft.WindowsAzure.StorageClient.Protocol;
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.IO;
     using System.Linq;
-    using System.Net;
-    using System.Security.Cryptography;
     using System.ServiceModel;
     using System.Text;
     using System.Threading;
-    using System.Xml;
-   
+
     /// <summary>
-    /// ConfigUpdater periodically uploads current config to an Azure Blob as a Zip 
+    /// ConfigUpdater periodically uploads current config to an Azure Blob as a Zip
     /// something happens here
     /// Platform is notified to re-initiate from the downloaded configuration.
     /// </summary>
@@ -28,7 +24,7 @@ namespace HomeOS.Hub.Platform
 
         // Azure constants
         private const string DataStoreAccountName = "DataStoreAccountName";
-        private const string DataStoreAccountKey="DataStoreAccountKey";
+        private const string DataStoreAccountKey = "DataStoreAccountKey";
         private const string AzureConfigContainerName = "configs";
 
         private const int AzureBlobLeaseTimeout = 60; //seconds. Max amount of time needed for uploading data.
@@ -39,50 +35,50 @@ namespace HomeOS.Hub.Platform
         private Delegate methodToInvoke; // method in platform that is to be invoked if hash matches
         private TimerCallback tcb;
         private Timer timer;
-        private static string temporaryZipLocation = Environment.CurrentDirectory + "\\temp" ; // temporary location where zip is stored
+        private static string temporaryZipLocation = Environment.CurrentDirectory + "\\temp"; // temporary location where zip is stored
         private VLogger logger;
-        
-        
+
+
         private const string OldConfigSuffix = "_old";
-        private const string NewConfigSuffix = "_new"; 
+        private const string NewConfigSuffix = "_new";
 
         private const string CurrentVersionFileName = ".currentversion";
         private const string ParentVersionFileName = ".parentversion";
         private const string CurrentConfigZipName = "actualconfig.zip";
         private const string DownloadedConfigZipName = "desiredconfig.zip";
-        private const string VersionDefinitionFileName = ".versiondef"; 
+        private const string VersionDefinitionFileName = ".versiondef";
 
 
         private ServiceHost serviceHost;
         private UpdateStatus status; // for reporting to the web service
 
-        private Configuration config; 
+        private Configuration config;
 
-        public ConfigUpdater(Configuration config, VLogger log , int frequency, Delegate method)
+        public ConfigUpdater(Configuration config, VLogger log, int frequency, Delegate method)
         {
             this.config = config;
-            this.logger = log; 
+            this.logger = log;
             this.frequency = frequency;
             this.methodToInvoke = method;
-            tcb = ConfigSync ;
+            tcb = ConfigSync;
             timer = new Timer(tcb, null, 500, frequency);
 
-                if (System.IO.Directory.Exists(temporaryZipLocation)) // creating temporary directory location for downloading and holding zips
-                    Utils.CleanDirectory(logger, temporaryZipLocation);
-                Utils.CreateDirectory(logger, temporaryZipLocation);
+            if (System.IO.Directory.Exists(temporaryZipLocation)) // creating temporary directory location for downloading and holding zips
+                Utils.CleanDirectory(logger, temporaryZipLocation);
+            Utils.CreateDirectory(logger, temporaryZipLocation);
 
-            this.status = new UpdateStatus(this.frequency); 
+            this.status = new UpdateStatus(this.frequency);
 
-            ConfigUpdaterWebService webService = new ConfigUpdaterWebService(logger,this);
+            ConfigUpdaterWebService webService = new ConfigUpdaterWebService(logger, this);
 
             string homeIdPart = "";
             if (!string.IsNullOrWhiteSpace(Settings.HomeId))
                 homeIdPart = "/" + Settings.HomeId;
 
-            string url =  Constants.InfoServiceAddress + homeIdPart +  "/config";
+            string url = Constants.InfoServiceAddress + homeIdPart + "/config";
             serviceHost = ConfigUpdaterWebService.CreateServiceHost(webService, new Uri(url));
             serviceHost.Open();
-            Utils.structuredLog(logger,"I", "ConfigUpdaterWebService initiated at "+url);
+            Utils.structuredLog(logger, "I", "ConfigUpdaterWebService initiated at " + url);
 
         }
 
@@ -97,88 +93,83 @@ namespace HomeOS.Hub.Platform
 
             if (config == null)
             {
-                Utils.structuredLog(logger,"W", "config is null; aborting ConfigSync");
+                Utils.structuredLog(logger, "W", "config is null; aborting ConfigSync");
                 return;
             }
 
             status.lastConfigSync = DateTime.Now;
-            Utils.structuredLog(logger,"I", "initiating ConfigSync");
-            
+            Utils.structuredLog(logger, "I", "initiating ConfigSync");
+
             string AzureAccountName = config.GetConfSetting(DataStoreAccountName);
             string AzureAccountKey = config.GetConfSetting(DataStoreAccountKey);
 
             if (string.IsNullOrEmpty(AzureAccountKey) || string.IsNullOrEmpty(AzureAccountName))
             {
-                Utils.structuredLog(logger,"E", "AzureAccountKey or AzureAccountName is null; aborting ConfigSync");
+                Utils.structuredLog(logger, "E", "AzureAccountKey or AzureAccountName is null; aborting ConfigSync");
                 return;
             }
 
-     
-                configToUpload = PrepareCurrentConfig();
+            configToUpload = PrepareCurrentConfig();
 
-                if (!string.IsNullOrEmpty(configToUpload.Item1))
+            if (!string.IsNullOrEmpty(configToUpload.Item1))
+            {
+                if (UploadConfig_Azure(configToUpload.Item1, AzureAccountName, AzureAccountKey))
                 {
-                    if (UploadConfig_Azure(configToUpload.Item1, AzureAccountName, AzureAccountKey))
-                    {
-                        status.lastConfigUpload = DateTime.Now;
-                        status.versionUploaded = configToUpload.Item2;
-                        Utils.structuredLog(logger,"ConfigUpload", ActualConfigBlobName(), configToUpload.Item2);
-                    }
-                    else
-                        Utils.structuredLog(logger,"E", "config upload failed", ActualConfigBlobName(), configToUpload.Item2);
+                    status.lastConfigUpload = DateTime.Now;
+                    status.versionUploaded = configToUpload.Item2;
+                    Utils.structuredLog(logger, "ConfigUpload", ActualConfigBlobName(), configToUpload.Item2);
                 }
-            Utils.DeleteFile(logger,configToUpload.Item1);
-        
+                else
+                    Utils.structuredLog(logger, "E", "config upload failed", ActualConfigBlobName(), configToUpload.Item2);
+            }
+            Utils.DeleteFile(logger, configToUpload.Item1);
+
             string downloadedConfigZipPath = temporaryZipLocation + "\\" + DownloadedConfigZipName;
 
             if (DownloadConfig_Azure(downloadedConfigZipPath, AzureAccountName, AzureAccountKey))
             {
-        
-                    status.lastConfigDownload = DateTime.Now;
-                    Tuple<bool, string> configDeploy = ConfigReloadNeeded(downloadedConfigZipPath);
-                    if (configDeploy.Item1)
+
+                status.lastConfigDownload = DateTime.Now;
+                Tuple<bool, string> configDeploy = ConfigReloadNeeded(downloadedConfigZipPath);
+                if (configDeploy.Item1)
                 {
 
-                    string tempConfigDir = Settings.ConfigDir +"\\..\\Config"+ NewConfigSuffix;
-                    Utils.CleanDirectory(logger,tempConfigDir);
+                    string tempConfigDir = Settings.ConfigDir + "\\..\\Config" + NewConfigSuffix;
+                    Utils.CleanDirectory(logger, tempConfigDir);
 
                     if (!Utils.UnpackZip(logger, downloadedConfigZipPath, tempConfigDir))
-                            Utils.structuredLog(logger,"E", "unpacking failed", downloadedConfigZipPath);
+                        Utils.structuredLog(logger, "E", "unpacking failed", downloadedConfigZipPath);
 
-                    Utils.CopyDirectory(logger,Settings.ConfigDir, Settings.ConfigDir + "\\..\\Config" + OldConfigSuffix);// stash away existing copy 
+                    Utils.CopyDirectory(logger, Settings.ConfigDir, Settings.ConfigDir + "\\..\\Config" + OldConfigSuffix);// stash away existing copy
                     Utils.CopyDirectory(logger, tempConfigDir, Settings.ConfigDir);
                     Utils.DeleteFile(logger, downloadedConfigZipPath);
                     Utils.DeleteDirectory(logger, tempConfigDir);
                     Utils.DeleteDirectory(logger, Settings.ConfigDir + "\\..\\Config" + OldConfigSuffix);
                     methodToInvoke.DynamicInvoke(Settings.ConfigDir);
-                    Utils.structuredLog(logger,"I", "config reloading");
+                    Utils.structuredLog(logger, "I", "config reloading");
 
                     // update status
 
                 }
                 else
                 {
-                    Utils.structuredLog(logger,"ER", "Config Reload Failed", configDeploy.Item2);
+                    Utils.structuredLog(logger, "ER", "Config Reload Failed", configDeploy.Item2);
                     Utils.DeleteFile(logger, downloadedConfigZipPath);
                 }
-      
             }
             else
-                Utils.structuredLog(logger,"ConfigDownload", "failed");
-
+                Utils.structuredLog(logger, "ConfigDownload", "failed");
         }
 
-
-        
         private Tuple<string, string> PrepareCurrentConfig()
         {
-            bool zipPacked = false ;
-            Dictionary<string, string> currentVersion; 
+            bool zipPacked = false;
+            Dictionary<string, string> currentVersion;
             lock (config) // lock config so that no one else can change it. then, compute the version, zip the files, copy zip a location and relinquish lock.
             {
                 currentVersion = GetConfigVersion(Settings.ConfigDir);
                 UpdateCurrentVersionFile(currentVersion);
-                string temporaryDirectoryToUpload = temporaryZipLocation+"\\"+CurrentConfigZipName.Replace(".zip","");
+                string temporaryDirectoryToUpload = temporaryZipLocation + "\\" + CurrentConfigZipName.Replace(".zip", "");
                 Utils.CreateDirectory(logger, temporaryDirectoryToUpload);
 
                 foreach (string file in GetFileNamesInVersionDef(Settings.ConfigDir))
@@ -200,9 +191,9 @@ namespace HomeOS.Hub.Platform
             }
 
             if (zipPacked)
-                return new Tuple<string, string>(temporaryZipLocation + "\\" + CurrentConfigZipName, ConvertVersionToString(currentVersion)) ;
-            
-            return new Tuple<string,string>("","");
+                return new Tuple<string, string>(temporaryZipLocation + "\\" + CurrentConfigZipName, ConvertVersionToString(currentVersion));
+
+            return new Tuple<string, string>("", "");
         }
 
         private Tuple<bool, string> ConfigReloadNeeded(string downloadedConfigZip)
@@ -214,30 +205,30 @@ namespace HomeOS.Hub.Platform
 
             if (!Utils.UnpackZip(logger, downloadedConfigZip, newconfigdir))
                 return new Tuple<bool, string>(false, "unpacking of downloaded config failed");
-            
+
             string downloadedVersion = ConvertVersionToString(GetConfigVersion(newconfigdir));
             status.versionDownloaded = downloadedVersion;
-            if(File.Exists(newconfigdir+"\\"+CurrentVersionFileName))
+            if (File.Exists(newconfigdir + "\\" + CurrentVersionFileName))
             {
-                string versionFilecontent = File.ReadAllText(newconfigdir+"\\" + CurrentVersionFileName);
+                string versionFilecontent = File.ReadAllText(newconfigdir + "\\" + CurrentVersionFileName);
                 if (!versionFilecontent.Equals(downloadedVersion, StringComparison.CurrentCultureIgnoreCase))
-                    Utils.structuredLog(logger,"W", "version file of downloaded config has INCORRECT version");
+                    Utils.structuredLog(logger, "W", "version file of downloaded config has INCORRECT version");
             }
 
             if (File.Exists(newconfigdir + "\\" + ParentVersionFileName))
             {
                 string parentVersionFilecontent = File.ReadAllText(newconfigdir + "\\" + ParentVersionFileName);
                 string currentVersion;
-                
+
                 lock (config)
                 {
                     currentVersion = ConvertVersionToString(GetConfigVersion(Settings.ConfigDir));
                 }
 
-                string currentVersionDef = string.Join(",",GetVersionDef(Settings.ConfigDir));
+                string currentVersionDef = string.Join(",", GetVersionDef(Settings.ConfigDir));
                 string newVersionDef = string.Join(",", GetVersionDef(newconfigdir));
 
-                if (currentVersion.Equals(ConvertVersionToString(GetConfigVersion(newconfigdir))) && currentVersionDef.Equals(newVersionDef,StringComparison.CurrentCultureIgnoreCase) )
+                if (currentVersion.Equals(ConvertVersionToString(GetConfigVersion(newconfigdir))) && currentVersionDef.Equals(newVersionDef, StringComparison.CurrentCultureIgnoreCase))
                 {
                     Utils.DeleteDirectory(logger, newconfigdir);
                     return new Tuple<bool, string>(false, "version of current config and downloaded config match");
@@ -283,7 +274,7 @@ namespace HomeOS.Hub.Platform
                 blockBlob = container.GetBlockBlobReference(ActualConfigBlobName());
 
                 bool blobExists = AzureUtils.BlockBlobExists(logger, blockBlob);
-               
+
                 if (blobExists)
                     leaseId = AzureUtils.AcquireLease(logger, blockBlob, AzureBlobLeaseTimeout); // Acquire Lease on Blob
                 else
@@ -291,7 +282,7 @@ namespace HomeOS.Hub.Platform
 
                 if (blobExists && leaseId == null)
                 {
-                    Utils.structuredLog(logger,"ER", "AcquireLease on Blob: " + ActualConfigBlobName() + " Failed");
+                    Utils.structuredLog(logger, "ER", "AcquireLease on Blob: " + ActualConfigBlobName() + " Failed");
                     return false;
                 }
 
@@ -316,7 +307,7 @@ namespace HomeOS.Hub.Platform
             }
             catch (Exception e)
             {
-                Utils.structuredLog(logger,"E", e.Message + ". UploadConfig_Azure, configZipPath: " + configZipPath + ". " + e);
+                Utils.structuredLog(logger, "E", e.Message + ". UploadConfig_Azure, configZipPath: " + configZipPath + ". " + e);
                 AzureUtils.ReleaseLease(logger, blockBlob, leaseId, AzureBlobLeaseTimeout);
                 return false;
             }
@@ -336,18 +327,18 @@ namespace HomeOS.Hub.Platform
                 blobClient = storageAccount.CreateCloudBlobClient();
                 container = blobClient.GetContainerReference(AzureConfigContainerName);
                 container.CreateIfNotExist();
-                blockBlob = container.GetBlockBlobReference(DesiredConfigBlobName() );
+                blockBlob = container.GetBlockBlobReference(DesiredConfigBlobName());
 
                 bool blobExists = AzureUtils.BlockBlobExists(logger, blockBlob);
 
                 if (blobExists)
-                    leaseId = AzureUtils.AcquireLease(logger, blockBlob,AzureBlobLeaseTimeout); // Acquire Lease on Blob
+                    leaseId = AzureUtils.AcquireLease(logger, blockBlob, AzureBlobLeaseTimeout); // Acquire Lease on Blob
                 else
-                    return false; 
+                    return false;
 
                 if (blobExists && leaseId == null)
                 {
-                    Utils.structuredLog(logger,"ER", "AcquireLease on Blob: " + DesiredConfigBlobName() + " Failed");
+                    Utils.structuredLog(logger, "ER", "AcquireLease on Blob: " + DesiredConfigBlobName() + " Failed");
                     return false;
                 }
 
@@ -359,8 +350,8 @@ namespace HomeOS.Hub.Platform
 
                 var req = BlobRequest.Get(new Uri(url), AzureBlobLeaseTimeout, null, leaseId);
                 blockBlob.ServiceClient.Credentials.SignRequest(req);
-                
-                using (var  reader = new BinaryReader(req.GetResponse().GetResponseStream()))
+
+                using (var reader = new BinaryReader(req.GetResponse().GetResponseStream()))
                 {
                     FileStream zipFile = new FileStream(downloadedZipPath, FileMode.OpenOrCreate);
                     reader.BaseStream.CopyTo(zipFile);
@@ -368,31 +359,30 @@ namespace HomeOS.Hub.Platform
                 }
                 req.GetResponse().GetResponseStream().Close();
 
-                AzureUtils.ReleaseLease(logger, blockBlob, leaseId,AzureBlobLeaseTimeout); // Release Lease on Blob
+                AzureUtils.ReleaseLease(logger, blockBlob, leaseId, AzureBlobLeaseTimeout); // Release Lease on Blob
                 return true;
             }
             catch (Exception e)
             {
-                Utils.structuredLog(logger,"E", e.Message + ". DownloadConfig_Azure, downloadZipPath: " + downloadedZipPath+". "+e );
-                AzureUtils.ReleaseLease(logger, blockBlob, leaseId,AzureBlobLeaseTimeout);
+                Utils.structuredLog(logger, "E", e.Message + ". DownloadConfig_Azure, downloadZipPath: " + downloadedZipPath + ". " + e);
+                AzureUtils.ReleaseLease(logger, blockBlob, leaseId, AzureBlobLeaseTimeout);
                 return false;
             }
         }
 
-
         private string ActualConfigBlobName()
         {
-            return "/" + Settings.OrgId + "/" + Settings.StudyId + "/" + Settings.HomeId + "/config/actual/" + CurrentConfigZipName; 
+            return "/" + Settings.OrgId + "/" + Settings.StudyId + "/" + Settings.HomeId + "/config/actual/" + CurrentConfigZipName;
         }
-        
+
         private string DesiredConfigBlobName()
         {
-            return "/" +Settings.OrgId + "/" + Settings.StudyId + "/" + Settings.HomeId + "/config/desired/" + DownloadedConfigZipName; 
+            return "/" + Settings.OrgId + "/" + Settings.StudyId + "/" + Settings.HomeId + "/config/desired/" + DownloadedConfigZipName;
         }
 
 
         #region Methods to compute version of config dirs
-        
+
         private Dictionary<string, string> GetConfigVersion(string configDir)
         {
             Dictionary<string, string> retVal = new Dictionary<string, string>();
@@ -400,12 +390,12 @@ namespace HomeOS.Hub.Platform
 
             foreach (string name in configFilesToHash)
             {
-                if (!name.Equals(CurrentVersionFileName, StringComparison.CurrentCultureIgnoreCase) 
-                    && !name.Equals(ParentVersionFileName, StringComparison.CurrentCultureIgnoreCase)
-                    && !name.Equals(VersionDefinitionFileName,StringComparison.CurrentCultureIgnoreCase))
-                        retVal.Add(name, Utils.GetMD5HashOfFile(logger,configDir + "\\" + name));
+                if (!name.Equals(CurrentVersionFileName, StringComparison.CurrentCultureIgnoreCase)
+                && !name.Equals(ParentVersionFileName, StringComparison.CurrentCultureIgnoreCase)
+                && !name.Equals(VersionDefinitionFileName, StringComparison.CurrentCultureIgnoreCase))
+                    retVal.Add(name, Utils.GetMD5HashOfFile(logger, configDir + "\\" + name));
             }
-            
+
             return retVal;
         }
 
@@ -417,9 +407,9 @@ namespace HomeOS.Hub.Platform
 
             try
             {
-            filesInVersion = GetVersionDef(configDir);
-            filesInConfigDir.Sort();
-            configFilesToHash = filesInConfigDir.Intersect(filesInVersion.ToList()).ToList();
+                filesInVersion = GetVersionDef(configDir);
+                filesInConfigDir.Sort();
+                configFilesToHash = filesInConfigDir.Intersect(filesInVersion.ToList()).ToList();
             }
             catch (Exception e)
             {
@@ -445,13 +435,13 @@ namespace HomeOS.Hub.Platform
             }
             catch (Exception e)
             {
-                Utils.structuredLog(logger, "E", e.Message + " .GetVersionDef "+configDir);
+                Utils.structuredLog(logger, "E", e.Message + " .GetVersionDef " + configDir);
             }
 
             return retVal;
         }
 
-        private string ConvertVersionToString(Dictionary<string,string> version)
+        private string ConvertVersionToString(Dictionary<string, string> version)
         {
             StringBuilder ret = new StringBuilder();
             foreach (string fileName in version.Keys)
@@ -461,7 +451,7 @@ namespace HomeOS.Hub.Platform
             }
             return ret.ToString();
         }
-        
+
         private void UpdateCurrentVersionFile(Dictionary<string, string> version)
         {
             try
@@ -477,13 +467,13 @@ namespace HomeOS.Hub.Platform
             }
             catch (Exception e)
             {
-                Utils.structuredLog(logger,"E", e.Message + ". UpdateCurrentVersionFile, version: " + version.ToString());
+                Utils.structuredLog(logger, "E", e.Message + ". UpdateCurrentVersionFile, version: " + version.ToString());
             }
         }
 
-        #endregion 
+        #endregion
 
-        public void Reset(Configuration config, VLogger log,  int freq, Delegate method)
+        public void Reset(Configuration config, VLogger log, int freq, Delegate method)
         {
             lock (this)
             {
@@ -502,12 +492,9 @@ namespace HomeOS.Hub.Platform
                 string url = Constants.InfoServiceAddress + homeIdPart + "/config";
                 serviceHost = ConfigUpdaterWebService.CreateServiceHost(webService, new Uri(url));
                 serviceHost.Open();
-                Utils.structuredLog(logger,"I", "ConfigUpdaterWebService initiated at " + url);
-
-
+                Utils.structuredLog(logger, "I", "ConfigUpdaterWebService initiated at " + url);
             }
         }
-
 
         public UpdateStatus LastStatus()
         {
@@ -516,7 +503,6 @@ namespace HomeOS.Hub.Platform
                 return this.status;
             }
         }
-
 
         public bool SetDueTime(int dueTime)
         {
@@ -527,92 +513,11 @@ namespace HomeOS.Hub.Platform
 
         }
 
-
-
         public void Dispose()
         {
             this.timer.Dispose();
             this.serviceHost.Close();
             GC.SuppressFinalize(this);
         }
-
-
-        
-
     }
-
-
-
-
 }
-
-
-
-/* #region methods to acquire and relinquich leases on azure blobs; and check if a blob already exists
-      private string AcquireLease(CloudBlockBlob blob)
-      {
-          try
-          {
-              var creds = blob.ServiceClient.Credentials;
-              var transformedUri = new Uri(creds.TransformUri(blob.Uri.ToString()));
-              var req = BlobRequest.Lease(transformedUri, AzureBlobLeaseTimeout, // timeout (in seconds)
-                  LeaseAction.Acquire, // as opposed to "break" "release" or "renew"
-                  null); // name of the existing lease, if any
-              blob.ServiceClient.Credentials.SignRequest(req);
-              using (var response = req.GetResponse())
-              {
-                  return response.Headers["x-ms-lease-id"];
-              }
-          }
-
-          catch (WebException e)
-          {
-              Utils.structuredLog(logger,"WebException", e.Message + ". AcquireLease, blob: " + blob);
-              return null;
-          }
-      }
-
-      public void ReleaseLease(CloudBlob blob, string leaseId)
-      {
-          DoLeaseOperation(blob, leaseId, LeaseAction.Release);
-      }
-
-      private void DoLeaseOperation(CloudBlob blob, string leaseId, LeaseAction action)
-      {
-          try
-          {
-              if (blob == null || leaseId == null)
-                  return;
-              var creds = blob.ServiceClient.Credentials;
-              var transformedUri = new Uri(creds.TransformUri(blob.Uri.ToString()));
-              var req = BlobRequest.Lease(transformedUri, AzureBlobLeaseTimeout, action, leaseId);
-              creds.SignRequest(req);
-              req.GetResponse().Close();
-          }
-          catch (WebException e)
-          {
-              Utils.structuredLog(logger,"WebException", e.Message + ". DoLeaseOperation, blob: "+blob.Name+", leaseId: "+leaseId+", action "+ action);
-          }
-      }
-
-      private bool BlockBlobExists(CloudBlockBlob blob)
-      {
-          try
-          {
-              blob.FetchAttributes();
-              return true;
-          }
-          catch (StorageClientException e)
-          {
-              if (e.ErrorCode == StorageErrorCode.ResourceNotFound)
-              {
-                  Utils.structuredLog(logger,"E", "BlockBlob: " + blob.Name + " does not exist.");
-                  return false;
-              }
-              else
-              {
-                  throw;
-              }
-          }
-      }
-  #endregion*/

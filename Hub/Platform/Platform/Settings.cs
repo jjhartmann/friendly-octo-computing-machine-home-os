@@ -368,7 +368,7 @@ namespace HomeOS.Hub.Platform
             LogFile = Constants.PlatformBinaryDir + "\\..\\..\\Data\\Platform\\homeos.log";
             //LogFile  = ":stdout";
             LogArchivalDir = "archived-logs";
-            LogRotationThreshold = 10000;
+            LogRotationThreshold = 1000;
             AutoSyncLogs = true;
             //LogArchivalAccountName = String.Empty;
             //LogArchivalAccountKey = String.Empty;

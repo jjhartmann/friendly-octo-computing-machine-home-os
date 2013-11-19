@@ -89,8 +89,14 @@ namespace HomeOS.Hub.Drivers.HueBridge
         /// <returns></returns>
         public string ToJSON()
         {
+            //return "{" +
+            //    "\"on\":" + m_bEnabled.ToString().ToLower() + "," +
+            //    "\"sat\":" + (int)(m_color.GetSaturation() * 255) + "," +
+            //    "\"bri\":" + (int)(m_color.GetBrightness() * 255) + "," +
+            //    "\"hue\":" + (int)(m_color.GetHue() / 360.0f * 65535.0f) +
+            //    "}";
             return "{" +
-                "\"on\":" + m_bEnabled.ToString().ToLower() + "," +
+                "\"on\":" + "true" + "," +
                 "\"sat\":" + (int)(m_color.GetSaturation() * 255) + "," +
                 "\"bri\":" + (int)(m_color.GetBrightness() * 255) + "," +
                 "\"hue\":" + (int)(m_color.GetHue() / 360.0f * 65535.0f) +

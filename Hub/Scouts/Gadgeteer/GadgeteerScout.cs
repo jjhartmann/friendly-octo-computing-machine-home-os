@@ -231,7 +231,7 @@ namespace HomeOS.Hub.Scouts.Gadgeteer
                     {
                         logger.Log("Timed out while trying to read " + portName);
                     }
-                    catch (Exception e)
+                    catch (Exception /*e*/)
                     {
                         // let us not print this 
                         // logger.Log("Serial port exception for {0}: {1}", portName, e.ToString());

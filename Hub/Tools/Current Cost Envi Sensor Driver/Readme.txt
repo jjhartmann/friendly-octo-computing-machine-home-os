@@ -24,3 +24,9 @@ HomeOS.Hub.Drivers.Envi module. It will connect to the display and
 poll power readings in Watts from the sensor. The readings are displayed 
 on the console (logger), and any modules subscribed to the driver's port 
 ("envi") will be notified.
+
+Trouble-shooting. 
+On some Windows 8 machines we have seen problems with the driver install. In the device manager 
+the driver has a yellow mark and says something like: This device cannot start.  (Code 10){Not Enough Quota}.
+We found this help on the prolific site: http://www.vexforum.com/showthread.php?p=338559.  The fix is  
+use an older driver. This file in this directory decribes how to get the older driver: 276-2186-603-WIN8-Driver-Install.pdf

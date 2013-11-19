@@ -345,7 +345,7 @@ namespace HomeOS.Hub.Platform.Authentication
 
                 // do something with response.Headers to find out information about the request
             }
-            catch (Exception wex)
+            catch (Exception)
             {
                 //set flag if there was a timeout or some other issues
                 return "false";

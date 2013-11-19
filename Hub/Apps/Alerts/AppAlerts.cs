@@ -29,6 +29,7 @@ namespace HomeOS.Hub.Apps.Alerts
         {
             return Mode + " " + StartHourMin + "-" + EndHourMin + " " + SuppressSeconds;
         }
+      //  public string emailAddress { get; set; }  AJB todo
     }
 
     //[DataContract]
@@ -118,6 +119,13 @@ namespace HomeOS.Hub.Apps.Alerts
                 settings.SuppressSeconds = (moduleInfo.Args().Length > 3) ? int.Parse(moduleInfo.Args()[3]) : 5;  //AJB shorten suppression
 
                 settings.UserName = (moduleInfo.Args().Length > 4) ? moduleInfo.Args()[4] : "user";
+
+              //  settings.emailAddress;
+                
+              //string confValue = config.GetConfSetting(confKey);
+
+                    
+ 
             }
             catch (Exception exception)
             {

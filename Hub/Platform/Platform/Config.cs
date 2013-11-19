@@ -1928,7 +1928,7 @@ namespace HomeOS.Hub.Platform
                 {
                     return Settings.GetParameter(paramName).ToString();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     logger.Log("Exception while getting configuration param: {0}", paramName);
                     return null;
@@ -1953,7 +1953,7 @@ namespace HomeOS.Hub.Platform
                 {
                     return Settings.GetPrivateParameter(paramName).ToString();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     logger.Log("Exception while getting private configuration param: {0}", paramName);
                     return null;

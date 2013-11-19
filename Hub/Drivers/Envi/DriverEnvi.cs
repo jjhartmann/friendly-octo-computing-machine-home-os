@@ -43,8 +43,9 @@ namespace HomeOS.Hub.Drivers.Envi
 
 
             // ..... initialize the list of roles we are going to export
-            List<VRole> listRole = new List<VRole>(){RoleSensor.Instance};
-
+            List<VRole> listRole = new List<VRole>() {RoleSensorMultiLevel.Instance };
+            //AJ add the other roles - like temperature into this list and then below do notifications on them
+            //List<VRole> listRole = new List<VRole>() { RoleSensor.Instance };
 
             //.................instantiate the port
             VPortInfo portInfo = GetPortInfoFromPlatform("envi");
@@ -85,35 +86,42 @@ namespace HomeOS.Hub.Drivers.Envi
 
         private void port_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            int value = 0;
-            Regex measurements = new Regex(@".+<watts>(\d+)</watts>.+<watts>(\d+)</watts>.+");
+            IList<VParamType> retVals = new List<VParamType>();
+            float value = 0;
+            Regex measurementsBoth = new Regex(@".+<watts>(\d+)</watts>.+<watts>(\d+)</watts>.+");
+            Regex measurementSingle = new Regex(@".+<watts>(\d+)</watts>.+");
             String str = serialport.ReadLine();
-            Match m = measurements.Match(str);
-            if (m.Success)
+            Match mBoth = measurementsBoth.Match(str);
+            if (mBoth.Success)
             {
-                int ch1 = Convert.ToInt32(m.Groups[1].Value);
-                //Console.WriteLine(ch1);
-                int ch2 = Convert.ToInt32(m.Groups[2].Value);
-                //Console.WriteLine(ch2);
-
+                int ch1 = Convert.ToInt32(mBoth.Groups[1].Value);
+                int ch2 = Convert.ToInt32(mBoth.Groups[2].Value);
+              
                 // Adding power consumptions of both channels, the result is the total power consumption
-                value = ch1 + ch2;
-
-                // Setting the return parameter
-                IList<VParamType> retVals = new List<VParamType>();
-                retVals.Add(new ParamType(value));
-
-                // Notifying modules (e.g., AppEnvi) subscribed to the enviPort
-                enviPort.Notify(RoleSensor.RoleName, RoleSensor.OpGetName, retVals);
-
-                logger.Log("{0}: issued notification on port. read value {1}", SerialPortName, value.ToString());
+                value = ch1 + ch2;            
             }
             else
             {
-                // Pattern mismatch
-                logger.Log("{0} is not a valid measurment data", str);
-                //Console.WriteLine(str + " is not a valid measurment data");
+                // If we aren't measuring anything we get a single channel with zero. 
+                Match mSingle = measurementSingle.Match(str);
+                if (mSingle.Success)
+                {
+                    value = Convert.ToInt32(mSingle.Groups[1].Value);
+                }
+                else  //something really bogus happened don't do anything.
+                {
+                    logger.Log("{0} is not a valid measurment data", str);
+                    return;
+                }
             }
+
+            // Setting the return parameter   
+            retVals.Add(new ParamType(value));
+
+            // Notifying modules (e.g., AppEnvi) subscribed to the enviPort
+            enviPort.Notify(RoleSensorMultiLevel.RoleName, RoleSensorMultiLevel.OpGetName, retVals);
+
+            logger.Log("{0}: issued notification on port. read value {1}", SerialPortName, value.ToString());
         }
 
         public override void Stop()
@@ -121,6 +129,15 @@ namespace HomeOS.Hub.Drivers.Envi
             this.serialport.Close();
             Finished();
         }
+
+        // <summary>
+        // The demultiplexing routing for incoming
+        // </summary>
+        // <param name="message"></param>
+        //private List<VParamType> OnOperationInvoke(string roleName, String opName, IList<VParamType> parameters)
+        //{
+        //    return new List<VParamType>() { new ParamType(-1 * payload) };
+        //}
 
         /// <summary>
         ///  Called when a new port is registered with the platform

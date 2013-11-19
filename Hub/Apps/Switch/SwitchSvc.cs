@@ -65,15 +65,51 @@ namespace HomeOS.Hub.Apps.Switch
         {
             try
             {
-                byte byteLevel = byte.Parse(level);
+                double dblLevel = double.Parse(level);
 
-                controller.SetLevel(switchFriendlyName, byteLevel);
+                controller.SetLevel(switchFriendlyName, dblLevel);
 
                 return new List<string>() { "" };
             }
             catch (Exception e)
             {
-                logger.Log("Got exception in GetSwitchList: " + e);
+                logger.Log("Got exception in SetLevel ({0}, {1}): {2}", switchFriendlyName, level, e.ToString());
+                return new List<string>() { e.Message };
+            }
+        }
+
+        public List<string> SetColor(string switchFriendlyName, string red, string green, string blue)
+        {
+            try
+            {
+                byte byteRed = byte.Parse(red);
+                byte byteGreen = byte.Parse(green);
+                byte byteBlue = byte.Parse(blue);
+
+                System.Drawing.Color color = System.Drawing.Color.FromArgb(byteRed, byteGreen, byteBlue);
+
+                controller.SetColor(switchFriendlyName, color);
+
+                return new List<string>() { "" };
+            }
+            catch (Exception e)
+            {
+                logger.Log("Got exception in SetColor ({0}, {1}, {2}, {3}): {4}", switchFriendlyName, red, green, blue, e.ToString());
+                return new List<string>() { e.Message };
+            }
+        }
+
+        public List<string> GetColor(string switchFriendlyName)
+        {
+            try
+            {
+                System.Drawing.Color color = controller.GetColor(switchFriendlyName);
+
+                return new List<string>() { "", color.R.ToString(), color.G.ToString(), color.B.ToString() };
+            }
+            catch (Exception e)
+            {
+                logger.Log("Got exception in GetColor ({0}): {1}", switchFriendlyName, e.ToString());
                 return new List<string>() { e.Message };
             }
         }
@@ -90,5 +126,13 @@ namespace HomeOS.Hub.Apps.Switch
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
         List<string> SetLevel(string switchFriendlyName, string level);
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        List<string> SetColor(string switchFriendlyName, string red, string green, string blue);
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        List<string> GetColor(string switchFriendlyName);
     }
 }

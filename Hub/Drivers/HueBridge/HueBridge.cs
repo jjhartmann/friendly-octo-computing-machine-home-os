@@ -105,7 +105,7 @@ namespace HomeOS.Hub.Drivers.HueBridge
                 };
 
                 //..... bind the port to roles and delegates
-                List<VRole> listRole = new List<VRole>() { RoleSwitchMultiLevel.Instance };
+                List<VRole> listRole = new List<VRole>() { RoleSwitchMultiLevel.Instance, RoleLightColor.Instance };
                 BindRoles(port, listRole, handler);
                 
                 RegisterPortWithPlatform(port);
@@ -409,18 +409,22 @@ namespace HomeOS.Hub.Drivers.HueBridge
             {
                 case RoleSwitchMultiLevel.OpSetName:
                     {
-                        byte valToSet = (byte)(int)args[0].Value();
+                        double valToSetDbl = (double)args[0].Value();
+
+                        if (valToSetDbl > 1) valToSetDbl = 1;
+
+                        byte valToSet = (byte) (valToSetDbl * 255);
 
                         byte currVal = lstate.Brightness;
 
-                        if (currVal != valToSet)
-                        {
+                        //if (currVal != valToSet)
+                        //{
                             lightManager.SetLightBrightness(lstate, valToSet);
 
-                            Notify(targetLightPort, RoleSwitchMultiLevel.Instance, RoleSwitchMultiLevel.OpGetName, new ParamType(valToSet));
+                            Notify(targetLightPort, RoleSwitchMultiLevel.Instance, RoleSwitchMultiLevel.OpGetName, new ParamType(valToSetDbl));
 
-                            logger.Log("{0}: issued notification for light {1}, value {2}", ToString(), targetLightPort.ToString(), valToSet.ToString());
-                        }
+                            logger.Log("{0}: issued notification for light {1}, value {2}", ToString(), targetLightPort.ToString(), valToSetDbl.ToString());
+                        //}
 
                         return new List<VParamType>();
 
@@ -429,7 +433,44 @@ namespace HomeOS.Hub.Drivers.HueBridge
                     {
                         byte value = lstate.Brightness;
 
-                        IList<VParamType> retVals = new List<VParamType>() { new ParamType(value) };
+                        IList<VParamType> retVals = new List<VParamType>() { new ParamType( (double) value / 255.0) };
+
+                        return retVals;
+                    }
+                case RoleLightColor.OpSetName:
+                    {
+                        byte red, green, blue;
+                        Color color;
+
+                        try
+                        {
+                            red = (byte)(int)args[0].Value();
+                            green = (byte)(int)args[1].Value();
+                            blue = (byte)(int)args[2].Value();
+
+                            color = Color.FromArgb(red, green, blue);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.Log("Bad parameters for {0}", opName, ex.ToString());
+                            return new List<VParamType>() { new ParamType(ParamType.SimpleType.error, "bad parameters for " + opName) };
+                        }
+
+                        if (!color.Equals(lstate.Color))
+                        {
+                            lightManager.SetLightColor(lstate, color);
+
+                            Notify(targetLightPort, RoleLightColor.Instance, RoleLightColor.OpGetName,
+                                new ParamType(red), new ParamType(green), new ParamType(blue));
+
+                            logger.Log("{0}: issued color notification for light {1}, value {2}", ToString(), targetLightPort.ToString(), color.ToString());
+                        }
+
+                        return new List<VParamType>();
+                    }
+                case RoleLightColor.OpGetName:
+                    {
+                        IList<VParamType> retVals = new List<VParamType>() { new ParamType(lstate.Color.R), new ParamType(lstate.Color.G), new ParamType(lstate.Color.B) };
 
                         return retVals;
                     }

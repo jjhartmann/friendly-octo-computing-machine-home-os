@@ -228,9 +228,6 @@ namespace HomeOS.Hub.Common
                 message.Properties["AuthParameter"] = schemaParamPair[1];
                 return authPolicy;
             }
-
-            
-            
             
             return authPolicy;
         }
@@ -239,9 +236,7 @@ namespace HomeOS.Hub.Common
 
     public class SafeServiceAuthorizationManager : ServiceAuthorizationManager
     {
-        private static WindowsLiveLogin wll;
         private SafeServicePolicyDecider consumer;
-
 
         private SafeServiceHost safeServiceHost; 
       

@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigExplorer", "ConfigExplorer\ConfigExplorer.csproj", "{DED3B5C8-01B5-4E83-96C2-CA454FC3417C}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Gatekeeper", "Gatekeeper", "{401F6FA1-F38C-4D73-8C25-36A8A4FA7BF3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HDS", "HDS", "{DA44A4CE-222D-4BB2-901E-558E0665995C}"
@@ -44,12 +42,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Styles", "Styles", "{2C4107
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo", "Webcam\Demo\Demo.csproj", "{C86E37D6-BE07-4B1C-B89A-8FC1A9A6CBB8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigPackager", "ConfigPackager\ConfigPackager.csproj", "{0AF7597F-40BD-42F9-9A0A-46BDB69E4873}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModulePackager", "ModulePackager\ModulePackager.csproj", "{C3100F36-D8C4-41D1-A3E4-4EFA87E7D10D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatformPackager", "PlatformPackager\PlatformPackager.csproj", "{D1D4554C-303E-457B-84BB-92ED803E1076}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{C49914B2-31DE-4CF3-B1C7-0084587B8653}"
 	ProjectSection(SolutionItems) = preProject
 		config-v1.2.0.zip = config-v1.2.0.zip
@@ -70,71 +62,103 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HDS_lsof", "HDS\HDS_lsof\HD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HDS_chmod", "HDS\HDS_chmod\HDS_chmod.csproj", "{10B55334-CC93-46F4-9B2E-0D75E49F3BC3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update", "Update", "{B9B50489-BFB4-4397-B5F4-B02465F7BEE5}"
+	ProjectSection(SolutionItems) = preProject
+		Update\config-v1.2.0.zip = Update\config-v1.2.0.zip
+		Update\config-v2.0.zip = Update\config-v2.0.zip
+		Update\config.xml = Update\config.xml
+		Update\Sample Repository.zip = Update\Sample Repository.zip
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigPackager", "Update\ConfigPackager\ConfigPackager.csproj", "{0AF7597F-40BD-42F9-9A0A-46BDB69E4873}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModulePackager", "Update\ModulePackager\ModulePackager.csproj", "{C3100F36-D8C4-41D1-A3E4-4EFA87E7D10D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PackagerHelper", "Update\PackagerHelper\PackagerHelper.csproj", "{52643663-BC85-4BAF-9B5B-3E6EDED87B8D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlatformPackager", "Update\PlatformPackager\PlatformPackager.csproj", "{D1D4554C-303E-457B-84BB-92ED803E1076}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScoutPackager", "Update\ScoutPackager\ScoutPackager.csproj", "{29E935CE-8221-49B3-AAB2-A8755D75562C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UpdateManager", "Update\UpdateManager\UpdateManager.csproj", "{DED3B5C8-01B5-4E83-96C2-CA454FC3417C}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 9
+		SccNumberOfProjects = 11
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
-		SccProjectUniqueName0 = ConfigExplorer\\ConfigExplorer.csproj
-		SccProjectName0 = ConfigExplorer
+		SccProjectUniqueName0 = Gatekeeper\\HomeService.csproj
+		SccProjectTopLevelParentUniqueName0 = Tools.sln
+		SccProjectName0 = Gatekeeper
 		SccAuxPath0 = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
-		SccLocalPath0 = ConfigExplorer
+		SccLocalPath0 = Gatekeeper
 		SccProvider0 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName1 = Gatekeeper\\HomeService.csproj
+		SccProjectUniqueName1 = Webcam\\Demo\\Demo.csproj
 		SccProjectTopLevelParentUniqueName1 = Tools.sln
-		SccProjectName1 = Gatekeeper
+		SccProjectName1 = Webcam/Demo
 		SccAuxPath1 = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
-		SccLocalPath1 = Gatekeeper
+		SccLocalPath1 = Webcam\\Demo
 		SccProvider1 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName2 = Webcam\\Demo\\Demo.csproj
+		SccProjectUniqueName2 = HDS\\HDS_Sync\\HDS_Sync.csproj
 		SccProjectTopLevelParentUniqueName2 = Tools.sln
-		SccProjectName2 = Webcam/Demo
+		SccProjectName2 = HDS/HDS_Sync
 		SccAuxPath2 = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
-		SccLocalPath2 = Webcam\\Demo
+		SccLocalPath2 = HDS\\HDS_Sync
 		SccProvider2 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName3 = ConfigPackager\\ConfigPackager.csproj
-		SccProjectName3 = ConfigPackager
+		SccProjectUniqueName3 = HDS\\HDS_lsof\\HDS_lsof.csproj
+		SccProjectTopLevelParentUniqueName3 = Tools.sln
+		SccProjectName3 = HDS/HDS_lsof
 		SccAuxPath3 = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
-		SccLocalPath3 = ConfigPackager
+		SccLocalPath3 = HDS\\HDS_lsof
 		SccProvider3 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName4 = ModulePackager\\ModulePackager.csproj
-		SccProjectName4 = ModulePackager
+		SccProjectUniqueName4 = HDS\\HDS_chmod\\HDS_chmod.csproj
+		SccProjectTopLevelParentUniqueName4 = Tools.sln
+		SccProjectName4 = HDS/HDS_chmod
 		SccAuxPath4 = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
-		SccLocalPath4 = ModulePackager
+		SccLocalPath4 = HDS\\HDS_chmod
 		SccProvider4 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName5 = PlatformPackager\\PlatformPackager.csproj
-		SccProjectName5 = PlatformPackager
+		SccProjectUniqueName5 = Update\\ConfigPackager\\ConfigPackager.csproj
+		SccProjectTopLevelParentUniqueName5 = Tools.sln
+		SccProjectName5 = Update/ConfigPackager
 		SccAuxPath5 = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
-		SccLocalPath5 = PlatformPackager
+		SccLocalPath5 = Update\\ConfigPackager
 		SccProvider5 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName6 = HDS\\HDS_Sync\\HDS_Sync.csproj
+		SccProjectUniqueName6 = Update\\ModulePackager\\ModulePackager.csproj
 		SccProjectTopLevelParentUniqueName6 = Tools.sln
-		SccProjectName6 = HDS/HDS_Sync
+		SccProjectName6 = Update/ModulePackager
 		SccAuxPath6 = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
-		SccLocalPath6 = HDS\\HDS_Sync
+		SccLocalPath6 = Update\\ModulePackager
 		SccProvider6 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName7 = HDS\\HDS_lsof\\HDS_lsof.csproj
+		SccProjectUniqueName7 = Update\\PackagerHelper\\PackagerHelper.csproj
 		SccProjectTopLevelParentUniqueName7 = Tools.sln
-		SccProjectName7 = HDS/HDS_lsof
+		SccProjectName7 = Update/PackagerHelper
 		SccAuxPath7 = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
-		SccLocalPath7 = HDS\\HDS_lsof
+		SccLocalPath7 = Update\\PackagerHelper
 		SccProvider7 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName8 = HDS\\HDS_chmod\\HDS_chmod.csproj
+		SccProjectUniqueName8 = Update\\PlatformPackager\\PlatformPackager.csproj
 		SccProjectTopLevelParentUniqueName8 = Tools.sln
-		SccProjectName8 = HDS/HDS_chmod
+		SccProjectName8 = Update/PlatformPackager
 		SccAuxPath8 = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
-		SccLocalPath8 = HDS\\HDS_chmod
+		SccLocalPath8 = Update\\PlatformPackager
 		SccProvider8 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccProjectUniqueName9 = Update\\ScoutPackager\\ScoutPackager.csproj
+		SccProjectTopLevelParentUniqueName9 = Tools.sln
+		SccProjectName9 = Update/ScoutPackager
+		SccAuxPath9 = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
+		SccLocalPath9 = Update\\ScoutPackager
+		SccProvider9 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccProjectUniqueName10 = Update\\UpdateManager\\UpdateManager.csproj
+		SccProjectTopLevelParentUniqueName10 = Tools.sln
+		SccProjectName10 = Update/UpdateManager
+		SccAuxPath10 = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
+		SccLocalPath10 = Update\\UpdateManager
+		SccProvider10 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{DED3B5C8-01B5-4E83-96C2-CA454FC3417C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DED3B5C8-01B5-4E83-96C2-CA454FC3417C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DED3B5C8-01B5-4E83-96C2-CA454FC3417C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DED3B5C8-01B5-4E83-96C2-CA454FC3417C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EE0B8570-7E26-4F8E-B9E8-F57796D5ABD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EE0B8570-7E26-4F8E-B9E8-F57796D5ABD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE0B8570-7E26-4F8E-B9E8-F57796D5ABD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -143,18 +167,6 @@ Global
 		{C86E37D6-BE07-4B1C-B89A-8FC1A9A6CBB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C86E37D6-BE07-4B1C-B89A-8FC1A9A6CBB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C86E37D6-BE07-4B1C-B89A-8FC1A9A6CBB8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0AF7597F-40BD-42F9-9A0A-46BDB69E4873}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0AF7597F-40BD-42F9-9A0A-46BDB69E4873}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0AF7597F-40BD-42F9-9A0A-46BDB69E4873}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0AF7597F-40BD-42F9-9A0A-46BDB69E4873}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C3100F36-D8C4-41D1-A3E4-4EFA87E7D10D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C3100F36-D8C4-41D1-A3E4-4EFA87E7D10D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C3100F36-D8C4-41D1-A3E4-4EFA87E7D10D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C3100F36-D8C4-41D1-A3E4-4EFA87E7D10D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D1D4554C-303E-457B-84BB-92ED803E1076}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D1D4554C-303E-457B-84BB-92ED803E1076}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D1D4554C-303E-457B-84BB-92ED803E1076}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D1D4554C-303E-457B-84BB-92ED803E1076}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4AB9BBEE-9EF4-4253-8163-8751041642E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4AB9BBEE-9EF4-4253-8163-8751041642E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4AB9BBEE-9EF4-4253-8163-8751041642E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -167,6 +179,30 @@ Global
 		{10B55334-CC93-46F4-9B2E-0D75E49F3BC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10B55334-CC93-46F4-9B2E-0D75E49F3BC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{10B55334-CC93-46F4-9B2E-0D75E49F3BC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AF7597F-40BD-42F9-9A0A-46BDB69E4873}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AF7597F-40BD-42F9-9A0A-46BDB69E4873}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AF7597F-40BD-42F9-9A0A-46BDB69E4873}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AF7597F-40BD-42F9-9A0A-46BDB69E4873}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3100F36-D8C4-41D1-A3E4-4EFA87E7D10D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3100F36-D8C4-41D1-A3E4-4EFA87E7D10D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3100F36-D8C4-41D1-A3E4-4EFA87E7D10D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3100F36-D8C4-41D1-A3E4-4EFA87E7D10D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52643663-BC85-4BAF-9B5B-3E6EDED87B8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52643663-BC85-4BAF-9B5B-3E6EDED87B8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52643663-BC85-4BAF-9B5B-3E6EDED87B8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52643663-BC85-4BAF-9B5B-3E6EDED87B8D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1D4554C-303E-457B-84BB-92ED803E1076}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1D4554C-303E-457B-84BB-92ED803E1076}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1D4554C-303E-457B-84BB-92ED803E1076}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1D4554C-303E-457B-84BB-92ED803E1076}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29E935CE-8221-49B3-AAB2-A8755D75562C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29E935CE-8221-49B3-AAB2-A8755D75562C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29E935CE-8221-49B3-AAB2-A8755D75562C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29E935CE-8221-49B3-AAB2-A8755D75562C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DED3B5C8-01B5-4E83-96C2-CA454FC3417C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DED3B5C8-01B5-4E83-96C2-CA454FC3417C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DED3B5C8-01B5-4E83-96C2-CA454FC3417C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DED3B5C8-01B5-4E83-96C2-CA454FC3417C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -182,5 +218,11 @@ Global
 		{10B55334-CC93-46F4-9B2E-0D75E49F3BC3} = {707A8DFD-5770-465B-A5C9-9482C1ADE10A}
 		{F57B1128-1DC6-44ED-96FA-F0FC45168AAD} = {BF360A28-5071-445B-9B55-6D24D474B42F}
 		{4AB9BBEE-9EF4-4253-8163-8751041642E7} = {BE056001-881A-43AE-84A0-98428221F09C}
+		{0AF7597F-40BD-42F9-9A0A-46BDB69E4873} = {B9B50489-BFB4-4397-B5F4-B02465F7BEE5}
+		{C3100F36-D8C4-41D1-A3E4-4EFA87E7D10D} = {B9B50489-BFB4-4397-B5F4-B02465F7BEE5}
+		{52643663-BC85-4BAF-9B5B-3E6EDED87B8D} = {B9B50489-BFB4-4397-B5F4-B02465F7BEE5}
+		{D1D4554C-303E-457B-84BB-92ED803E1076} = {B9B50489-BFB4-4397-B5F4-B02465F7BEE5}
+		{29E935CE-8221-49B3-AAB2-A8755D75562C} = {B9B50489-BFB4-4397-B5F4-B02465F7BEE5}
+		{DED3B5C8-01B5-4E83-96C2-CA454FC3417C} = {B9B50489-BFB4-4397-B5F4-B02465F7BEE5}
 	EndGlobalSection
 EndGlobal
