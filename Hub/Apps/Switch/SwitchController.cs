@@ -152,7 +152,8 @@ namespace HomeOS.Hub.Apps.Switch
                     Role.ContainsRole(port, RoleSwitchBinary.RoleName) || 
                     Role.ContainsRole(port, RoleLightColor.RoleName))
                 {
-                    if (!registeredSwitches.ContainsKey(port))
+                    if (!registeredSwitches.ContainsKey(port) && 
+                        GetCapabilityFromPlatform(port) != null)
                     {
                         var switchType = (Role.ContainsRole(port, RoleSwitchMultiLevel.RoleName))? SwitchType.Multi : SwitchType.Binary;
 
@@ -160,27 +161,27 @@ namespace HomeOS.Hub.Apps.Switch
 
                         InitSwitch(port, switchType, colored);
                     }
-                    else
-                    {
-                        //the friendly name of the port might have changed. update that.
-                        string oldFriendlyName = null;
+                    //else
+                    //{
+                    //    //the friendly name of the port might have changed. update that.
+                    //    string oldFriendlyName = null;
 
-                        foreach (var pair in switchFriendlyNames)
-                        {
-                            if (pair.Value.Equals(port) &&
-                                !pair.Key.Equals(port.GetInfo().GetFriendlyName()))
-                            {
-                                oldFriendlyName = pair.Key;
-                                break;
-                            }
-                        }
+                    //    foreach (var pair in switchFriendlyNames)
+                    //    {
+                    //        if (pair.Value.Equals(port) &&
+                    //            !pair.Key.Equals(port.GetInfo().GetFriendlyName()))
+                    //        {
+                    //            oldFriendlyName = pair.Key;
+                    //            break;
+                    //        }
+                    //    }
 
-                        if (oldFriendlyName != null)
-                        {
-                            switchFriendlyNames.Remove(oldFriendlyName);
-                            switchFriendlyNames.Add(port.GetInfo().GetFriendlyName(), port);
-                        }
-                    }
+                    //    if (oldFriendlyName != null)
+                    //    {
+                    //        switchFriendlyNames.Remove(oldFriendlyName);
+                    //        switchFriendlyNames.Add(port.GetInfo().GetFriendlyName(), port);
+                    //    }
+                    //}
 
                 }
             }

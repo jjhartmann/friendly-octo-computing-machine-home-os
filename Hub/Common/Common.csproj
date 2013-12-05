@@ -38,6 +38,9 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HomeOS.Hub.Common.Bolt.DataStore">
+      <HintPath>..\output\binaries\Platform\HomeOS.Hub.Common.Bolt.DataStore.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.WindowsAzure.StorageClient, Version=1.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\Program Files\Microsoft SDKs\Windows Azure\.NET SDK\v2.1\ref\Microsoft.WindowsAzure.StorageClient.dll</HintPath>
@@ -101,11 +104,6 @@
       <Project>{71272f38-fc7d-4170-8411-51e27200c791}</Project>
       <Name>Views</Name>
       <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="DataStore\DataStore.csproj">
-      <Project>{b7def861-d0e5-47ce-aeb7-2e9b6091b52f}</Project>
-      <Name>DataStore</Name>
-      <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

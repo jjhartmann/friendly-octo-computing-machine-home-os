@@ -5,7 +5,7 @@ using System.Text;
 using System.Net.Mail;
 using HomeOS.Hub.Common;
 using HomeOS.Hub.Platform.Views;
-using HomeOS.Hub.Common.DataStore;
+using HomeOS.Hub.Common.Bolt.DataStore;
 using HomeOS.Shared;
 
 namespace HomeOS.Hub.Common
@@ -120,7 +120,11 @@ namespace HomeOS.Hub.Common
             Port port = new Port(portInfo, this, PortStatus.Available, logger, OnNotification);
             Capability capability = new Capability(moduleInfo.FriendlyName(), DateTime.MaxValue);
 
-            myPorts.Add(port);
+            lock (myPorts)
+            {
+                myPorts.Add(port);
+            }
+
             defaultPortCapabilities[port] = capability;
 
             port.AddCapability(capability);
@@ -391,6 +395,11 @@ namespace HomeOS.Hub.Common
             return platform.GetConfSetting(paramName);
         }
 
+        public string GetPrivateConfSetting(string paramName)
+        {
+            return platform.GetPrivateConfSetting(paramName);
+        }
+
         public string GetDeviceIpAddress(string deviceId)
         {
             return platform.GetDeviceIpAddress(deviceId);
@@ -437,10 +446,13 @@ namespace HomeOS.Hub.Common
         /// </summary>
         protected void Finished()
         {
-            foreach (Port port in myPorts)
+            lock (myPorts)
             {
-                if (!port.Equals(ControlPort)) //since we do not register controlports
-                    DeregisterPortWithPlatform(port);
+                foreach (Port port in myPorts)
+                {
+                    if (!port.Equals(ControlPort)) //since we do not register controlports
+                        DeregisterPortWithPlatform(port);
+                }
             }
 
             ResultCode finishResult = (ResultCode) platform.ModuleFinished(this);
@@ -483,9 +495,12 @@ namespace HomeOS.Hub.Common
         /// <returns></returns>
         protected bool IsMyPort(VPort port)
         {
-            foreach (VPort myport in myPorts)
-                if (port.Equals(myport))
-                    return true;
+            lock (myPorts)
+            {
+                foreach (VPort myport in myPorts)
+                    if (port.Equals(myport))
+                        return true;
+            }
 
             return false;
         }
@@ -506,35 +521,41 @@ namespace HomeOS.Hub.Common
         {
             get { return defaultPortCapabilities[ControlPort]; }
         }
+
         protected IStream CreateFileStream<KeyType, ValType>(string streamId, bool remoteSync)
+            where KeyType : IKey, new()
+            where ValType : IValue, new()
         {
             CallerInfo ci = new CallerInfo(this.moduleInfo.WorkingDir(), this.moduleInfo.FriendlyName(), this.moduleInfo.AppName(), this.Secret());
             FqStreamID fq_sid = new FqStreamID(GetConfSetting("HomeId"), this.moduleInfo.FriendlyName(), streamId);
             if (remoteSync)
             {
-                RemoteInfo ri = new RemoteInfo(GetConfSetting("DataStoreAccountName"), GetConfSetting("DataStoreAccountKey"));
-                return this.streamFactory.createFileStream<KeyType, ValType>(fq_sid, StreamFactory.StreamOp.Write, ci, ri, SynchronizerType.Azure);
-
+                LocationInfo li = new LocationInfo(GetConfSetting("DataStoreAccountName"), GetConfSetting("DataStoreAccountKey"), SynchronizerType.Azure);
+                return this.streamFactory.openFileStream<KeyType, ValType>
+                    (fq_sid, ci, li, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write);
             }
             else
             {
-                return this.streamFactory.createFileStream<KeyType, ValType>(fq_sid, StreamFactory.StreamOp.Write, ci, null,
-                    SynchronizerType.None);
+                return this.streamFactory.openFileStream<KeyType, ValType>
+                    (fq_sid, ci, null, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write);
             }
         }
 
         protected IStream CreateDirStream<KeyType, ValType>(string streamId, bool remoteSync)
+            where KeyType : IKey, new()
         {
             CallerInfo ci = new CallerInfo(this.moduleInfo.WorkingDir(), this.moduleInfo.FriendlyName(), this.moduleInfo.AppName(), this.Secret());
             FqStreamID fq_sid = new FqStreamID(GetConfSetting("HomeId"), this.moduleInfo.FriendlyName(), streamId);
             if (remoteSync)
             {
-                RemoteInfo ri = new RemoteInfo(GetConfSetting("DataStoreAccountName"), GetConfSetting("DataStoreAccountKey"));
-                return this.streamFactory.createDirStream<KeyType, ValType>(fq_sid, StreamFactory.StreamOp.Write, ci, ri, SynchronizerType.Azure);
+                LocationInfo Li = new LocationInfo(GetConfSetting("DataStoreAccountName"), GetConfSetting("DataStoreAccountKey"), SynchronizerType.Azure);
+                return this.streamFactory.openDirStream<KeyType>(
+                    fq_sid, ci, Li, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write);
             }
             else
             {
-                return this.streamFactory.createDirStream<KeyType, ValType>(fq_sid, StreamFactory.StreamOp.Write, ci, null, SynchronizerType.None);
+                return this.streamFactory.openDirStream<KeyType>(
+                    fq_sid, ci, null, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write);
             }
         }
 

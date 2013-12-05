@@ -46,11 +46,14 @@
     <OutputPath>$(TeamBuildOutDir)\$(SolutionName)\output\binaries\Pipeline\AddIns\HomeOS.Hub.Drivers.VideoLoading\</OutputPath>
     <CustomPath>$(TeamBuildOutDir)\$(SolutionName)</CustomPath>
   </PropertyGroup>
-<ItemGroup>
+  <ItemGroup>
     <Reference Include="HomeOS.Hub.Common, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Common.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="HomeOS.Hub.Common.Bolt.DataStore">
+      <HintPath>..\..\output\binaries\Platform\HomeOS.Hub.Common.Bolt.DataStore.dll</HintPath>
     </Reference>
     <Reference Include="HomeOS.Hub.Platform.Views">
       <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Platform.Views.dll</HintPath>

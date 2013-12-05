@@ -216,6 +216,25 @@ namespace HomeOS.Hub.Apps.Alerts
                 logger.Log("Got exception in UpdateEmail: " + e);
             }
         }
+
+        public List<string> GetEmail()
+        {
+            try
+            {
+                string email = doorNotifier.GetEmail();
+
+                if (string.IsNullOrWhiteSpace(email))
+                    return new List<string>() { "email not set" };
+                else
+                    return new List<string>() { "", email };
+            }
+            catch (Exception e)
+            {
+                logger.Log("Got exception in GetEmail: " + e);
+                return new List<string>() { e.Message };
+            }
+        }
+
     }
 
 
@@ -247,6 +266,10 @@ namespace HomeOS.Hub.Apps.Alerts
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json)]
         void UpdateEmail(string email);
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json)]
+        List<string> GetEmail();
 
         //old signatures
         //[OperationContract]

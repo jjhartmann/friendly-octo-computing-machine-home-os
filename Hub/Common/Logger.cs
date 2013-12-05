@@ -69,7 +69,7 @@ namespace HomeOS.Hub.Common
         /// <summary>
         /// The synchronizer object
         /// </summary>
-        DataStore.ISync synchronizer = null;
+        Bolt.DataStore.ISync synchronizer = null;
 
         public Logger() : this(":stdout")
         {
@@ -127,11 +127,11 @@ namespace HomeOS.Hub.Common
                 throw new Exception("Cannot sync a non-rotating log");
 
             //the code below could throw an exception if containerName does not meet the restrictions
-            var remoteInfo = new DataStore.RemoteInfo(accountName, accountKey);
+            var locationInfo = new Bolt.DataStore.LocationInfo(accountName, accountKey, Bolt.DataStore.SynchronizerType.Azure);
 
             try
             {
-                synchronizer = Common.DataStore.SyncFactory.Instance.CreateSynchronizer(Common.DataStore.SynchronizerType.Azure, remoteInfo, containerName);
+                synchronizer = Bolt.DataStore.SyncFactory.Instance.CreateSynchronizer(locationInfo, containerName, null);
                 synchronizer.SetLocalSource(archivingDirectory);
             }
             catch (System.FormatException ex1)

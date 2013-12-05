@@ -22,18 +22,20 @@
                 alertCheck = setInterval(function () { RefreshAlerts() }, 2000);
                 //To stop do this: clearInterval(alertCheck);
                 //new PlatformServiceHelper().MakeServiceCall("../GuiWeb/webapp/GetConfSettingWeb", '{"confKey":"NotificationEmail"}', GetSettingsEmailCallback);
+                //new PlatformServiceHelper().MakeServiceCall("../GuiWeb/webapp/GetPrivateConfSettingWeb", '{"confKey":"NotificationEmail"}', GetSettingsEmailCallback);
 
-                new PlatformServiceHelper().MakeServiceCall("../GuiWeb/webapp/GetPrivateConfSettingWeb", '{"confKey":"NotificationEmail"}', GetSettingsEmailCallback);
+                new PlatformServiceHelper().MakeServiceCall("webapp/GetEmail", "", GetSettingsEmailCallback);
             }
         );
     
 
         function GetSettingsEmailCallback(context, result) {
-            if (result[0] == "") {
-                $('#emailAddr').val(result[1]);
+            var realResult = result.GetEmailResult;
+            if (realResult[0] == "") {
+                $('#emailAddr').val(realResult[1]);
              }
             else {
-                DisplayDebugging("GetDefaultEmailCallback:" + result[0]);
+                DisplayDebugging("GetDefaultEmailCallback:" + realResult[0]);
             }
         }
 

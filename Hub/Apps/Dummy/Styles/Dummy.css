@@ -350,10 +350,7 @@ Swap with other colors in the palette by replacing 'background: #3ECFF9' with an
             margin-top: 10px;
             font-size: 80%;
         }
-
-        textarea {
-            column-count: 60;
-        }
+              
     }
 
     /* 3. 12 Column Grid 920px - Infinity viewport, basically modern tablets, desktops
@@ -529,7 +526,5 @@ Swap with other colors in the palette by replacing 'background: #3ECFF9' with an
             font-size: 90%;
             width: 60%;
         }
-        textarea {
-            column-count: 70;
-        }
+       
     }

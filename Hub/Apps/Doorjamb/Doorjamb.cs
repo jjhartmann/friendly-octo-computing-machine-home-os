@@ -5,7 +5,7 @@ using System.Text;
 using System.ServiceModel;
 using HomeOS.Hub.Common;
 using HomeOS.Hub.Platform.Views;
-using HomeOS.Hub.Common.DataStore;
+using HomeOS.Hub.Common.Bolt.DataStore;
 
 namespace HomeOS.Hub.Apps.Doorjamb
 {

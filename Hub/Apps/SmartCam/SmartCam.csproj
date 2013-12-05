@@ -53,6 +53,9 @@
       <HintPath>$(CustomPath)\output\binaries\Platform\HomeOS.Hub.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="HomeOS.Hub.Common.Bolt.DataStore">
+      <HintPath>..\..\output\binaries\Platform\HomeOS.Hub.Common.Bolt.DataStore.dll</HintPath>
+    </Reference>
     <Reference Include="HomeOS.Hub.Platform.Views">
       <HintPath>$(CustomPath)\output\binaries\Pipeline\AddInViews\HomeOS.Hub.Platform.Views.dll</HintPath>
       <Private>False</Private>

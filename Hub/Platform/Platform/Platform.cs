@@ -449,7 +449,7 @@ namespace HomeOS.Hub.Platform
 
                     //StartModule(new ModuleInfo("alerts", "AppAlerts", "HomeOS.Hub.Apps.Alerts", null, false));
 
-                    StartModule(new ModuleInfo("foscamdriver1", "DriverFoscam", "HomeOS.Hub.Drivers.Foscam", null, false, "192.168.1.125", "admin", ""));
+                    //StartModule(new ModuleInfo("foscamdriver1", "DriverFoscam", "HomeOS.Hub.Drivers.Foscam", null, false, "192.168.1.125", "admin", ""));
 
                     //StartModule(new ModuleInfo("AppDummy1", "AppDummy1", "HomeOS.Hub.Apps.Dummy", null, false, null));
                     //StartModule(new ModuleInfo("DriverDummy1", "DriverDummy1", "HomeOS.Hub.Drivers.Dummy", null, false, null));

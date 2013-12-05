@@ -16,12 +16,12 @@ namespace HomeOS.Hub.Apps.Sensor
     public class SensorService : ISensorContract
     {
         protected VLogger logger;
-        Sensor Dummy;
+        Sensor SensorInfo;
 
-        public SensorService(VLogger logger, Sensor Dummy)
+        public SensorService(VLogger logger, Sensor SensorStuff)
         {
             this.logger = logger;
-            this.Dummy = Dummy;
+            this.SensorInfo = SensorStuff;
         }
 
         public List<string> GetReceivedMessages()
@@ -29,7 +29,7 @@ namespace HomeOS.Hub.Apps.Sensor
             List<string> retVal = new List<string>();
             try
             {
-                retVal = Dummy.GetReceivedMessages();
+                retVal = SensorInfo.GetReceivedMessages();
             }
             catch (Exception e)
             {
@@ -43,7 +43,7 @@ namespace HomeOS.Hub.Apps.Sensor
             List<string> retVal = new List<string>();
             try
             {
-                retVal = Dummy.GetReceivedMessages();
+                retVal = SensorInfo.GetReceivedMessages();
             }
             catch (Exception e)
             {
@@ -62,6 +62,7 @@ namespace HomeOS.Hub.Apps.Sensor
         [OperationContract]
         [WebInvoke(Method = "GET", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json, UriTemplate = "/get")]
         List<string> GetReceivedMessages_get();
+
 
     }
 }

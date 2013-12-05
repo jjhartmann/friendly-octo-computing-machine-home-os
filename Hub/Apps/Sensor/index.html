@@ -10,6 +10,18 @@
 
     <script>
 
+        var sensorCheck;
+
+        $(document).ready(
+            function () {
+
+                ShowSensorPortsInfo();
+                //Set up to refresh alerts every 2 seconds
+                sensorCheck = setInterval(function () { ShowSensorPortsInfo() }, 2000);
+                //To stop do this: clearInterval(sensorCheck);           
+            }
+        );
+
         function ShowSensorPortsInfo() {
             new PlatformServiceHelper().MakeServiceCall("webapp/GetReceivedMessages", "", GetReceivedMessagesCallback);
         }
@@ -17,9 +29,9 @@
 
         function GetReceivedMessagesCallback(context, result) {
             var portsInfo = result.GetReceivedMessagesResult;
-            $("#DummyList").html('');
+            $("#SensorList").html('');
             for (i = 0; i < result.GetReceivedMessagesResult.length; i++) {
-                $("#DummyList").append(portsInfo[i] + "<br />");
+                $("#SensorList").append(portsInfo[i] + "<br />");
             }
         }
 
@@ -36,16 +48,17 @@
                 <div class="page_title col">Sensor Logger Application</div>
             </div>
 
-         <div><button class="app_button" id="Button1" onclick="ShowSensorPortsInfo()">Update</button></div> 
+<!-- Updates now happen automatically         <div><button class="app_button" id="Button1" onclick="ShowSensorPortsInfo()">Update</button></div> -->
      
-        <textarea id="DummyList" class="app_form" rows="30" cols="50" wrap="hard"></textarea>
+       <div> Most recent sensor readings (100 max):</div>
+        <textarea id="SensorList" class="app_form" rows="30" cols="70" wrap="hard"></textarea>
 
  
     <br />
 
     <!--Used for debugging messages, set style="display:none" to turn off showing them, common.js will put text into div with id =divDebugInfo when calls are made to service -->
-    <div id="divDummyServiceDebug" style="display:block">
-    Dummy Service Status Debug Info: <p id="divDebugInfo"></p>
+    <div id="divSensorServiceDebug" style="display:none">
+    Sensor Service Status Debug Info: <p id="divDebugInfo"></p>
     </div>
 
    

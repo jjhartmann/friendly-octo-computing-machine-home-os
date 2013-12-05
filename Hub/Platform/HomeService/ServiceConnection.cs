@@ -198,14 +198,14 @@ namespace HomeOS.Hub.Platform.Gatekeeper
             this.simpleAuthentication = HomeOS.Shared.Gatekeeper.Settings.HomePassword;
 
             this.logger = logger;
-#if false
-            // -
-            // We use keep-alives on the home <-> cloud service
-            // connection in an attempt to prevent NAT/firewall
-            // state from timing out and dropping our connection.
-            // -
+//#if false
+             //-
+             //We use keep-alives on the home <-> cloud service
+             //connection in an attempt to prevent NAT/firewall
+             //state from timing out and dropping our connection.
+             //-
             StaticUtilities.SetKeepAlive(this.socket, 120000, 1000);
-#endif
+//#endif
 
             // -
             // Prepare our buffer space and asynchronous state holder.

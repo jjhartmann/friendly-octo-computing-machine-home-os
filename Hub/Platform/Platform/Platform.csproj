@@ -123,10 +123,6 @@
       <Name>Common %28Common\Common%29</Name>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\Common\DataStore\DataStore.csproj">
-      <Project>{b7def861-d0e5-47ce-aeb7-2e9b6091b52f}</Project>
-      <Name>DataStore</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Authentication\AuthenticationService.csproj">
       <Project>{db0e2f8c-2834-470b-8bc8-879a35df570b}</Project>
       <Name>AuthenticationService</Name>
@@ -156,7 +152,13 @@
     <None Include="starthostednetwork.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="startwatchdog.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="stophostednetwork.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="stopwatchdog.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -32,7 +32,24 @@
 
             else {
                 ShowDebugInfo();
-                UpdateDebugInfo(this, result[0] + ", Please try again");
+                UpdateDebugInfo(this, result[0]);
+                //if error  we offer option to try to remove the device. 
+                $("#removeInstruct").show();
+            }
+        }
+
+        function StartReset() {
+            HideDebugInfo();
+            new PlatformServiceHelper().MakeServiceCall("webapp/RemoveUnaddedZwaveWeb", "", RemoveZDeviceCallback);
+        }
+
+        function RemoveZDeviceCallback(context, result) {
+            if (result[0] != "") {
+                ShowDebugInfo();
+                UpdateDebugInfo("Problem with remove:" + result[0]);
+            }
+            else {
+                $("#removeInstruct").html("Reset successful, please try pairing again");
             }
         }
 
@@ -79,6 +96,12 @@
 
    <!-- Change display style to 'normal' to show debug information and 'none' to turn it off  -->
    <div class="settings_listitem" id="divDebugInfo" style="display:none">DEBUG info</div>
+
+   <div class="settings_listitem" id="removeInstruct" style="display:none"> If you would like to try to reset the device: <br /> (1) press the reset button below, <br /> (2) press the program button on your z-wave sensor. <br /> Note, sometimes it takes two resets to work.
+       <button class="btn" type="button" onclick="StartReset()">Reset</button> <br />
+   </div>
+  
+
 
 </div>
 

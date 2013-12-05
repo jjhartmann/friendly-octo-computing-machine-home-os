@@ -5,7 +5,7 @@ using System.Text;
 using System.ServiceModel;
 using HomeOS.Hub.Common;
 using HomeOS.Hub.Platform.Views;
-using HomeOS.Hub.Common.DataStore;
+using HomeOS.Hub.Common.Bolt.DataStore;
 
 namespace HomeOS.Hub.Apps.Sensor
 {
@@ -27,7 +27,10 @@ namespace HomeOS.Hub.Apps.Sensor
 
         List<string> receivedMessageList;
 
+        List<string> tagList;
+
         IStream datastream;
+        DateTime streamClosed = DateTime.Now;
 
         public override void Start()
         {
@@ -51,9 +54,11 @@ namespace HomeOS.Hub.Apps.Sensor
 
             this.receivedMessageList = new List<string>();
 
+            this.tagList = new List<string>();
+
             // remoteSync flag can be set to true, if the Platform Settings has the Cloud storage
             // information i.e., DataStoreAccountName, DataStoreAccountKey values
-            datastream = base.CreateFileStream<StrKey, StrValue>("dumb", false /* remoteSync */);
+            datastream = base.CreateFileStream<StrKey, StrValue>("data", true /* remoteSync */);
         }
 
         public override void Stop()
@@ -63,39 +68,69 @@ namespace HomeOS.Hub.Apps.Sensor
                 datastream.Close();
         }
 
-        public void WriteToStream()
+        public void WriteToStream(string tag, string data)
         {
-            StrKey key = new StrKey("SensorKey");
-            datastream.Append(key, new StrValue("SensorVal"));
-            logger.Log("Writing {0} to stream ", datastream.Get(key).ToString());
+
+            //add the tag to a list if it's not already in there
+            if (!tagList.Contains(tag))
+            {
+                this.tagList.Add(tag);
+            }
+
+            StrKey key = new StrKey(tag);
+            if (datastream != null)
+            {
+                datastream.Append(key, new StrValue(data));
+                logger.Log("Writing tag {0},{1} to stream ", key.ToString(), datastream.Get(key).ToString());
+
+                //Check if we should close it to force data to be written to Azure (AJB - remove once there is option to open stream with sycning at least every N minutes)
+                double minutes = DateTime.Now.Subtract(streamClosed).TotalMinutes;
+                if (minutes > 60)
+                {
+                    streamClosed = DateTime.Now;
+                    datastream.Close();
+                    logger.Log("{0}: closed and reopened data stream", streamClosed.ToString());
+                    datastream = base.CreateFileStream<StrKey, StrValue>("data", true /* remoteSync */);
+
+                }
+
+            }
         }
 
         public override void OnNotification(string roleName, string opName, IList<VParamType> retVals, VPort senderPort)
         {
             string message;
+            string sensorData;
+            string sensorTag = senderPort.GetInfo().GetFriendlyName() + roleName;
+
             lock (this)
             {
-                if (roleName.Contains(":sensor:") && opName.Equals(RoleSensor.OpGetName))
+                if (roleName.Contains(RoleSensor.RoleName) && opName.Equals(RoleSensor.OpGetName))
                 {
                         byte rcvdNum = (byte) (int) retVals[0].Value();
-
-                        message = String.Format("from {0}, role = {1}, value = {2}", senderPort.ToString(), roleName, rcvdNum.ToString());
-                        this.receivedMessageList.Add(message);
+                        sensorData = rcvdNum.ToString();
+                                     
                 }
-                else if (roleName.Contains(":sensormultilevel:") && opName.Equals(RoleSensorMultiLevel.OpGetName))
+                else if (roleName.Contains(RoleSensorMultiLevel.RoleName) && opName.Equals(RoleSensorMultiLevel.OpGetName))
                 {
-                    double rcvdNum = (double) retVals[0].Value();
-
-                    message = String.Format("from {0}, role = {1}, value = {2}", senderPort.ToString(), roleName, rcvdNum.ToString());
-                    this.receivedMessageList.Add(message);
+                    double rcvdNum = (double) retVals[0].Value();           
+                    sensorData = rcvdNum.ToString();                
                 }
                 else
                 {
-                    message = String.Format("Invalid role->op {0}->{1} from {2}", roleName, opName, senderPort.ToString());
-                    this.receivedMessageList.Add(message);
+                    sensorData = String.Format("Invalid role->op {0}->{1} from {2}", roleName, opName, sensorTag);                 
                 }
             }
-            logger.Log("{0} {1}", this.ToString(), message);
+
+            //Write to the stream
+            WriteToStream(sensorTag, sensorData);
+            //Create local list of alerts for display
+            message = String.Format("{0} {1},{2}", DateTime.Now, sensorTag, sensorData);
+            this.receivedMessageList.Add(message);
+            //Log
+            logger.Log("{0},{1}", this.ToString(), message);
+        
+            
         }
 
         private void ProcessAllPortsList(IList<VPort> portList)
@@ -140,7 +175,7 @@ namespace HomeOS.Hub.Apps.Sensor
                             logger.Log("failed to subscribe to port {1}", this.ToString(), port.ToString());
                     }
 
-                }
+                   }
             }
         }
 
@@ -158,7 +193,29 @@ namespace HomeOS.Hub.Apps.Sensor
 
         public List<string> GetReceivedMessages()
         {
-            List<string> retList = new List<string>(this.receivedMessageList);
+
+            ////Ask for data from all tags
+            //tagList.ForEach(delegate(String tag)
+            //{
+            //    IEnumerable<IDataItem> data = datastream.GetAll(new StrKey(tag), 0, StreamFactory.NowUtc());
+            //    foreach (IDataItem dataItem in data)
+            //        logger.Log(tag + " ---> " + DateTime.FromFileTimeUtc(dataItem.GetTimestamp()) + ":" + dataItem.GetVal().ToString());
+
+            //});
+
+          
+
+            List<string> retList;
+            int numtoShow = 100;
+            //check how long it is and just return last numToShow elements
+            int length = this.receivedMessageList.Count();
+            if (length > numtoShow) {
+                retList = new List<string>(this.receivedMessageList.GetRange(length - numtoShow, numtoShow));
+            }
+            else 
+                retList = new List<string>(this.receivedMessageList);
+
+            //newest displayed at the top
             retList.Reverse();
             return retList;
         }

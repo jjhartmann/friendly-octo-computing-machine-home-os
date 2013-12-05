@@ -5,7 +5,7 @@ using System.Text;
 using System.ServiceModel;
 using HomeOS.Hub.Common;
 using HomeOS.Hub.Platform.Views;
-using HomeOS.Hub.Common.DataStore;
+using HomeOS.Hub.Common.Bolt.DataStore;
 
 namespace HomeOS.Hub.Apps.Dummy
 {
@@ -54,7 +54,7 @@ namespace HomeOS.Hub.Apps.Dummy
 
             // remoteSync flag can be set to true, if the Platform Settings has the Cloud storage
             // information i.e., DataStoreAccountName, DataStoreAccountKey values
-            datastream = base.CreateFileStream<StrKey, StrValue>("dumb", false /* remoteSync */);
+            datastream = base.CreateFileStream<StrKey, StrValue>("test", false /* remoteSync */);
 
             worker = new SafeThread(delegate()
             {
