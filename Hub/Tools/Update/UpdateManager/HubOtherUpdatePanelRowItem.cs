@@ -4,173 +4,237 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Controls;
+using HomeOS.Hub.Tools.PackagerHelper;
+using HomeOS.Hub.Tools.UpdateHelper;
+using System.IO;
+using System.Diagnostics;
 
 namespace HomeOS.Hub.Tools.UpdateManager
 {
     public class HubOtherUpdatePanelRowItem
     {
-        private System.Windows.Forms.CheckBox checkBoxUpdateHubsOtherHubId;
-        private System.Windows.Forms.Button buttonUpdateHubsOtherViewConfigs;
-        private System.Windows.Forms.Button buttonUpdateHubsOtherDownloadConfigs;
-        private System.Windows.Forms.LinkLabel linkLabelUpdateHubsOtherApps;
-        private System.Windows.Forms.LinkLabel linkLabelUpdateHubsOtherScouts;
-        private System.Windows.Forms.LinkLabel linkLabelUpdateHubsOtherDrivers;
+        private System.Windows.Forms.Label labelBinaryName;
+        private System.Windows.Forms.Label labelBinaryLatestVer;
+        private System.Windows.Forms.Label labelBinaryYourVer;
+        private System.Windows.Forms.Button buttonBinaryUpdate;
 
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel;
         private int rowNumber;
+        private string binaryType;
+        private string binaryRootDir;
+        private string repositoryDir;
+        private string ftpHost;
+        private string ftpPort;
+        private string ftpUser;
+        private string ftpPassword;
+        private NLog.Logger logger;
 
-        public HubOtherUpdatePanelRowItem(System.Windows.Forms.TableLayoutPanel tableLayoutPanel, int rowNumber, string hubId, bool appsDiff, bool driversDiff, bool scoutsDiff)
+        public HubOtherUpdatePanelRowItem(
+                    System.Windows.Forms.TableLayoutPanel tableLayoutPanel,
+                    int rowNumber,
+                    string binaryName,
+                    string binaryType,
+                    string latestVer,
+                    string yourVer,
+                    bool yourVerInRep,
+                    string binaryRootDir,
+                    string repositoryDir,
+                    string host,
+                    string port,
+                    string login,
+                    string password,
+                    NLog.Logger logger
+                    )
         {
             this.tableLayoutPanel = tableLayoutPanel;
             this.rowNumber = rowNumber;
+            this.binaryType = binaryType;
+            this.binaryRootDir = binaryRootDir;
+            this.repositoryDir = repositoryDir;
+            this.ftpHost = host;
+            this.ftpPort = port;
+            this.ftpUser = login;
+            this.ftpPassword = password;
+            this.logger = logger;
 
             // 
-            // checkBoxUpdateHubsOtherHubId
+            // labelBinaryName
             // 
-            this.checkBoxUpdateHubsOtherHubId = new System.Windows.Forms.CheckBox();
-            this.checkBoxUpdateHubsOtherHubId.AutoSize = true;
-            this.checkBoxUpdateHubsOtherHubId.Dock = System.Windows.Forms.DockStyle.Fill;
-            // this.checkBoxUpdateHubsOtherHubId.Location = new System.Drawing.Point(3, 170);
-            this.checkBoxUpdateHubsOtherHubId.Name = "checkBoxUpdateHubsOtherHubId" + this.rowNumber.ToString();
-            //this.checkBoxUpdateHubsOtherHubId.Size = new System.Drawing.Size(106, 23);
-            this.checkBoxUpdateHubsOtherHubId.TabIndex = 12;
-            this.checkBoxUpdateHubsOtherHubId.Text = hubId;
-            this.checkBoxUpdateHubsOtherHubId.UseVisualStyleBackColor = true;
-            this.checkBoxUpdateHubsOtherHubId.Margin = new Padding(0);
-            this.checkBoxUpdateHubsOtherHubId.CheckedChanged += new System.EventHandler(this.checkBoxUpdateHubsOtherHubId_CheckedChanged);
-            // 
-            // buttonUpdateHubsOtherViewConfigs
-            // 
-            this.buttonUpdateHubsOtherViewConfigs = new System.Windows.Forms.Button();
-            this.buttonUpdateHubsOtherViewConfigs.AutoSize = false;
-            this.buttonUpdateHubsOtherViewConfigs.Dock = System.Windows.Forms.DockStyle.Fill;
-            //this.buttonUpdateHubsOtherViewConfigs.Location = new System.Drawing.Point(115, 170);
-            this.buttonUpdateHubsOtherViewConfigs.Name = "buttonUpdateHubsOtherViewConfigs" + this.rowNumber.ToString();
-            //this.buttonUpdateHubsOtherViewConfigs.Size = new System.Drawing.Size(113, 23);
-            this.buttonUpdateHubsOtherViewConfigs.TabIndex = 13;
-            this.buttonUpdateHubsOtherViewConfigs.Text = "View Configs";
-            this.buttonUpdateHubsOtherViewConfigs.UseVisualStyleBackColor = true;
-            this.buttonUpdateHubsOtherViewConfigs.Margin = new Padding(0);
-            this.buttonUpdateHubsOtherViewConfigs.Click += new System.EventHandler(this.buttonUpdateHubsOtherViewConfigs_Click);
-            // 
-            // buttonUpdateHubsOtherDownloadConfigs
-            // 
-            this.buttonUpdateHubsOtherDownloadConfigs = new System.Windows.Forms.Button();
-            this.buttonUpdateHubsOtherDownloadConfigs.AutoSize = false;
-            this.buttonUpdateHubsOtherDownloadConfigs.Dock = System.Windows.Forms.DockStyle.Fill;
-            //this.buttonUpdateHubsOtherDownloadConfigs.Location = new System.Drawing.Point(234, 170);
-            this.buttonUpdateHubsOtherDownloadConfigs.Name = "buttonUpdateHubsOtherDownloadConfigs" + this.rowNumber.ToString();
-            //this.buttonUpdateHubsOtherDownloadConfigs.Size = new System.Drawing.Size(112, 23);
-            this.buttonUpdateHubsOtherDownloadConfigs.TabIndex = 14;
-            this.buttonUpdateHubsOtherDownloadConfigs.Text = "Download Configs";
-            this.buttonUpdateHubsOtherDownloadConfigs.UseVisualStyleBackColor = true;
-            this.buttonUpdateHubsOtherDownloadConfigs.Margin = new Padding(0);
-            this.buttonUpdateHubsOtherDownloadConfigs.Click += new System.EventHandler(this.buttonUpdateHubsOtherDownloadConfigs_Click);
-            // 
-            // linkLabelUpdateHubsOtherApps
-            // 
-
-            if (appsDiff)
-            {
-                this.linkLabelUpdateHubsOtherApps = new System.Windows.Forms.LinkLabel();
-                this.linkLabelUpdateHubsOtherApps.AutoSize = false;
-                this.linkLabelUpdateHubsOtherApps.Dock = System.Windows.Forms.DockStyle.Fill;
-                //this.linkLabelUpdateHubsOtherApps.Location = new System.Drawing.Point(352, 167);
-                this.linkLabelUpdateHubsOtherApps.Name = "linkLabelUpdateHubsOtherApps" + this.rowNumber.ToString();
-                //this.linkLabelUpdateHubsOtherApps.Size = new System.Drawing.Size(65, 29);
-                this.linkLabelUpdateHubsOtherApps.TabIndex = 16;
-                this.linkLabelUpdateHubsOtherApps.TabStop = true;
-                this.linkLabelUpdateHubsOtherApps.Text = "Apps";
-                this.linkLabelUpdateHubsOtherApps.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-                this.linkLabelUpdateHubsOtherApps.Margin = new Padding(0);
-                this.linkLabelUpdateHubsOtherApps.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabelUpdateHubsOtherApps_LinkClicked);
-            }
+            this.labelBinaryName = new System.Windows.Forms.Label();
+            this.labelBinaryName.AutoSize = true;
+            this.labelBinaryName.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.labelBinaryName.Name = "labelBinaryName" + this.rowNumber.ToString();
+            this.labelBinaryName.TabIndex = 5;
+            this.labelBinaryName.Text = binaryName;
+            this.labelBinaryName.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.labelBinaryName.Margin = new Padding(0);
 
             // 
-            // linkLabelUpdateHubsOtherScouts
+            // labelBinaryLatestVer
             // 
-            if (scoutsDiff)
-            {
-                this.linkLabelUpdateHubsOtherScouts = new System.Windows.Forms.LinkLabel();
-                this.linkLabelUpdateHubsOtherScouts.AutoSize = false;
-                this.linkLabelUpdateHubsOtherScouts.Dock = System.Windows.Forms.DockStyle.Fill;
-                //this.linkLabelUpdateHubsOtherScouts.Location = new System.Drawing.Point(510, 167);
-                this.linkLabelUpdateHubsOtherScouts.Name = "linkLabelUpdateHubsOtherScouts" + this.rowNumber.ToString();
-                //this.linkLabelUpdateHubsOtherScouts.Size = new System.Drawing.Size(88, 29);
-                this.linkLabelUpdateHubsOtherScouts.TabIndex = 15;
-                this.linkLabelUpdateHubsOtherScouts.TabStop = true;
-                this.linkLabelUpdateHubsOtherScouts.Text = "Scouts";
-                this.linkLabelUpdateHubsOtherScouts.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-                this.linkLabelUpdateHubsOtherScouts.Margin = new Padding(0);
-                this.linkLabelUpdateHubsOtherScouts.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabelUpdateHubsOtherScouts_LinkClicked);
-            }
-
+            this.labelBinaryLatestVer = new System.Windows.Forms.Label();
+            this.labelBinaryLatestVer.AutoSize = false;
+            this.labelBinaryLatestVer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.labelBinaryLatestVer.Name = "labelBinaryLatestVer" + this.rowNumber.ToString();
+            this.labelBinaryLatestVer.TabIndex = 6;
+            this.labelBinaryLatestVer.Text = latestVer;
+            this.labelBinaryLatestVer.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.labelBinaryLatestVer.Margin = new Padding(0);
             // 
-            // linkLabelUpdateHubsOtherDrivers
-            //
-            if (driversDiff)
+            // labelBinaryYourVer
+            // 
+            this.labelBinaryYourVer = new System.Windows.Forms.Label();
+            this.labelBinaryYourVer.AutoSize = false;
+            this.labelBinaryYourVer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.labelBinaryYourVer.Name = "labelBinaryYourVer" + this.rowNumber.ToString();
+            this.labelBinaryYourVer.TabIndex = 7;
+            this.labelBinaryYourVer.Text = yourVer;
+            this.labelBinaryYourVer.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.labelBinaryYourVer.Margin = new Padding(0);
+            // 
+            // buttonBinaryUpdate
+            // 
+            this.buttonBinaryUpdate = new System.Windows.Forms.Button();
+            this.tableLayoutPanel.SetColumnSpan(this.buttonBinaryUpdate, 2);
+            this.buttonBinaryUpdate.AutoSize = false;
+            this.buttonBinaryUpdate.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.buttonBinaryUpdate.Name = "buttonBinaryUpdate" + this.rowNumber.ToString();
+            this.buttonBinaryUpdate.TabIndex = 8;
+            if (yourVerInRep)
             {
-                this.linkLabelUpdateHubsOtherDrivers = new System.Windows.Forms.LinkLabel();
-                this.linkLabelUpdateHubsOtherDrivers.AutoSize = false;
-                this.linkLabelUpdateHubsOtherDrivers.Dock = System.Windows.Forms.DockStyle.Fill;
-                //this.linkLabelUpdateHubsOtherDrivers.Location = new System.Drawing.Point(423, 167);
-                this.linkLabelUpdateHubsOtherDrivers.Name = "linkLabelUpdateHubsOtherDrivers" + this.rowNumber.ToString();
-                //this.linkLabelUpdateHubsOtherDrivers.Size = new System.Drawing.Size(81, 29);
-                this.linkLabelUpdateHubsOtherDrivers.TabIndex = 17;
-                this.linkLabelUpdateHubsOtherDrivers.TabStop = true;
-                this.linkLabelUpdateHubsOtherDrivers.Text = "Drivers";
-                this.linkLabelUpdateHubsOtherDrivers.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-                this.linkLabelUpdateHubsOtherDrivers.Margin = new Padding(0);
-                this.linkLabelUpdateHubsOtherDrivers.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabelUpdateHubsOtherDrivers_LinkClicked);
+                this.buttonBinaryUpdate.Text = "Present";
+                this.buttonBinaryUpdate.Enabled = false;
             }
+            else
+            {
+                this.buttonBinaryUpdate.Text = "Add";
+                this.buttonBinaryUpdate.Enabled = true;
+            }
+            this.buttonBinaryUpdate.UseVisualStyleBackColor = true;
+            this.buttonBinaryUpdate.Margin = new Padding(0);
+            this.buttonBinaryUpdate.Click += new System.EventHandler(this.buttonBinaryUpdate_Click);
 
-            this.tableLayoutPanel.Controls.Add(this.checkBoxUpdateHubsOtherHubId, 0, rowNumber);
-            this.tableLayoutPanel.Controls.Add(this.buttonUpdateHubsOtherViewConfigs, 1, rowNumber);
-            this.tableLayoutPanel.Controls.Add(this.buttonUpdateHubsOtherDownloadConfigs, 2, rowNumber);
-
-            if (appsDiff)
-            {
-                this.tableLayoutPanel.Controls.Add(this.linkLabelUpdateHubsOtherApps, 3, rowNumber);
-            }
-            if (driversDiff)
-            {
-                this.tableLayoutPanel.Controls.Add(this.linkLabelUpdateHubsOtherDrivers, 4, rowNumber);
-            }
-            if (scoutsDiff)
-            {
-                this.tableLayoutPanel.Controls.Add(this.linkLabelUpdateHubsOtherScouts, 5, rowNumber);
-            }
+            this.tableLayoutPanel.Controls.Add(this.labelBinaryName, 0, rowNumber);
+            this.tableLayoutPanel.Controls.Add(this.labelBinaryLatestVer, 1, rowNumber);
+            this.tableLayoutPanel.Controls.Add(this.labelBinaryYourVer, 2, rowNumber);
+            this.tableLayoutPanel.Controls.Add(this.buttonBinaryUpdate, 3, rowNumber);
 
         }
 
-        private void checkBoxUpdateHubsOtherHubId_CheckedChanged(object sender, EventArgs e)
+        private void buttonBinaryUpdate_Click(object sender, EventArgs e)
         {
+            TableLayoutControlCollection tableLayoutCtrlColl = this.tableLayoutPanel.Controls;
+            System.Windows.Forms.Control labelBinaryName = tableLayoutCtrlColl[this.labelBinaryName.Name];
+            System.Windows.Forms.Control labelLatestVer = tableLayoutCtrlColl[this.labelBinaryLatestVer.Name];
+            System.Windows.Forms.Control labelCurVer = tableLayoutCtrlColl[this.labelBinaryYourVer.Name];
+            string binaryName = labelBinaryName.Text;
+            string currentVersion = labelCurVer.Text;
 
+            if (DialogResult.Yes == MessageBox.Show((IWin32Window)sender, string.Format("Are you sure you want to add {0} {1} with version {2} to the repository?",
+                                        this.binaryType, binaryName, currentVersion), "Update Repository", MessageBoxButtons.YesNo,
+                                        MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2))
+            {
+                string[] filePaths = new string[0];
+                bool success = BinaryPackagerHelper.Package(this.binaryRootDir, binaryName, false /*singleBin*/, "dll",
+                                                            this.binaryType, this.repositoryDir, ref filePaths, this.logger);
+                if (!success)
+                {
+                    logger.Error("Failed to create {0} update packages", this.binaryType);
+                }
+                List<MainForm.BinaryPackageItem> binaryPackageItemList = new List<MainForm.BinaryPackageItem>();
+                binaryPackageItemList.Add(new MainForm.BinaryPackageItem(this.binaryType, filePaths));
+                UpdateRepositoryBinaries(binaryPackageItemList);
+
+            }
         }
 
-        private void buttonUpdateHubsOtherViewConfigs_Click(object sender, EventArgs e)
+        private void UpdateRepositoryBinaries(List<MainForm.BinaryPackageItem> binaryPackageList)
         {
-
+            foreach (MainForm.BinaryPackageItem item in binaryPackageList)
+            {
+                if (!UpdateRepositoryWithFiles(item.packageFilePaths, item.binType))
+                {
+                    foreach (string packageFile in item.packageFilePaths)
+                    {
+                        logger.Error("Failed to update repository for {0} : {1}", item.binType, packageFile);
+                    }
+                }
+            }
         }
 
-        private void buttonUpdateHubsOtherDownloadConfigs_Click(object sender, EventArgs e)
+        private bool UpdateRepositoryWithFiles(string[] filePaths, string binType)
         {
+            bool success = true;
+            try
+            {
+                Version latestVersion = null;
+                string binaryDirPath = "";
+                for (int i = 0; i < filePaths.Length; ++i)
+                {
+                    string[] ftpFileLocations = filePaths[i].Split(new[] { this.repositoryDir }, StringSplitOptions.RemoveEmptyEntries);
+                    if (ftpFileLocations.Length > 0 && !string.IsNullOrWhiteSpace(ftpFileLocations[0]))
+                    {
+                        string ftpFilePath = ftpFileLocations[0].Replace("\\", "/");
+                        string ftpDirPath = ftpFilePath.Substring(0, ftpFilePath.LastIndexOf("/"));
+                        Uri uriFile = new Uri(this.ftpHost + ":" + this.ftpPort + ftpFilePath);
+                        string subDirPath = "";
+                        bool gotBinaryDirPath = false;
+                        foreach (string subdir in ftpDirPath.Split(new[] { "/" }, StringSplitOptions.RemoveEmptyEntries))
+                        {
+                            subDirPath += ("/" + subdir);
+                            if (gotBinaryDirPath)
+                            {
+                                binaryDirPath = subDirPath;
+                                gotBinaryDirPath = false;
+                            }
+                            else if (binaryDirPath.Length == 0 && subDirPath.ToLower().Contains(binType.ToLower()))
+                            {
+                                gotBinaryDirPath = true;
+                            }
+                            else if (subdir.Contains('.'))
+                            {
+                                // assume this is the version number of the type x.x.x.x
+                                latestVersion = new Version(subdir);
+                            }
+                            Uri uriDir = new Uri(this.ftpHost + ":" + this.ftpPort + subDirPath);
+                            if (!MainForm.IsFtpRemoteDirectoryPresent(uriDir, this.ftpUser, this.ftpPassword))
+                            {
+                                SecureFtpRepoUpdate.MakeDirectory(uriDir, this.ftpUser, this.ftpPassword, true);
+                            }
+                        }
 
-        }
+                        SecureFtpRepoUpdate.UploadFile(uriFile, filePaths[i], this.ftpUser, this.ftpPassword, true);
+                    }
+                }
+                // update the latest folder for the binary, if this is highest version or if there is no latest folder at all
+                Uri uriBinaryDir = new Uri(this.ftpHost + ":" + this.ftpPort + binaryDirPath);
+                string binaryLatestDir = this.ftpHost + ":" + this.ftpPort + binaryDirPath + "/Latest";
+                Uri uriBinaryLatestDir = new Uri(binaryLatestDir);
+                if (!MainForm.IsFtpRemoteDirectoryPresent(uriBinaryLatestDir, this.ftpUser, this.ftpPassword) ||
+                    MainForm.GetFtpHighestVersionFromDir(uriBinaryDir, this.ftpUser, this.ftpPassword, this.logger) == latestVersion)
+                {
+                    for (int i = 0; i < filePaths.Length; ++i)
+                    {
+                        string filename = filePaths[i].Substring(filePaths[i].LastIndexOf('\\') + 1);
+                        Uri uriFile = new Uri(binaryLatestDir + "/" + filename);
+                        if (!MainForm.IsFtpRemoteDirectoryPresent(uriBinaryLatestDir, this.ftpUser, this.ftpPassword))
+                        {
+                            SecureFtpRepoUpdate.MakeDirectory(uriBinaryLatestDir, this.ftpUser, this.ftpPassword, true);
+                        }
 
-        private void linkLabelUpdateHubsOtherApps_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
+                        SecureFtpRepoUpdate.UploadFile(uriFile, filePaths[i], this.ftpUser, this.ftpPassword, true);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                this.logger.ErrorException("Exception while trying to update binary package (plus hash file) on the ftp server", exception);
 
-        }
+                success = false;
+            }
 
-        private void linkLabelUpdateHubsOtherDrivers_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-
-        }
-
-        private void linkLabelUpdateHubsOtherScouts_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-
+            return success;
         }
 
     }

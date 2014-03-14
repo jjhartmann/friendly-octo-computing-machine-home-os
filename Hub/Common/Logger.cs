@@ -239,7 +239,7 @@ namespace HomeOS.Hub.Common
         private string GetTimeStamp()
         {
             var now = DateTime.Now;
-            return string.Format("{0}-{1}-{2}-{3}-{4}-{5}", now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second);
+            return string.Format("{0:D4}-{1:D2}-{2:D2}-{3:D2}-{4:D2}-{5:D2}", now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second);
         }
     }
 }

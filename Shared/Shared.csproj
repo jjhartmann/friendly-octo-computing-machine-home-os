@@ -55,7 +55,9 @@
   <ItemGroup>
     <Compile Include="Constants.cs" />
     <Compile Include="ClaimHomeIdInfo.cs" />
+    <Compile Include="ScoutInfo.cs" />
     <Compile Include="Email.cs" />
+    <Compile Include="IDiagnostics.cs" />
     <Compile Include="Serializer.cs" />
     <Compile Include="MonitorInfo.cs" />
     <Compile Include="Gatekeeer.Forwarder.cs" />

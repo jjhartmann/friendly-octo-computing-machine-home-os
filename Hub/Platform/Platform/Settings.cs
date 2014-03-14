@@ -212,7 +212,7 @@ namespace HomeOS.Hub.Platform
         /// </summary>
         public static Dictionary<string, SettingsRef<object>> PrivateSettingsTable = null;
 
-        public static void Initiatlize()
+        public static void Initialize()
         {
             Settings.SettingsTable = new Dictionary<string, SettingsRef<object>>();
             Settings.PrivateSettingsTable = new Dictionary<string, SettingsRef<object>>();
@@ -398,9 +398,9 @@ namespace HomeOS.Hub.Platform
             // .... the following settings are private and sit in PrivateSettings.xml
 
             NotificationEmail = String.Empty;
-            SmtpServer = "smtp.live.com";
-            SmtpUser = "your-email@live.com";
-            SmtpPassword = "your-password";
+            SmtpServer = "";
+            SmtpUser = "";
+            SmtpPassword = "";
 
             WifiSsid = String.Empty;
             WifiKey = String.Empty;

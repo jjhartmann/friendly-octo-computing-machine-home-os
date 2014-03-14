@@ -30,7 +30,7 @@ namespace HomeOS.Hub.UnitTests.Common.Bolt.DataStore
             
             sf.deleteStream(fqstreamid, ci);
             
-            vds = sf.openFileStream<StrKey, ByteValue>(fqstreamid, ci,
+            vds = sf.openValueDataStream<StrKey, ByteValue>(fqstreamid, ci,
                                                                  null,
                                                                  StreamFactory.StreamSecurityType.Plain,
                                                                  CompressionType.None,

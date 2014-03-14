@@ -11,14 +11,13 @@ namespace HomeOS.Hub.Apps.Sensor
 {
 
     /// <summary>
-    /// A dummy a module that 
-    /// 1. sends ping messages to all active dummy ports
+    /// Logging module that logs data reported by sensors to UI and to data store
     /// </summary>
 
     [System.AddIn.AddIn("HomeOS.Hub.Apps.Sensor", Version = "1.0.0.0")]
     public class Sensor : ModuleBase
     {
-        //list of accessible dummy ports in the system
+        //list of accessible sensor ports in the system
         List<VPort> accessibleSensorPorts;
 
         private SafeServiceHost serviceHost;
@@ -34,10 +33,15 @@ namespace HomeOS.Hub.Apps.Sensor
 
         public override void Start()
         {
-            logger.Log("Started: {0} ", ToString());
+            //Using "Sensor:" to indicate clearly in the log where this line came from.
+            logger.Log("Sensor:Started: {0} ", ToString());
 
-            SensorService dummyService = new SensorService(logger, this);
-            serviceHost = new SafeServiceHost(logger, typeof(ISensorContract), dummyService, this, Constants.AjaxSuffix, moduleInfo.BaseURL());
+            // remoteSync flag can be set to true, if the Platform Settings has the Cloud storage
+            // information i.e., DataStoreAccountName, DataStoreAccountKey values
+            datastream = base.CreateValueDataStream<StrKey, StrValue>("data", true /* remoteSync */);
+
+            SensorService sensorService = new SensorService(logger, this);
+            serviceHost = new SafeServiceHost(logger, typeof(ISensorContract), sensorService, this, Constants.AjaxSuffix, moduleInfo.BaseURL());
             serviceHost.Open();
 
             appServer = new WebFileServer(moduleInfo.BinaryDir(), moduleInfo.BaseURL(), logger);
@@ -55,15 +59,11 @@ namespace HomeOS.Hub.Apps.Sensor
             this.receivedMessageList = new List<string>();
 
             this.tagList = new List<string>();
-
-            // remoteSync flag can be set to true, if the Platform Settings has the Cloud storage
-            // information i.e., DataStoreAccountName, DataStoreAccountKey values
-            datastream = base.CreateFileStream<StrKey, StrValue>("data", true /* remoteSync */);
         }
 
         public override void Stop()
         {
-            logger.Log("AppSensor clean up");
+            logger.Log("Sensor:clean up");
             if (datastream != null)
                 datastream.Close();
         }
@@ -81,7 +81,7 @@ namespace HomeOS.Hub.Apps.Sensor
             if (datastream != null)
             {
                 datastream.Append(key, new StrValue(data));
-                logger.Log("Writing tag {0},{1} to stream ", key.ToString(), datastream.Get(key).ToString());
+             // Don't put in log twice   logger.Log("Sensor:Writing tag {0},{1} to stream ", key.ToString(), datastream.Get(key).ToString());
 
                 //Check if we should close it to force data to be written to Azure (AJB - remove once there is option to open stream with sycning at least every N minutes)
                 double minutes = DateTime.Now.Subtract(streamClosed).TotalMinutes;
@@ -89,8 +89,8 @@ namespace HomeOS.Hub.Apps.Sensor
                 {
                     streamClosed = DateTime.Now;
                     datastream.Close();
-                    logger.Log("{0}: closed and reopened data stream", streamClosed.ToString());
-                    datastream = base.CreateFileStream<StrKey, StrValue>("data", true /* remoteSync */);
+                    logger.Log("Sensor:{0}: closed and reopened data stream", streamClosed.ToString());
+                    datastream = base.CreateValueDataStream<StrKey, StrValue>("data", true /* remoteSync */);
 
                 }
 
@@ -125,12 +125,10 @@ namespace HomeOS.Hub.Apps.Sensor
             //Write to the stream
             WriteToStream(sensorTag, sensorData);
             //Create local list of alerts for display
-            message = String.Format("{0} {1},{2}", DateTime.Now, sensorTag, sensorData);
+            message = String.Format("{0}\t{1}\t{2}", DateTime.Now, sensorTag, sensorData);
             this.receivedMessageList.Add(message);
             //Log
-            logger.Log("{0},{1}", this.ToString(), message);
-        
-            
+            logger.Log("Sensor\t{0}", message);          
         }
 
         private void ProcessAllPortsList(IList<VPort> portList)
@@ -147,7 +145,7 @@ namespace HomeOS.Hub.Apps.Sensor
         public override void PortRegistered(VPort port)
         {
 
-            logger.Log("{0} got registeration notification for {1}", ToString(), port.ToString());
+            logger.Log("Sensor:{0} got registeration notification for {1}", ToString(), port.ToString());
 
             lock (this)
             {
@@ -157,22 +155,22 @@ namespace HomeOS.Hub.Apps.Sensor
                 {
                     accessibleSensorPorts.Add(port);
 
-                    logger.Log("{0} added port {1}", this.ToString(), port.ToString());
+                    logger.Log("Sensor:{0} added port {1}", this.ToString(), port.ToString());
 
                     if (Role.ContainsRole(port, RoleSensor.RoleName))
                     {
                         if (Subscribe(port, RoleSensor.Instance, RoleSensor.OpGetName))
-                            logger.Log("{0} subscribed to port {1}", this.ToString(), port.ToString());
+                            logger.Log("Sensor:{0} subscribed to port {1}", this.ToString(), port.ToString());
                         else
-                            logger.Log("failed to subscribe to port {1}", this.ToString(), port.ToString());
+                            logger.Log("Sensor:{0} failed to subscribe to port {1}", this.ToString(), port.ToString());
                     }
 
                     if (Role.ContainsRole(port, RoleSensorMultiLevel.RoleName))
                     {
                         if (Subscribe(port, RoleSensorMultiLevel.Instance, RoleSensorMultiLevel.OpGetName))
-                            logger.Log("{0} subscribed to port {1}", this.ToString(), port.ToString());
+                            logger.Log("Sensor:{0} subscribed to port {1}", this.ToString(), port.ToString());
                         else
-                            logger.Log("failed to subscribe to port {1}", this.ToString(), port.ToString());
+                            logger.Log("Sensor: {0} failed to subscribe to port {1}", this.ToString(), port.ToString());
                     }
 
                    }
@@ -186,7 +184,7 @@ namespace HomeOS.Hub.Apps.Sensor
                 if (accessibleSensorPorts.Contains(port))
                 {
                     accessibleSensorPorts.Remove(port);
-                    logger.Log("{0} deregistered port {1}", this.ToString(), port.GetInfo().ModuleFacingName());
+                    logger.Log("Sensor:{0} deregistered port {1}", this.ToString(), port.GetInfo().ModuleFacingName());
                 }
             }
         }

@@ -26,7 +26,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.Test
             string AzureaccountKey = ConfigurationManager.AppSettings.Get("AccountSharedKey");
             LocationInfo li = new LocationInfo(AzureaccountName, AzureaccountKey, SynchronizerType.Azure);
 
-
+            /*
             string dataFile = "D:\\b";
             int KB = 1024; 
             int[] chunk_sizes = { 4*1024*KB , 8*1024*KB };
@@ -49,6 +49,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.Test
 
                 }
             }
+            */
 
 
 
@@ -59,15 +60,14 @@ namespace HomeOS.Hub.Common.Bolt.Apps.Test
 
 
 
-
-
+            li = null;
             FqStreamID fq_sid = new FqStreamID("1299-2716", "A", "TestBS");
             CallerInfo ci = new CallerInfo(null, "A", "A", 1);
 
             StreamFactory sf = StreamFactory.Instance;
             sf.deleteStream(fq_sid, ci);
 
-            IStream dfs_byte_val = sf.openFileStream<StrKey, ByteValue>(fq_sid, ci, li,
+            IStream dfs_byte_val = sf.openValueDataStream<StrKey, ByteValue>(fq_sid, ci, li,
                                                                  StreamFactory.StreamSecurityType.Plain,
                                                                  CompressionType.None,
                                                                  StreamFactory.StreamOp.Write);
@@ -84,10 +84,10 @@ namespace HomeOS.Hub.Common.Bolt.Apps.Test
             Console.ReadKey();
 
             
-            dfs_byte_val = sf.openFileStream<StrKey, ByteValue>(fq_sid, ci, li,
+            dfs_byte_val = sf.openValueDataStream<StrKey, ByteValue>(fq_sid, ci, li,
                                                                  StreamFactory.StreamSecurityType.Plain,
                                                                  CompressionType.None,
-                                                                 StreamFactory.StreamOp.Read);
+                                                                 StreamFactory.StreamOp.Write);
 
             
             Console.WriteLine("Get in read : " + dfs_byte_val.Get(k1));

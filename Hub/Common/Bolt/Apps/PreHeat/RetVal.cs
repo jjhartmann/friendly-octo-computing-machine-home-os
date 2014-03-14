@@ -16,5 +16,9 @@ namespace HomeOS.Hub.Common.Bolt.Apps.PreHeat
             this.timeToComputeThisVal = timetoCompute;
             this.thisVal = value;
         }
+        public int getVal()
+        {
+            return this.thisVal;
+        }
     }
 }

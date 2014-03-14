@@ -103,6 +103,7 @@
     <Compile Include="Config.cs" />
     <Compile Include="ConfigUpdater.cs" />
     <Compile Include="ConfigUpdaterWebService.cs" />
+    <Compile Include="DiscoveryHelper.cs" />
     <Compile Include="GuiService.cs" />
     <Compile Include="HeartbeatService.cs" />
     <Compile Include="HomeStoreInfo.cs" />

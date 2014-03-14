@@ -11,12 +11,13 @@ namespace HomeOS.Hub.Common.Bolt.Apps.EDA
     class MainClass
     {
         public static string mdServer="http://scspc417.cs.uwaterloo.ca:23456/TrustedServer/";
-        private static void UploadDataAsStreams()
-        {
-            string directory = "D:\\data-hds\\data-hds";
-            int count = 0;
-            int UploadCount = 300;
+        public static string AzureaccountName = "testdrive";
+        public static string AzureaccountKey = "zRTT++dVryOWXJyAM7NM0TuQcu0Y23BgCQfkt7xh2f/Mm+r6c8/XtPTY0xxaF6tPSACJiuACsjotDeNIVyXM8Q==";
 
+        private static void UploadDataAsStreams(int UploadCount)
+        {
+            string directory = @"..\\..\\data\\meter-data";
+            int count = 0;
 
             Dictionary<DateTime, double> ts_temperature = new Dictionary<DateTime, double>();
             StreamReader wfile = new System.IO.StreamReader(@"..\\..\\data\\weather.txt");
@@ -38,16 +39,14 @@ namespace HomeOS.Hub.Common.Bolt.Apps.EDA
                 string line;
                 System.IO.StreamReader file =   new System.IO.StreamReader(filePath);
 
-                string AzureaccountName = "testdrive";
-                string AzureaccountKey = "zRTT++dVryOWXJyAM7NM0TuQcu0Y23BgCQfkt7xh2f/Mm+r6c8/XtPTY0xxaF6tPSACJiuACsjotDeNIVyXM8Q==";
                 LocationInfo li = new LocationInfo(AzureaccountName, AzureaccountKey, SynchronizerType.Azure);
 
-                FqStreamID fq_sid = new FqStreamID("realhome"+count, "A", "TestBS");
+                FqStreamID fq_sid = new FqStreamID("crrealhome"+count, "A", "TestBS");
                 CallerInfo ci = new CallerInfo(null, "A", "A", 1);
 
                 StreamFactory sf = StreamFactory.Instance;
                 sf.deleteStream(fq_sid, ci);
-                IStream dfs_byte_val = sf.openFileStream<DoubleKey, ByteValue>(fq_sid, ci, li,  StreamFactory.StreamSecurityType.Plain, CompressionType.None,StreamFactory.StreamOp.Write, mdServer, 4*1024*1024, 1, new Logger());
+                IStream dfs_byte_val = sf.openValueDataStream<DoubleKey, ByteValue>(fq_sid, ci, li,  StreamFactory.StreamSecurityType.Plain, CompressionType.None,StreamFactory.StreamOp.Write, mdServer, 4*1024*1024, 1, new Logger());
 
                 
                 while ((line = file.ReadLine()) != null)
@@ -83,25 +82,37 @@ namespace HomeOS.Hub.Common.Bolt.Apps.EDA
                 {
                     temp_energy_home = new Dictionary<int,List<double>>();
 
-                    long start_ticks = DateTime.Now.Ticks;
-                    for(int temp = -30 ; temp <=40 ; temp++)
-                    {
-                    string AzureaccountName = "testdrive";
-                    string AzureaccountKey = "zRTT++dVryOWXJyAM7NM0TuQcu0Y23BgCQfkt7xh2f/Mm+r6c8/XtPTY0xxaF6tPSACJiuACsjotDeNIVyXM8Q==";
+                    
+
                     LocationInfo li = new LocationInfo(AzureaccountName, AzureaccountKey, SynchronizerType.Azure);
-                    FqStreamID fq_sid = new FqStreamID("realhome"+i, "A", "TestBS");
+                    FqStreamID fq_sid = new FqStreamID("crrealhome" + i, "A", "TestBS");
                     CallerInfo ci = new CallerInfo(null, "A", "A", 1);
                     StreamFactory sf = StreamFactory.Instance;
-                    IStream dfs_byte_val = sf.openFileStream<DoubleKey, ByteValue>(fq_sid, ci, li,  StreamFactory.StreamSecurityType.Plain, CompressionType.None,StreamFactory.StreamOp.Read, mdServer, 4*1024*1024, 1, new Logger());
+                        
 
-                    IEnumerable<IDataItem> vals = dfs_byte_val.GetAll(new DoubleKey(temp),DateTimeToUnixTimestamp(start), DateTimeToUnixTimestamp(end));
+                    IStream dfs_byte_val = sf.openValueDataStream<DoubleKey, ByteValue>(fq_sid, ci, li, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Read, mdServer, 4 * 1024 * 1024, 1, new Logger());
                     
-                        foreach(IDataItem val in vals)
+                    long start_ticks = DateTime.Now.Ticks;
+                    for (int temp = -30; temp <= 40; temp++)
+                    {
+                        IEnumerable<IDataItem> vals = dfs_byte_val.GetAll(new DoubleKey(temp), DateTimeToUnixTimestamp(start), DateTimeToUnixTimestamp(end));
+                        if (vals != null)
                         {
-                            temp_energy_home[temp].Add(BitConverter.ToDouble(val.GetVal().GetBytes(), 0));
-                            temp_energy_allhomes[temp].Add(BitConverter.ToDouble(val.GetVal().GetBytes(), 0));
+                            foreach (IDataItem val in vals)
+                            {
+                                if (!temp_energy_home.ContainsKey(temp)) 
+                                    temp_energy_home[temp] = new List<double>();
+
+                                if (!temp_energy_allhomes.ContainsKey(temp))
+                                    temp_energy_allhomes[temp] = new List<double>();
+
+                                temp_energy_home[temp].Add(BitConverter.ToDouble(val.GetVal().GetBytes(), 0));
+                                temp_energy_allhomes[temp].Add(BitConverter.ToDouble(val.GetVal().GetBytes(), 0));
+                            }
                         }
+                        
                     }
+                    dfs_byte_val.Close();
                     long end_ticks = DateTime.Now.Ticks;
                     retVal+=end_ticks - start_ticks;
 
@@ -127,18 +138,30 @@ namespace HomeOS.Hub.Common.Bolt.Apps.EDA
         static void Main(string[] args)
         {
 
-          //  MainClass.UploadDataAsStreams();
-            int[] n_homes = {1,100,200,300 };
+           // MainClass.UploadDataAsStreams(100);
+            int[] n_homes = {1,10, 100};
             DateTime[] starts = { new DateTime(2011, 05, 01), new DateTime(2011,05, 01), new DateTime(2011, 05, 01) };
             DateTime[] ends = { new DateTime(2011, 05, 31), new DateTime(2011, 10, 31), new DateTime(2012, 04, 30) };
-            string[] tags={"1month", "6month", "1year" };
+            string[] tags={"1 Month", "6 Months", "1 Year" };
 
             for (int i = 0; i < n_homes.Length; i++)
             {
                 for (int j = 0; j < starts.Length; j++)
                 {
-                    long ret = RemoteRead(n_homes[i], starts[j], ends[j], tags[j]);
-                    Console.WriteLine(n_homes[i] + "," + tags[j] + "," + ret);
+                    List<double> values = new List<double>();
+                    for (int k = 1; k <= 10; k++)
+                    {
+                        long ret = RemoteRead(n_homes[i], starts[j], ends[j], tags[j]);
+                        values.Add(ret);
+                        Console.WriteLine(n_homes[i] + "," + tags[j] + "," + ret);
+                    }
+
+                    using (StreamWriter w = File.AppendText("./timing-n-"+n_homes[i]+".txt"))
+                    {
+                        w.WriteLine(tags[j]+ ","+values.Mean()+","+values.StandardDeviation());
+                    }
+                    
+
                 }
             }
 
@@ -212,7 +235,7 @@ string line;
                 if (ts_temperature.ContainsKey(ts))
                     temp = ts_temperature[ts];
                 else
-                    throw new Exception("exception");
+                    throw new Exception("wtf");
 
                 Console.WriteLine(ts + "," + energy + "," + temp);
                 w.WriteLine(ts + "," + energy + "," + temp);

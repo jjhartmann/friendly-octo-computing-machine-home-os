@@ -328,6 +328,36 @@ namespace HomeOS.Hub.Common
         }
     }
 
+    public class RoleProximitySensor : Role
+    {
+        public const string RoleName = ":proximitysensor:";
+        public const string OpGetName = RoleName + "->" + "get";
+
+        private static RoleProximitySensor _instance;
+
+        public static RoleProximitySensor Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    new RoleProximitySensor();
+                return _instance;
+            }
+        }
+
+        protected RoleProximitySensor()
+        {
+            SetName(RoleName);
+            _instance = this;
+
+            List<VParamType> args = new List<VParamType>();
+            List<VParamType> retVals = new List<VParamType>() { new ParamType(0) };
+            AddOperation(new Operation(OpGetName, args, retVals, true));
+        }
+    }
+      
+
+
     public class RolePowerSensor : RoleSensorMultiLevel
     {
         public new const string RoleName = ":sensormultilevel::powersensor:";
@@ -414,6 +444,30 @@ namespace HomeOS.Hub.Common
         }
 
         protected RoleLuminositySensor()
+        {
+            SetName(RoleName);
+            _instance = this;
+        }
+    }
+ 
+
+    public class RoleBatteryLevel : RoleSensorMultiLevel
+    {
+        public new const string RoleName = ":sensormultilevel::batterylevel:";
+
+        private static Role _instance;
+
+        public new static Role Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    new RoleBatteryLevel();
+                return _instance;
+            }
+        }
+
+        protected RoleBatteryLevel()
         {
             SetName(RoleName);
             _instance = this;
@@ -822,6 +876,46 @@ namespace HomeOS.Hub.Common
     }
 
     #endregion
+
+    public class RoleSpeechReco : Role
+    {       
+        public const string RoleName = ":speechreco:";
+        public const string OpSetSpeechPhraseName = RoleName + "->" + "speechphrase";
+        public const string OpPhraseRecognizedSubName = RoleName + "->" + "speechrecosub";
+
+        private static RoleSpeechReco _instance;
+
+        protected RoleSpeechReco()
+        {
+            SetName(RoleName);
+             _instance = this;
+
+            {   //first argument is phrase to recognize, second is the value to return, this is for specifying grammar and result  e.g. ("all off", "ALLOFF"), and ("good night", "ALLOFF")
+                List<VParamType> args = new List<VParamType>() { new ParamType(ParamType.SimpleType.text, null), new ParamType(ParamType.SimpleType.text, null)};
+                List<VParamType> retVals = new List<VParamType>() {new ParamType(0)};
+                AddOperation(new Operation(OpSetSpeechPhraseName, args, retVals));
+            }
+
+            {
+                List<VParamType> args = new List<VParamType>();
+                List<VParamType> retVals = new List<VParamType>() { new ParamType(ParamType.SimpleType.text, "phrase") };
+                AddOperation(new Operation(OpPhraseRecognizedSubName, args, retVals, true));
+            }
+
+        }
+
+        public static RoleSpeechReco Instance
+        {
+            get
+            {
+                if (_instance == null)
+                     new RoleSpeechReco();
+                return _instance;
+            }
+        }
+
+
+    }
 
     //Not sure if we want to have the couch as mulitple different roles (lights, pressure)
     public class RoleCouch: Role

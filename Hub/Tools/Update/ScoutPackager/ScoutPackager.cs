@@ -24,6 +24,12 @@ namespace HomeOS.Hub.Tools
             string scoutName = (string)argsDict["ScoutName"];
             string repoDir = (string)argsDict["RepoDir"];
 
+            // file/directory status
+            string currentDir = Directory.GetCurrentDirectory();
+            Console.WriteLine("Current Directory is {0}", currentDir);
+            Console.WriteLine("ScoutsRootDir is {0}", Path.GetFullPath(ScoutsRootDir));
+            Console.WriteLine("RepoDir is {0}", Path.GetFullPath(repoDir));
+
             if (!Directory.Exists(ScoutsRootDir))
             {
                 Console.Error.WriteLine("ScoutsRootDir directory {0} does not exist!", ScoutsRootDir);
@@ -40,7 +46,8 @@ namespace HomeOS.Hub.Tools
                 if (string.IsNullOrWhiteSpace(scoutName) ||
                     scout.Equals(scoutName))
                 {
-                    BinaryPackagerHelper.Package(ScoutsRootDir, scout, false /* singleBin */, "dll", "scout", repoDir);
+                    string[] filePaths = new string[0];
+                    BinaryPackagerHelper.Package(ScoutsRootDir, scout, false /* singleBin */, "dll", "scout", repoDir, ref filePaths);
                     packagedSomething = true;
                 }
             }   

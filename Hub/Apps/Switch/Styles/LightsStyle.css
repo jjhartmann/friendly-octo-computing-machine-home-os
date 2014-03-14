@@ -7,12 +7,18 @@ CSS reset
     border: 0;
 }
 
+/* 
+Reusable column setup.  Background style controls the box colors.  
+Swap with other colors in the palette by replacing 'background: #3ECFF9' with any of these:
+#2D97B5 = rgb(45,151,181), #007B9D = rgb(0,123,157), #70DAF9 = rgb(112,218,249),  background-color: #f24900;
+*/
+
 body, html, div {
     margin: 0;
     padding:0;
     font-family: 'Segoe UI', Verdana, Arial;
     color:white;
-    background-color: #f24900;
+    background-color: #007B9D 
 }
 a {text-decoration: none;}
 a:link {text-decoration: none;  color:white;}
@@ -28,7 +34,7 @@ a:link {text-decoration: none;  color:white;}
 
 .page {
     padding: 3% 3% 3% 6%;
-    background-color: #f24900;
+    background-color: #007B9D;
 }
 
 
@@ -59,7 +65,7 @@ a:link {text-decoration: none;  color:white;}
 }
 
 .slider {
-    width: 33%;
+    width: 20%;
     margin: 0 3% 6% 0;
 }
 

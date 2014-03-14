@@ -543,8 +543,12 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                 offsets = index[key];
             else
                 return null;
-            
-            DataItems<KeyType, ValType> di = new DataItems<KeyType, ValType>(offsets, this, key);
+
+            DataItems<KeyType, ValType> di = null;
+            if (offsets != null)
+            {
+                di = new DataItems<KeyType, ValType>(offsets, this, key);
+            }
             return di;
         }
 
@@ -562,30 +566,35 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             else
                 return null;
             
-            List<DataBlockInfo> offsets = new List<DataBlockInfo>();
-            int startTSIndex = allOffsets.BinarySearch(new DataBlockInfo(startTimeStamp, 0), new DataBlockInfoComparer());
-            int endTSIndex = allOffsets.BinarySearch(new DataBlockInfo(endTimeStamp, 0), new DataBlockInfoComparer());
 
-
-            if (startTSIndex < 0)
-                startTSIndex = ~startTSIndex;
-            if (endTSIndex < 0)
-                endTSIndex = ~endTSIndex - 1;
-            
-
-            for (int i = startTSIndex; i <= endTSIndex; i++)
-                offsets.Add(allOffsets.ElementAt(i));
-            /*
-            foreach (DataBlockInfo tso in allOffsets)
+            DataItems<KeyType, ValType> di = null;
+            if (allOffsets != null)
             {
-                if (tso.Between(startTimeStamp, endTimeStamp))
+                List<DataBlockInfo> offsets = new List<DataBlockInfo>();
+                int startTSIndex = allOffsets.BinarySearch(new DataBlockInfo(startTimeStamp, 0), new DataBlockInfoComparer());
+                int endTSIndex = allOffsets.BinarySearch(new DataBlockInfo(endTimeStamp, 0), new DataBlockInfoComparer());
+
+
+                if (startTSIndex < 0)
+                    startTSIndex = ~startTSIndex;
+                if (endTSIndex < 0)
+                    endTSIndex = ~endTSIndex - 1;
+
+
+                for (int i = startTSIndex; i <= endTSIndex; i++)
+                    offsets.Add(allOffsets.ElementAt(i));
+                /*
+                foreach (DataBlockInfo tso in allOffsets)
                 {
-                    offsets.Add(tso);
+                    if (tso.Between(startTimeStamp, endTimeStamp))
+                    {
+                        offsets.Add(tso);
+                    }
                 }
+                 */
+                di = new DataItems<KeyType, ValType>(offsets, this, key);
+                if (logger != null) logger.Log("End ValueDataStream Get Offset");
             }
-             */
-            DataItems<KeyType, ValType> di = new DataItems<KeyType, ValType>(offsets, this, key);
-            if (logger != null) logger.Log("End ValueDataStream Get Offset");
             return di;
         }
 
@@ -602,24 +611,28 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             else
                 return null;
 
-            List<DataBlockInfo> requiredOffsets = new List<DataBlockInfo>();
-
-            foreach (DataBlockInfo datablockinfo in allOffsets)
+            DataItems<KeyType, ValType> di = null;
+            if (allOffsets != null)
             {
-                if (datablockinfo.ts > endTimeStamp)
-                    break;
-                else if (datablockinfo.ts >= startTimeStamp && datablockinfo.ts <= endTimeStamp && (datablockinfo.ts - startTimeStamp) % skip == 0)
-                {
-                    requiredOffsets.Add(datablockinfo);
-                }
-            }
+                List<DataBlockInfo> requiredOffsets = new List<DataBlockInfo>();
 
-            DataItems<KeyType, ValType> di = new DataItems<KeyType, ValType>(requiredOffsets, this, key);
+                foreach (DataBlockInfo datablockinfo in allOffsets)
+                {
+                    if (datablockinfo.ts > endTimeStamp)
+                        break;
+                    else if (datablockinfo.ts >= startTimeStamp && datablockinfo.ts <= endTimeStamp && (datablockinfo.ts - startTimeStamp) % skip == 0)
+                    {
+                        requiredOffsets.Add(datablockinfo);
+                    }
+                }
+
+                di = new DataItems<KeyType, ValType>(requiredOffsets, this, key);
+            }
             return di;
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public List<IKey> GetKeys(IKey startKey, IKey endKey)
+        public HashSet<IKey> GetKeys(IKey startKey, IKey endKey)
         {
             List<IKey> keySet; 
             if (isSealed)
@@ -627,9 +640,17 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             else
                 keySet = index.Keys.ToList();
 
-            List<IKey> retVal = new List<IKey>();
+            HashSet<IKey> retVal = new HashSet<IKey>();
             foreach (var item in keySet)
             {
+                if ((startKey == null) && (endKey == null))
+                {
+                    retVal.Add(item);
+                }
+                else if ( (startKey == null) && (item.CompareTo(endKey) <= 0) )
+                {
+                    retVal.Add(item);
+                }
                 if (item.Between(startKey, endKey))
                 {
                     retVal.Add(item);
@@ -842,6 +863,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             if (logger != null) logger.Log("End ValueDataStream Flush");
         }
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public void Seal(bool noop)
         {
             t_e = StreamFactory.NowUtc();
@@ -907,7 +929,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             if (logger != null) logger.Log("Start ValueDataStream File Close");
             if (fs_bw != null)
             {
-                if (streamop == StreamFactory.StreamOp.Write)
+                if ( (streamop == StreamFactory.StreamOp.Write) && !isSealed )
                   fout.Flush(true);
                 fs_bw.Close();
                 fs_bw = null;
@@ -920,13 +942,13 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             }
             if (logger != null) logger.Log("End ValueDataStream File Close");
 
-            if (!isClosed && streamop == StreamFactory.StreamOp.Write)
+            if (!isSealed && !isClosed && (streamop == StreamFactory.StreamOp.Write) )
             {
                 Flush();
                 Sync();
-                isClosed = true;
             }
 
+            isClosed = true;
             if (logger != null) logger.Log("End ValueDataStream Close");
             return isClosed;
         }

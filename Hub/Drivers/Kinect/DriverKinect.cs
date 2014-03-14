@@ -9,19 +9,19 @@ using System.Drawing;
 using HomeOS.Hub.Common;
 using HomeOS.Hub.Common.WebCam.WebCamWrapper.Camera;
 using HomeOS.Hub.Platform.Views;
-using Microsoft.Kinect;
 using System.IO;
 using System.Diagnostics;
-
 using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-
+using Microsoft.Kinect;
+using Microsoft.Speech.AudioFormat;
+using Microsoft.Speech.Recognition;
 
 namespace HomeOS.Hub.Drivers.Kinect
 {
-    
+
     [System.AddIn.AddIn("HomeOS.Hub.Drivers.Kinect", Version = "1.0.0.0")]
     public class DriverKinect : ModuleBase
     {
@@ -30,6 +30,14 @@ namespace HomeOS.Hub.Drivers.Kinect
         KinectAudioSource audioSource;
         SafeThread worker = null;
 
+        //only turn these on if someone asks for them because they suck up memory
+        bool skeletonStreamOn = false;
+        bool depthStreamOn = false;
+
+        /// <summary>
+        /// Speech recognition engine, preferences Kinect for audio data
+        /// </summary>
+        private SpeechRecognitionEngine speechEngine = null;
 
         /// <summary>
         /// Bitmap that will hold color information
@@ -40,18 +48,18 @@ namespace HomeOS.Hub.Drivers.Kinect
         /// Intermediate storage for the color data received from the camera
         /// </summary>
         //private byte[] depthByte; //colorPixels, 
-       // private DepthImagePixel[] depthPixels;
+        // private DepthImagePixel[] depthPixels;
 
-       byte[] _lastColorBytes = new byte[0];
-       byte[] _lastDepthBytes = new byte[0];
-       string _lastSkeletonArray = null;
-       short[] _lastDepthArray = new short[0];
+        byte[] _lastColorBytes = new byte[0];
+        byte[] _lastDepthBytes = new byte[0];
+        string _lastSkeletonArray = null;
+        short[] _lastDepthArray = new short[0];
 
         string lastAudioClipName;
 
         public override void Start()
         {
-          
+
             foreach (var potentialSensor in KinectSensor.KinectSensors)
             {
                 if (potentialSensor.Status == KinectStatus.Connected)
@@ -64,17 +72,14 @@ namespace HomeOS.Hub.Drivers.Kinect
             //Create a new port on the platform.
             string kinectStr = moduleInfo.Args()[0];
             VPortInfo pInfo = GetPortInfoFromPlatform("kinect" + kinectStr);
-            List<VRole> roles = new List<VRole>() { RoleCamera.Instance, RoleDepthCam.Instance, RoleMicrophone.Instance, RoleSkeletonTracker.Instance };
+            List<VRole> roles = new List<VRole>() { RoleCamera.Instance, RoleDepthCam.Instance, RoleMicrophone.Instance, RoleSkeletonTracker.Instance, RoleSpeechReco.Instance };
 
             kinectPort = InitPort(pInfo);
             BindRoles(kinectPort, roles, OnOperationInvoke);
 
             RegisterPortWithPlatform(kinectPort);
 
-/*            sensor.ColorStream.Enable();
-            sensor.DepthStream.Enable();
-            sensor.SkeletonStream.Enable();*/
-            
+     
             logger.Log("Kinect Sensor Rigistered.");
             StartKinect();
         }
@@ -85,10 +90,10 @@ namespace HomeOS.Hub.Drivers.Kinect
             if (!Directory.Exists("..\\KinectAudios\\"))
             {
                 DirectoryInfo di = Directory.CreateDirectory("..\\KinectAudios\\");
-                logger.Log("New directory created to store audio files at {0}.",di.FullName);
+                logger.Log("New directory created to store audio files at {0}.", di.FullName);
             }
-   
-            lastAudioClipName = "..\\KinectAudios\\"  + DateTime.Now.ToString("yyyyMMddHHmmss") + "_wav.wav";
+
+            lastAudioClipName = "..\\KinectAudios\\" + DateTime.Now.ToString("yyyyMMddHHmmss") + "_wav.wav";
             worker = new SafeThread(delegate()
             {
                 AudioRecording(recLength);
@@ -113,7 +118,7 @@ namespace HomeOS.Hub.Drivers.Kinect
             byte[] colorPixels = new byte[this.sensor.ColorStream.FramePixelDataLength];
 
             // This is the bitmap we'll display on-screen
-             WriteableBitmap colorBitmap = new WriteableBitmap(this.sensor.ColorStream.FrameWidth, this.sensor.ColorStream.FrameHeight, 96.0, 96.0, PixelFormats.Bgr32, null);
+            WriteableBitmap colorBitmap = new WriteableBitmap(this.sensor.ColorStream.FrameWidth, this.sensor.ColorStream.FrameHeight, 96.0, 96.0, PixelFormats.Bgr32, null);
 
 
             using (ColorImageFrame colorFrame = e.OpenColorImageFrame())
@@ -124,20 +129,20 @@ namespace HomeOS.Hub.Drivers.Kinect
                     colorFrame.CopyPixelDataTo(colorPixels);
 
                     // Write the pixel data into our bitmap
-                     colorBitmap.WritePixels(
-                        new Int32Rect(0, 0,
-                            colorBitmap.PixelWidth, colorBitmap.PixelHeight),
-                        colorPixels,
-                        colorBitmap.PixelWidth * sizeof(int),
-                        0);
-                     
-                     JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-                     encoder.Frames.Add(BitmapFrame.Create(colorBitmap));
-                     using (MemoryStream stream = new MemoryStream())
-                     {
-                         encoder.Save(stream);
-                         _lastColorBytes = stream.ToArray();
-                     }
+                    colorBitmap.WritePixels(
+                       new Int32Rect(0, 0,
+                           colorBitmap.PixelWidth, colorBitmap.PixelHeight),
+                       colorPixels,
+                       colorBitmap.PixelWidth * sizeof(int),
+                       0);
+
+                    JpegBitmapEncoder encoder = new JpegBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(colorBitmap));
+                    using (MemoryStream stream = new MemoryStream())
+                    {
+                        encoder.Save(stream);
+                        _lastColorBytes = stream.ToArray();
+                    }
 
                     //For subscribed apps
                     ret.Add(new ParamType(ParamType.SimpleType.jpegimage, "byteImg", _lastColorBytes));
@@ -163,9 +168,9 @@ namespace HomeOS.Hub.Drivers.Kinect
             // Allocate space to put the pixels we'll receive
             DepthImagePixel[] depthPixels = new DepthImagePixel[this.sensor.DepthStream.FramePixelDataLength];
             // Allocate space to put the color pixels we'll create
-           byte[] depthByte = new byte[this.sensor.DepthStream.FramePixelDataLength * sizeof(int)];
+            byte[] depthByte = new byte[this.sensor.DepthStream.FramePixelDataLength * sizeof(int)];
             // This is the bitmap we'll display on-screen
-           WriteableBitmap depthBitmap = new WriteableBitmap(this.sensor.DepthStream.FrameWidth, this.sensor.DepthStream.FrameHeight, 96.0, 96.0, PixelFormats.Bgr32, null);
+            WriteableBitmap depthBitmap = new WriteableBitmap(this.sensor.DepthStream.FrameWidth, this.sensor.DepthStream.FrameHeight, 96.0, 96.0, PixelFormats.Bgr32, null);
 
 
             using (DepthImageFrame depthFrame = e.OpenDepthImageFrame())
@@ -187,7 +192,7 @@ namespace HomeOS.Hub.Drivers.Kinect
                     {
                         // Get the depth for this pixel
                         short depth = depthPixels[i].Depth;
-                        depthArray.SetValue(depth,i);
+                        depthArray.SetValue(depth, i);
 
                         // To convert to a byte, we're discarding the most-significant
                         // rather than least-significant bits.
@@ -234,7 +239,7 @@ namespace HomeOS.Hub.Drivers.Kinect
 
                     //For subscription apps
                     ret.Add(new ParamType(ParamType.SimpleType.jpegimage, "byteImg", _lastDepthBytes));
-                    kinectPort.Notify(RoleDepthCam.RoleName,RoleDepthCam.OpRcvDepthStreamName, ret);
+                    kinectPort.Notify(RoleDepthCam.RoleName, RoleDepthCam.OpRcvDepthStreamName, ret);
 
                     ret_array.Add(new ParamType(ParamType.SimpleType.list, "depthArray", depthArray));
                     kinectPort.Notify(RoleDepthCam.RoleName, RoleDepthCam.OpRcvDepthArrayName, ret_array);
@@ -267,7 +272,7 @@ namespace HomeOS.Hub.Drivers.Kinect
                         retSkeletons += "skeleton ID: " + skeleton.TrackingId.ToString() + "\n";
                         foreach (Joint joint in skeleton.Joints)
                         {
-                            retSkeletons += "Joint type: " + joint.JointType.ToString() + ", Joint Position: (" + joint.Position.X.ToString()+ ", " + joint.Position.Y.ToString() + ", " + joint.Position.Z.ToString() + "), Joint Tracking State: " + joint.TrackingState.ToString() + ".\n";                      
+                            retSkeletons += "Joint type: " + joint.JointType.ToString() + ", Joint Position: (" + joint.Position.X.ToString() + ", " + joint.Position.Y.ToString() + ", " + joint.Position.Z.ToString() + "), Joint Tracking State: " + joint.TrackingState.ToString() + ".\n";
                         }
                     }
 
@@ -278,8 +283,8 @@ namespace HomeOS.Hub.Drivers.Kinect
                 }
             }
 
-           
-            }
+
+        }
 
         private void StartKinect()
         {
@@ -290,20 +295,10 @@ namespace HomeOS.Hub.Drivers.Kinect
                 this.sensor.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30);
 
                 // Add an event handler to be called whenever there is new color frame data
-               this.sensor.ColorFrameReady += this.SensorColorFrameReady;
-               
-
-               // Turn on the depth stream to receive depth frames
-                this.sensor.DepthStream.Enable(DepthImageFormat.Resolution640x480Fps30);
-                // Add an event handler to be called whenever there is new color frame data
-                this.sensor.DepthFrameReady += this.SensorDepthFrameReady;
-                
-
-                // Turn on the skeleton stream to receive skeleton frames
-                this.sensor.SkeletonStream.Enable();
-                // Add an event handler to be called whenever there is new color frame data
-                this.sensor.SkeletonFrameReady += this.SensorSkeletonFrameReady;
-
+                this.sensor.ColorFrameReady += this.SensorColorFrameReady;
+   
+                //NOTE- skeleton and depth streams are only turned on if app calls for them
+              
                 try
                 {
                     this.sensor.Start();
@@ -314,8 +309,32 @@ namespace HomeOS.Hub.Drivers.Kinect
                     this.sensor = null;
                     logger.Log("Cannot start the kinect.");
                 }
+
+                //Start SpeechRecognition, for now always starts
+                //AJB : Remove if only want to application registers a phrase - see  in OnOperationInvoke see case RoleSpeechReco.OpSetSpeechPhraseName:
+                if (speechEngine == null)
+                {
+                    SetupSpeechRecognition();
+                }
             }
-            
+        }
+
+        private void startDepthStream() {            
+            // Turn on the depth stream to receive depth frames
+             this.sensor.DepthStream.Enable(DepthImageFormat.Resolution640x480Fps30);
+           // Add an event handler to be called whenever there is new color frame data
+            this.sensor.DepthFrameReady += this.SensorDepthFrameReady;
+            depthStreamOn = true;
+        }
+
+        private void startSkeletonStream()
+        {
+            // Turn on the skeleton stream to receive skeleton frames
+            this.sensor.SkeletonStream.Enable();
+            // Add an event handler to be called whenever there is new color frame data
+            this.sensor.SkeletonFrameReady += this.SensorSkeletonFrameReady;
+            skeletonStreamOn = true;
+
         }
 
         private void StopKinect()
@@ -329,6 +348,9 @@ namespace HomeOS.Hub.Drivers.Kinect
             }
             logger.Log("Kinect stopped.");
         }
+
+
+
 
         private void AudioRecording(int recLength)
         {
@@ -356,14 +378,14 @@ namespace HomeOS.Hub.Drivers.Kinect
                     }
                     logger.Log("Writing to audio file {0} completed.", lastAudioClipName);
                 }
-               audioSource.Stop();
+                audioSource.Stop();
             }
         }
 
-        
+
         static void WriteWavHeader(Stream stream, int dataLength)
         {
-            
+
             using (MemoryStream memStream = new MemoryStream(64))
             {
                 int cbFormat = 18; //sizeof(WAVEFORMATEX)
@@ -442,7 +464,7 @@ namespace HomeOS.Hub.Drivers.Kinect
                     lock (this)
                     {
                         recLength = (int)parameters[0].Value();
-                        logger.Log("Driver Kinect received expected audio length: {0}.",recLength.ToString());
+                        logger.Log("Driver Kinect received expected audio length: {0}.", recLength.ToString());
                         RecAudio(recLength);
                         logger.Log("Audio recording requested.");
                         if (lastAudioClipName != null)
@@ -458,23 +480,49 @@ namespace HomeOS.Hub.Drivers.Kinect
                     }
                     break;
                 case RoleDepthCam.OpGetLastDepthImgName:
+
+                    if (!depthStreamOn)  //if someone asks for it turn it on
+                        startDepthStream();
+
                     if (_lastDepthBytes != null)
                     {
                         ret.Add(new ParamType(ParamType.SimpleType.jpegimage, "byteImg", _lastDepthBytes));
                     }
                     break;
                 case RoleDepthCam.OpGetLastDepthArrayName:
+                    if (!depthStreamOn)  //if someone asks for it turn it on
+                        startDepthStream();
+
                     if (_lastDepthArray != null)
                     {
                         ret.Add(new ParamType(ParamType.SimpleType.list, "depthArray", _lastDepthArray));
                     }
                     break;
                 case RoleSkeletonTracker.OpGetLastskeletonName:
+
+                    if (!skeletonStreamOn)
+                        startSkeletonStream();
+
                     if (_lastSkeletonArray != null)
                     {
                         ret.Add(new ParamType(ParamType.SimpleType.text, "skeletonArray", _lastSkeletonArray));
                     }
                     break;
+
+                case RoleSpeechReco.OpSetSpeechPhraseName:
+                    if (speechEngine == null)
+                    {
+                        SetupSpeechRecognition();
+                    }
+
+                    //string phrase = (string)parameters[0].Value();
+                    //string valueStr = (string)parameters[1].Value();
+                    //if not in the list of ports to notify when something is recognized
+                    //add this phrase to the grammar
+
+                    break;
+
+             
                 default:
                     logger.Log("Unhandled kinect operation {0}", opName);
                     break;
@@ -482,6 +530,7 @@ namespace HomeOS.Hub.Drivers.Kinect
 
             return ret;
         }
+
 
 
         public override string GetDescription(string hint)
@@ -497,6 +546,115 @@ namespace HomeOS.Hub.Drivers.Kinect
         public override void PortRegistered(VPort port) { }
         public override void PortDeregistered(VPort port) { }
 
-    }
+        #region SpeechRecognition
+
+       
+        /// <summary>
+        /// Gets the metadata for the speech recognizer (acoustic model) most suitable to
+        /// process audio from Kinect device.
+        /// </summary>
+        /// <returns>
+        /// RecognizerInfo if found, <code>null</code> otherwise.
+        /// </returns>
+        private static RecognizerInfo GetKinectRecognizer()
+        {
+            foreach (RecognizerInfo recognizer in SpeechRecognitionEngine.InstalledRecognizers())
+            {
+                string value;
+                recognizer.AdditionalInfo.TryGetValue("Kinect", out value);
+                if ("True".Equals(value, StringComparison.OrdinalIgnoreCase) && "en-US".Equals(recognizer.Culture.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return recognizer;
+                }
+            }
+
+            return null;
+        }
+
+        private bool SetupSpeechRecognition()
+        {
+            RecognizerInfo ri = GetKinectRecognizer();
+
+            if (null == ri)
+                return false;  //didn't work
+
+            if (null != ri)
+            {
+                this.speechEngine = new SpeechRecognitionEngine(ri.Id);
+
+                //  Create grammar programmatically rather than from a grammar file.              
+                var directions = new Choices();
+                directions.Add(new SemanticResultValue("all on", "ALLON"));
+                directions.Add(new SemanticResultValue("all off", "ALLOFF"));
+                directions.Add(new SemanticResultValue("good night", "ALLOFF"));
+                directions.Add(new SemanticResultValue("good morning", "ALLON"));
+                directions.Add(new SemanticResultValue("play movie", "PLAYMOVIE"));
+                directions.Add(new SemanticResultValue("go disco", "DISCO"));
+                //directions.Add(new SemanticResultValue("turn left", "LEFT"));
+                //directions.Add(new SemanticResultValue("turn right", "RIGHT"));
+
+                var gb = new GrammarBuilder { Culture = ri.Culture };
+                gb.Append(directions);
+
+                var g = new Grammar(gb);
+                speechEngine.LoadGrammar(g);
+
+                speechEngine.SpeechRecognized += SpeechRecognized;
+                speechEngine.SpeechRecognitionRejected += SpeechRejected;
+
+                // For long recognition sessions (a few hours or more), it may be beneficial to turn off adaptation of the acoustic model. 
+                // This will prevent recognition accuracy from degrading over time.
+                ////speechEngine.UpdateRecognizerSetting("AdaptationOn", 0);
+
+                speechEngine.SetInputToAudioStream(
+                    sensor.AudioSource.Start(), new SpeechAudioFormatInfo(EncodingFormat.Pcm, 16000, 16, 1, 32000, 2, null));
+                speechEngine.RecognizeAsync(RecognizeMode.Multiple);
+
+            }
+
+            return true;
+        }
+
+        private void UpdateSpeechGrammar()
+        {
+
+
+        }
+
+        /// <summary>
+        /// Handler for recognized speech events.
+        /// </summary>
+        /// <param name="sender">object sending the event.</param>
+        /// <param name="e">event arguments.</param>
+        private void SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
+        {
+            // Speech utterance confidence below which we treat speech as if it hadn't been heard
+            const double ConfidenceThreshold = 0.4;
+
+            if (e.Result.Confidence >= ConfidenceThreshold)
+            {
+                //Notify subscribed ports for any recognized phrase - possibly later keep dictionary of port->phrases and  they wanted
+                string semValue = e.Result.Semantics.Value.ToString();
+                Notify(kinectPort, RoleSpeechReco.Instance, RoleSpeechReco.OpPhraseRecognizedSubName, new ParamType(ParamType.SimpleType.text, semValue));
+
+            }
+        }
+
+        /// <summary>
+        /// Handler for rejected speech events.
+        /// </summary>
+        /// <param name="sender">object sending the event.</param>
+        /// <param name="e">event arguments.</param>
+        private void SpeechRejected(object sender, SpeechRecognitionRejectedEventArgs e)
+        {
+            logger.Log("Kinect Driver:speech rejected");
+        }
+
+
+
+
+        #endregion
 
     }
+
+}

@@ -42,7 +42,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.PreHeat
             FqStreamID fq_sid = new FqStreamID("smartpreheat", "A", "TestBS");
             CallerInfo ci = new CallerInfo(null, "A", "A", 1);
             streamFactory.deleteStream(fq_sid, ci);
-            IStream occupancyGroundTruthStream = streamFactory.openFileStream<StrKey, ByteValue>(fq_sid, ci, null, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write, null, 4 * 1024 * 1024, 1, new Logger());
+            IStream occupancyGroundTruthStream = streamFactory.openValueDataStream<StrKey, ByteValue>(fq_sid, ci, null, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write, null, 4 * 1024 * 1024, 1, new Logger());
 
             int slotIndex = 0; long startTime, retrievelTime, computeTime, insertTime;
 

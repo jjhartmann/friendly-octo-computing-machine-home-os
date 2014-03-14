@@ -420,7 +420,7 @@ namespace HomeOS.Hub.Platform
                 bool result = false;
                 string retString = "Network " + targetSsid + " not found";
 
-                logger.Log("UICalled:ConnectToWifiNetworkWeb " + targetSsid + " " + passPhrase);
+                logger.Log("UICalled:ConnectToWifiNetworkWeb ");
                 WlanClient client = new WlanClient();
                 foreach (WlanClient.WlanInterface wlanIface in client.Interfaces)
                 {

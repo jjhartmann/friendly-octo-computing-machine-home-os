@@ -59,7 +59,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.Eval
 
         public static Logger doDiskRaw(StreamOperation op, 
                     int num_operations, int val_size, 
-                    StreamFactory.StreamPhysicalType ptype,
+                    StreamFactory.StreamDataType ptype,
                     string exp_dir)
         {
             Logger logger = new Logger();
@@ -92,7 +92,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.Eval
                 }
 
                 StrKey key = new StrKey("ExpKey");
-                if (ptype == StreamFactory.StreamPhysicalType.File)
+                if (ptype == StreamFactory.StreamDataType.Values)
                 {
                     // ValueDataStream type
                     logger.Log("Start Stream Open");
@@ -179,7 +179,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.Eval
                 Random random = new Random();
                 Byte[] val = new Byte[val_size];
 
-                if (ptype == StreamFactory.StreamPhysicalType.File)
+                if (ptype == StreamFactory.StreamDataType.Values)
                 {
                     long[] offsets = new long[num_operations];
                     for (int i = 0; i < num_operations; ++i)
@@ -445,7 +445,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.Eval
                         string HomeName, string AppName, string StreamName, 
                         StreamType stream_type,
                         StreamOperation stream_op,
-                        StreamFactory.StreamPhysicalType ptype,
+                        StreamFactory.StreamDataType ptype,
                         Byte[] value, int num_operations,
                         SynchronizerType synctype,
                         bool doCosts= false)
@@ -666,7 +666,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.Eval
                         long stime, long etime,
                         StreamType stream_type,
                         StreamOperation stream_op,
-                        StreamFactory.StreamPhysicalType ptype,
+                        StreamFactory.StreamDataType ptype,
                         CompressionType ctype, int ChunkSize , int ThreadPoolSize, 
                         Byte[] value, int num_operations,
                         SynchronizerType synctype,
@@ -827,42 +827,42 @@ namespace HomeOS.Hub.Common.Bolt.Apps.Eval
 
             Logger log = new Logger();
             // Open stream for different types of experiments
-            if (stream_type == StreamType.Local && ptype == StreamFactory.StreamPhysicalType.File)
+            if (stream_type == StreamType.Local && ptype == StreamFactory.StreamDataType.Values)
             {
-                stream = sf.openFileStream<StrKey, ByteValue>(streamid, ci, null, StreamFactory.StreamSecurityType.Plain, ctype, rw, address, ChunkSize, ThreadPoolSize, log);
+                stream = sf.openValueDataStream<StrKey, ByteValue>(streamid, ci, null, StreamFactory.StreamSecurityType.Plain, ctype, rw, address, ChunkSize, ThreadPoolSize, log);
             }
 
-            else if (stream_type == StreamType.LocalEnc && ptype == StreamFactory.StreamPhysicalType.File)
+            else if (stream_type == StreamType.LocalEnc && ptype == StreamFactory.StreamDataType.Values)
             {
-                stream = sf.openFileStream<StrKey, ByteValue>(streamid, ci, null, StreamFactory.StreamSecurityType.Secure, ctype, rw, address, ChunkSize, ThreadPoolSize, log);
+                stream = sf.openValueDataStream<StrKey, ByteValue>(streamid, ci, null, StreamFactory.StreamSecurityType.Secure, ctype, rw, address, ChunkSize, ThreadPoolSize, log);
             }
 
-            else if (stream_type == StreamType.Remote && ptype == StreamFactory.StreamPhysicalType.File)
+            else if (stream_type == StreamType.Remote && ptype == StreamFactory.StreamDataType.Values)
             {
-                stream = sf.openFileStream<StrKey, ByteValue>(streamid, ci, Li, StreamFactory.StreamSecurityType.Plain, ctype, rw, address, ChunkSize, ThreadPoolSize, log);
+                stream = sf.openValueDataStream<StrKey, ByteValue>(streamid, ci, Li, StreamFactory.StreamSecurityType.Plain, ctype, rw, address, ChunkSize, ThreadPoolSize, log);
             }
 
-            else if (stream_type == StreamType.RemoteEnc && ptype == StreamFactory.StreamPhysicalType.File)
+            else if (stream_type == StreamType.RemoteEnc && ptype == StreamFactory.StreamDataType.Values)
             {
-                stream = sf.openFileStream<StrKey, ByteValue>(streamid, ci, Li, StreamFactory.StreamSecurityType.Secure, ctype, rw, address, ChunkSize, ThreadPoolSize, log);
+                stream = sf.openValueDataStream<StrKey, ByteValue>(streamid, ci, Li, StreamFactory.StreamSecurityType.Secure, ctype, rw, address, ChunkSize, ThreadPoolSize, log);
             }
 
-            else if (stream_type == StreamType.Local && ptype == StreamFactory.StreamPhysicalType.Directory)
+            else if (stream_type == StreamType.Local && ptype == StreamFactory.StreamDataType.Files)
             {
-                stream = sf.openDirStream<StrKey>(streamid, ci, null, StreamFactory.StreamSecurityType.Plain, ctype, rw, address, ChunkSize, ThreadPoolSize, log);
+                stream = sf.openFileDataStream<StrKey>(streamid, ci, null, StreamFactory.StreamSecurityType.Plain, ctype, rw, address, ChunkSize, ThreadPoolSize, log);
             }
 
-            else if (stream_type == StreamType.LocalEnc && ptype == StreamFactory.StreamPhysicalType.Directory)
+            else if (stream_type == StreamType.LocalEnc && ptype == StreamFactory.StreamDataType.Files)
             {
-                stream = sf.openDirStream<StrKey>(streamid, ci, null, StreamFactory.StreamSecurityType.Secure, ctype, rw, address, ChunkSize, ThreadPoolSize, log);
+                stream = sf.openFileDataStream<StrKey>(streamid, ci, null, StreamFactory.StreamSecurityType.Secure, ctype, rw, address, ChunkSize, ThreadPoolSize, log);
             }
-            else if (stream_type == StreamType.Remote && ptype == StreamFactory.StreamPhysicalType.Directory)
+            else if (stream_type == StreamType.Remote && ptype == StreamFactory.StreamDataType.Files)
             {
-                stream = sf.openDirStream<StrKey>(streamid, ci, Li, StreamFactory.StreamSecurityType.Plain, ctype, rw, address, ChunkSize, ThreadPoolSize, log);
+                stream = sf.openFileDataStream<StrKey>(streamid, ci, Li, StreamFactory.StreamSecurityType.Plain, ctype, rw, address, ChunkSize, ThreadPoolSize, log);
             }
-            else if (stream_type == StreamType.RemoteEnc && ptype == StreamFactory.StreamPhysicalType.Directory)
+            else if (stream_type == StreamType.RemoteEnc && ptype == StreamFactory.StreamDataType.Files)
             {
-                stream = sf.openDirStream<StrKey>(streamid, ci, Li, StreamFactory.StreamSecurityType.Secure, ctype, rw, address, ChunkSize, ThreadPoolSize, log);
+                stream = sf.openFileDataStream<StrKey>(streamid, ci, Li, StreamFactory.StreamSecurityType.Secure, ctype, rw, address, ChunkSize, ThreadPoolSize, log);
             }
             else
             {

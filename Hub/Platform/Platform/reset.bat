@@ -6,7 +6,11 @@ if NOT %errorLevel% == 0 (
 )
 
 :: what config directory are we working with?
+set configDir=Config
+
+IF NOT "%~1" == "" (
 set configDir=%1
+)
 
 :: stop WatchDog service if it is running
 net stop "HomeOS Hub Watchdog"

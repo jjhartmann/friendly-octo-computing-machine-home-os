@@ -37,8 +37,8 @@ namespace HomeOS.Hub.Common.Bolt.Apps.PreHeat
                 }
             }
 
-            string AzureaccountName = "msrlot";
-            string AzureaccountKey = "wC3ou+VLBTu8ryKbsiSMtsIIHIpxGSIAWA0NtK58da2wELQ+USgYQwmVMtyq/p8ILsuZc8TiLeHBjaPI+a3A2Q==";
+            string AzureaccountName = "testdrive";
+            string AzureaccountKey = "zRTT++dVryOWXJyAM7NM0TuQcu0Y23BgCQfkt7xh2f/Mm+r6c8/XtPTY0xxaF6tPSACJiuACsjotDeNIVyXM8Q==";
             LocationInfo li = new LocationInfo(AzureaccountName, AzureaccountKey, SynchronizerType.Azure);
 
             
@@ -48,7 +48,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.PreHeat
             FqStreamID fq_sid = new FqStreamID("simplepreheat", "A", "TestBS");
             CallerInfo ci = new CallerInfo(null, "A", "A", 1);
             streamFactory.deleteStream(fq_sid, ci);
-            IStream occupancyGroundTruthStream = streamFactory.openFileStream<StrKey, ByteValue>(fq_sid, ci, li, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write, null, 4 * 1024 * 1024, 1, new Logger());
+            IStream occupancyGroundTruthStream = streamFactory.openValueDataStream<StrKey, ByteValue>(fq_sid, ci, li, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write, null, 4 * 1024 * 1024, 1, new Logger());
             occupancyGroundTruthStream.Close();
             int slotIndex = 0; long startTime, retrievelTime, computeTime, insertTime;
 

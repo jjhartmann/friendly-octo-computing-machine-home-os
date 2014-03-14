@@ -846,9 +846,9 @@ namespace HomeOS.Hub.Platform
                 ModuleInfo moduleInfo = new ModuleInfo(name, appName, binaryName, workingDir, autoStart, words);
                 moduleInfo.Background = background;
 
-                // now lets set the version. if the version is  missing in the xml file set it as ""
+                // now lets set the version. if the version is  missing in the xml file set it as UnknownHomeOSUpdateVersionValue(0.0.0.0)
                 if(version.Equals(""))
-                    moduleInfo.SetVersion(null);
+                    moduleInfo.SetVersion(Utils.UnknownHomeOSUpdateVersionValue);
                 else
                     moduleInfo.SetVersion(version);
                    

@@ -337,7 +337,7 @@ namespace HomeOS.Hub.Platform
                 logger.Log("exception in parsing IconUrl for {0}: {1}", homeStoreScout.Name, ex.ToString());
             }
 
-            homeStoreScout.Version = null;
+            homeStoreScout.Version = Utils.UnknownHomeOSUpdateVersionValue;
             try
             {
                 string versionString = xmlScout.GetAttribute("Version");

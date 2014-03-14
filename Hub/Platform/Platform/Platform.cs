@@ -25,6 +25,11 @@ namespace HomeOS.Hub.Platform
         const string DEFAULT_COMMAND_LINE_ARG_VAL = "_d_e_f_a_u_l_t_";
 
         /// <summary>
+        /// Version of the platform currently running
+        /// </summary>
+        string platformVersion = Utils.UnknownHomeOSUpdateVersionValue;
+
+        /// <summary>
         /// Modules that are currently running
         /// </summary>
         Dictionary<VModule, ModuleInfo> runningModules;
@@ -44,7 +49,7 @@ namespace HomeOS.Hub.Platform
         /// <summary>
         /// All scouts that are currently running
         /// </summary>
-        Dictionary<string, IScout> runningScouts;
+        Dictionary<string, Tuple<ScoutInfo, IScout>> runningScouts;
 
         /// <summary>
         /// Ports that are currently registered
@@ -81,17 +86,42 @@ namespace HomeOS.Hub.Platform
         /// </summary>
         string[] arguments; 
 
-
+        /// <summary>
+        /// The handle for the service that exports the Gui (dashboard)
+        /// </summary>
         GuiService guiService ;
 
+        /// <summary>
+        /// The handle for the connection to the gatekeeper
+        /// </summary>
         Gatekeeper.HomeService homeService ;
 
+        /// <summary>
+        /// Handle to the generic info service
+        /// This is mostly legacy at this point -- it has the redirection from index.html
+        /// </summary>
         InfoService infoService;
 
+        /// <summary>
+        /// Handle to the service that helps discover platform
+        /// </summary>
+        DiscoveryHelper discoveryHelperService;
+
+        /// <summary>
+        /// Handle to the service that sends heartbeats
+        /// </summary>
         HeartbeatService heartbeatService;
 
+        /// <summary>
+        /// authentication service
+        /// </summary>
         HomeOS.Hub.Platform.Authentication.AuthenticationService authenticationService;
+
+        /// <summary>
+        /// authentication service
+        /// </summary>
         System.ServiceModel.ServiceHost authenticationServiceHost; 
+
         /// <summary>
         /// Signals the fact that the platform has been stopped for shutdown
         /// </summary>
@@ -129,13 +159,19 @@ namespace HomeOS.Hub.Platform
             {
                 if(guiService!=null)
                     guiService.Dispose();
+                
                 if(infoService!=null)
                     infoService.Dispose();
+                
                 if (heartbeatService != null)
                     heartbeatService.Dispose();
 
+                if (discoveryHelperService != null)
+                    discoveryHelperService.Dispose();
+
                 if (authenticationServiceHost != null)
                     authenticationServiceHost.Close();
+
                 if (authenticationService != null)
                     authenticationService = null; 
                
@@ -162,19 +198,19 @@ namespace HomeOS.Hub.Platform
             //initialize various data structures
             random = new Random();
             runningModules = new Dictionary<VModule, ModuleInfo>();
-            runningScouts = new Dictionary<string, IScout>();
+            runningScouts = new Dictionary<string, Tuple<ScoutInfo, IScout>>();
             runningModulesStates = new Dictionary<VModule, VModuleState>();
             registeredPorts = new Dictionary<VPort, VModule>();
 
             //this initializes the settings to what was default (in the code)
-            Settings.Initiatlize();
+            Settings.Initialize();
 
             ArgumentsDictionary argsDict = ProcessArguments(arguments);
 
             //were we supplied a non-default configuration directory?
             if (!DEFAULT_COMMAND_LINE_ARG_VAL.Equals((string)argsDict["ConfigDir"]))
-                Settings.SetParameter("ConfigDir", (string)argsDict["ConfigDir"]);
-
+                Settings.SetParameter("ConfigDir", (string) argsDict["ConfigDir"]);
+           
             //this overwrites the settings to what was in the configuration file
             config = new Configuration(Settings.ConfigDir);
             config.ParseSettings();
@@ -271,11 +307,9 @@ namespace HomeOS.Hub.Platform
                 return;
             }
 
-            string baseDir = Constants.ScoutRoot + "\\" + sInfo.Name;
-                string dllPath = baseDir + "\\" + sInfo.DllName + ".dll";
-            string baseUrl = GetBaseUrl() + "/" + Constants.ScoutsSuffixWeb + "/" + sInfo.Name;
-
-            
+            string baseDir = Constants.ScoutRoot + "\\" + sInfo.DllName;
+            string dllPath = baseDir + "\\" + sInfo.DllName + ".dll";
+            string baseUrl = GetBaseUrl() + "/" + Constants.ScoutsSuffixWeb + "/" + sInfo.DllName;
 
             try
             {
@@ -285,13 +319,23 @@ namespace HomeOS.Hub.Platform
                     GetScoutFromRep(sInfo); // now attempt to start what we got (if we did)
                 else
                 {
-                    string currentScoutVersion = GetHomeOSUpdateVersion(dllFullPath + ".config");
+                    string currentScoutVersion = Utils.GetHomeOSUpdateVersion(dllFullPath + ".config", logger);
                     // we are using file versions for the Versioning and not Assembly versions because to read that 
                     // the assembly needs to be loaded. But unloading the assembly is a pain (in case of version mismatch)
 
                     if (!CompareModuleVersions(currentScoutVersion, sInfo.Version))
                         GetScoutFromRep(sInfo);// if we didn't get the right version, lets start what we have
+
+                    currentScoutVersion = Utils.GetHomeOSUpdateVersion(dllFullPath + ".config", logger);
+                    if (!CompareModuleVersions(currentScoutVersion, sInfo.Version))
+                    {
+                        logger.Log("WARNING: starting an inexact version of {0}", sInfo.Name);
+                        sInfo.SetVersion(currentScoutVersion);
+                    }
+
                 }
+
+
 
                 logger.Log("starting scout {0} using dll {1} at url {2}", sInfo.Name, dllPath, baseUrl);
 
@@ -306,7 +350,7 @@ namespace HomeOS.Hub.Platform
 
                 scout.Init(baseUrl, baseDir, this, logger);
 
-                runningScouts.Add(sInfo.Name, scout);
+                runningScouts.Add(sInfo.Name, new Tuple<ScoutInfo, IScout>(sInfo, scout));
             }
             catch (Exception e)
             {
@@ -328,7 +372,7 @@ namespace HomeOS.Hub.Platform
         {
             lock (this)
             {
-                allAddinTokens = GetModuleList();
+                allAddinTokens = GetModuleList(Constants.AddInRoot);
             }
         }
        
@@ -349,9 +393,14 @@ namespace HomeOS.Hub.Platform
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(LogUnhandledException);
             AppDomain.MonitoringIsEnabled = true;
 
+            // cache the version
+            this.platformVersion = Utils.GetHomeOSUpdateVersion(this.GetType().Assembly.CodeBase + ".config", logger);
+
+
             //start the basic services
             infoService = new InfoService(this, logger);
             guiService = new GuiService(this, config, homeStoreInfo, logger);
+            discoveryHelperService = new DiscoveryHelper(this, logger);
 
             if (!guiService.IsConfigNeeded())
             {
@@ -737,16 +786,16 @@ namespace HomeOS.Hub.Platform
         /// Get the list of all modules that are currently installed
         /// </summary>
         /// <returns> A list of tokens, one per module</returns>
-        private Collection<AddInToken> GetModuleList() {
+        private static Collection<AddInToken> GetModuleList(string addInRoot) {
 
             // rebuild the cache files of the pipeline segments and add-ins.
-            string[] warnings = AddInStore.Rebuild(Constants.AddInRoot);
+            string[] warnings = AddInStore.Rebuild(addInRoot);
 
             foreach (string warning in warnings)
                 Console.WriteLine(warning);
 
             // Search for add-ins of type VModule
-            Collection<AddInToken> tokens = AddInStore.FindAddIns(typeof(VModule), Constants.AddInRoot);
+            Collection<AddInToken> tokens = AddInStore.FindAddIns(typeof(VModule), addInRoot);
 
             //foreach (AddInToken token in tokens)
             //    logger.Log("Found module {0}", token.Name);
@@ -1059,11 +1108,6 @@ namespace HomeOS.Hub.Platform
             logger.Log("Got unhandled exception from {0}: {1}\nException: {2}", sender.ToString(), args.ToString(), e.ToString());
         }
 
-        private string GetAddInConfigFilepath(string moduleName)
-        {
-            return Constants.AddInRoot + "\\AddIns\\" + moduleName + "\\" + moduleName + ".dll.config";
-        }
-
         /// <summary>
         /// Starts a module by searching for a matching token
         /// </summary>
@@ -1075,7 +1119,7 @@ namespace HomeOS.Hub.Platform
             foreach (AddInToken token in allAddinTokens)
             {
                 if (token.Name.Equals(moduleInfo.BinaryName()) &&
-                    (!exactlyMatchVersions || CompareModuleVersions(moduleInfo.GetVersion(), GetHomeOSUpdateVersion(GetAddInConfigFilepath(moduleInfo.BinaryName())))))
+                    (!exactlyMatchVersions || CompareModuleVersions(moduleInfo.GetVersion(), Utils.GetHomeOSUpdateVersion(Utils.GetAddInConfigFilepath(moduleInfo.BinaryName()), logger))))
                 {
                     if (startedModule != null)
                     {
@@ -1129,7 +1173,7 @@ namespace HomeOS.Hub.Platform
         {
             VModule startedModule = null;
 
-            string moduleVersion = GetHomeOSUpdateVersion(GetAddInConfigFilepath(moduleInfo.BinaryName()));
+            string moduleVersion = Utils.GetHomeOSUpdateVersion(Utils.GetAddInConfigFilepath(moduleInfo.BinaryName()), logger);
             if (!CompareModuleVersions(moduleInfo.GetVersion(), moduleVersion))
             {
                 logger.Log("WARNING: Starting an inexact match for {0}", moduleInfo.FriendlyName());
@@ -1680,6 +1724,10 @@ namespace HomeOS.Hub.Platform
                             this.Shutdown();
                             System.Environment.Exit(0);
                             break;
+                        case "restart":
+                            Console.WriteLine("Restarting platform with config from {0}", Settings.ConfigDir);
+                            this.LoadConfigFromDir(Settings.ConfigDir);
+                            break;
                         case "help":
                         case "?":
                             PrintInteractiveUsage();
@@ -1771,7 +1819,7 @@ namespace HomeOS.Hub.Platform
                                                 Console.Write("AddInToken : {0}",token.Name.ToString()); 
                                              //   if(token.Version!=null)
                                                     // Console.Write(", Version: {0}", token.Version);
-                                                    Console.Write(", Version: {0}", GetHomeOSUpdateVersion(GetAddInConfigFilepath(token.Name)));
+                                                    Console.Write(", Version: {0}", Utils.GetHomeOSUpdateVersion(Utils.GetAddInConfigFilepath(token.Name), logger));
                                               //  if(token.Publisher!=null)
                                                     Console.Write(", Publisher: {0}", token.Publisher);
                                                // if(token.AssemblyName!=null)
@@ -2058,31 +2106,6 @@ namespace HomeOS.Hub.Platform
             }
         }
 
-        private string GetHomeOSUpdateVersion(string configFile)
-        {
-            const string DefaultHomeOSUpdateVersionValue = "0.0.0.0";
-            const string ConfigAppSettingKeyHomeOSUpdateVersion = "HomeOSUpdateVersion";
-
-            string homeosUpdateVersion = DefaultHomeOSUpdateVersionValue;
-            try
-            {
-                XElement xmlTree = XElement.Load(configFile);
-                IEnumerable<XElement> das =
-                    from el in xmlTree.DescendantsAndSelf()
-                    where el.Name == "add" && el.Parent.Name == "appSettings" && el.Attribute("key").Value == ConfigAppSettingKeyHomeOSUpdateVersion
-                    select el;
-                if (das.Count() > 0)
-                {
-                    homeosUpdateVersion = das.First().Attribute("value").Value;
-                }
-            }
-            catch (Exception e)
-            {
-                logger.Log(String.Format("Failed to parse {0}, exception: {1}", configFile, e.ToString()));
-            }
-            return homeosUpdateVersion;
-        }
-
         private void PrintGuiCallResult(List<string> result)
         {
             for (int index = 0; index < result.Count; index++)
@@ -2144,16 +2167,18 @@ namespace HomeOS.Hub.Platform
                     var resources = module.GetResourceUsage();
                     HomeOS.Shared.ModuleMonitorInfo ami = new HomeOS.Shared.ModuleMonitorInfo();
                     ami.ModuleFriendlyName = runningModules[module].FriendlyName();
+                    ami.ModuleVersion = runningModules[module].GetVersion();
                     ami.MonitoringTotalProcessorTime = resources[0];
                     ami.MonitoringTotalAllocatedMemorySize = resources[1];
                     ami.MonitoringSurvivedMemorySize = resources[2];
                     ami.MonitoringSurvivedProcessMemorySize = resources[3];
                     amiList.Add(ami);
+                }
             }
-        }
             HomeOS.Shared.ModuleMonitorInfo amiTotal = new HomeOS.Shared.ModuleMonitorInfo();
             amiTotal.ModuleFriendlyName = "platform";
-            amiTotal.MonitoringTotalProcessorTime = (long) AppDomain.CurrentDomain.MonitoringTotalProcessorTime.TotalMilliseconds;
+            amiTotal.ModuleVersion = this.platformVersion;
+            amiTotal.MonitoringTotalProcessorTime = (long)AppDomain.CurrentDomain.MonitoringTotalProcessorTime.TotalMilliseconds;
             amiTotal.MonitoringTotalAllocatedMemorySize = AppDomain.CurrentDomain.MonitoringTotalAllocatedMemorySize;
             amiTotal.MonitoringSurvivedMemorySize = AppDomain.CurrentDomain.MonitoringSurvivedMemorySize;
             amiTotal.MonitoringSurvivedProcessMemorySize = AppDomain.MonitoringSurvivedProcessMemorySize;
@@ -2161,6 +2186,27 @@ namespace HomeOS.Hub.Platform
             amiList.Add(amiTotal);
 
             return amiList;
+        }
+
+        public string GetPlatformVersion()
+        {
+            return this.platformVersion;
+        }
+
+        public List<HomeOS.Shared.ScoutInfo> GetScoutInfoList()
+        {
+            List<HomeOS.Shared.ScoutInfo> siList = new List<HomeOS.Shared.ScoutInfo>();
+            lock (this)
+            {
+                foreach (var Scout in runningScouts.Keys)
+                {
+                    HomeOS.Shared.ScoutInfo si = new HomeOS.Shared.ScoutInfo();
+                    si.ScoutFriendlyName = runningScouts[Scout].Item1.Name;
+                    si.ScoutVersion = runningScouts[Scout].Item1.Version;
+                    siList.Add(si);
+                }
+            }
+            return siList;
         }
 
         /// <summary>
@@ -2268,6 +2314,21 @@ namespace HomeOS.Hub.Platform
                 Console.Error.WriteLine(args.GetUsage("homeos"));
                 System.Environment.Exit(0);
             }
+
+            //if the supplied config path is relative, make it absolute
+            if (!DEFAULT_COMMAND_LINE_ARG_VAL.Equals((string)args["ConfigDir"]))
+            {
+                string configDir = (string)args["ConfigDir"];
+
+                if (!Directory.Exists(configDir))
+                {
+                    Console.Error.WriteLine("Configuration directory does not exist: " + configDir);
+                    System.Environment.Exit(1);
+                }
+
+                args["ConfigDir"] = Path.GetFullPath(configDir);
+            }
+
 
            // if ((string)args["ConfigDir"] != "\\Config")
          //   {
@@ -2476,7 +2537,7 @@ namespace HomeOS.Hub.Platform
                 return null;
             }
 
-            return runningScouts[scoutName].GetDevices();
+            return runningScouts[scoutName].Item2.GetDevices();
         }
 
         public List<string> GetAllRunningScoutNames()
@@ -2499,7 +2560,7 @@ namespace HomeOS.Hub.Platform
                     return false;
 
                 logger.Log("Stopping scout: " + scoutName);
-                runningScouts[scoutName].Dispose();
+                runningScouts[scoutName].Item2.Dispose();
 
                 runningScouts.Remove(scoutName);
 
@@ -2563,12 +2624,76 @@ namespace HomeOS.Hub.Platform
                 foreach (string scout in runningScouts.Keys)
                 {
                     logger.Log("Disposing scout: "+scout);
-                    runningScouts[scout].Dispose();
+                    runningScouts[scout].Item2.Dispose();
                 }
                 runningScouts.Clear();
             }
 
         }
+
+#region static helpers for Update Manager tool to access modules, scouts
+        public static Dictionary<string, ModuleInfo> GetConfigModules(string configDir)
+        {
+            Settings.Initialize();            
+            Configuration config = new Configuration(configDir);
+            config.ParseSettings();
+            config.ReadConfiguration();
+            return config.allModules;
+        }
+
+        public static List<ScoutInfo> GetConfigScouts(string configDir)
+        {
+            Settings.Initialize();
+            Configuration config = new Configuration(configDir);
+            config.ParseSettings();
+            config.ReadConfiguration();
+            return config.GetAllScouts();
+        }
+
+        public static Dictionary<string /*binaryName*/, string /*version*/> GetAllModuleBinaries(string outputRoot)
+        {
+            Dictionary<string,string> moduleDict = new Dictionary<string,string>();
+            string addInRoot = outputRoot + "\\binaries\\Pipeline";
+            Collection<AddInToken> tokens = GetModuleList(addInRoot);
+            foreach (AddInToken token in tokens)
+            {
+                string version = GetVersionFromBinaryName(addInRoot + "\\AddIns", token.Name);
+                moduleDict.Add(token.Name, version);
+            }
+
+            return moduleDict;
+        }
+
+        private static string GetVersionFromBinaryName(string binaryRoot, string binaryName)
+        {
+            string version = Utils.UnknownHomeOSUpdateVersionValue;
+            string baseDir = binaryRoot + "\\" + binaryName;
+            string dllPath = baseDir + "\\" + binaryName + ".dll";
+
+            string dllFullPath = Path.GetFullPath(dllPath);
+
+            if (!File.Exists(dllFullPath))
+                return version;
+            version = Utils.GetHomeOSUpdateVersion(dllFullPath + ".config", null);
+
+            return version;
+        }
+
+        public static Dictionary<string /*binaryName*/, string /*version*/> GetAllScoutBinaries(string outputRoot)
+        {
+            string scoutRoot = outputRoot + "\\binaries\\Scouts";
+            string[] scoutDirPaths = Directory.GetDirectories(scoutRoot);
+
+            Dictionary<string, string> scoutDict = new Dictionary<string,string>();
+            foreach (string scoutPath in scoutDirPaths)
+            {
+                string binName = scoutPath.Split(new char[] { '\\' }).Last();
+                string version = GetVersionFromBinaryName(scoutRoot, binName);
+                scoutDict.Add(binName, version);
+            }
+            return scoutDict;
+        }
+#endregion 
 
         private void Shutdown()
         {
@@ -2591,11 +2716,15 @@ namespace HomeOS.Hub.Platform
             this.guiService = null;
             this.homeService = null;
             this.infoService = null;
+            this.discoveryHelperService = null;
             this.heartbeatService = null;
             this.random = null;
-            
+
             GC.Collect();
-      
+
+            //finally close the logger object
+            if (logger != null)
+                logger.Close();
         }
         #endregion
 
@@ -2806,7 +2935,7 @@ namespace HomeOS.Hub.Platform
             logger.Log("Loading configuration from configdir: " + configdir+ ". updating any -c/--ConfigDir command line args.");
             
             this.Shutdown();// shutdown all modules and free memory
-
+            
             // if the initial command line arguments specified a config directory we update it to reflect the 
             // new config dir, from which config is being loaded now
             if (this.arguments.Contains("-c") && Array.IndexOf(this.arguments, "-c")!=arguments.Length-1)
@@ -2823,6 +2952,7 @@ namespace HomeOS.Hub.Platform
                 arguments[arguments.Length - 2] = "-c";
                 arguments[arguments.Length - 1] = configdir;
             }
+
 
             this.Initialize(this.arguments);
             
@@ -2910,10 +3040,6 @@ namespace HomeOS.Hub.Platform
                 return false;
             }
             return true; 
-
-
-
-
         }
 
         private bool GetScoutFromRep(ScoutInfo scoutInfo)
@@ -2926,10 +3052,11 @@ namespace HomeOS.Hub.Platform
                 return false;
             }
 
-            foreach (ScoutInfo runningScoutInfo in runningScouts.Values)
+            foreach (Tuple<ScoutInfo,IScout> runningScoutTuple in runningScouts.Values)
             {
-                if (runningScoutInfo.DllName.Equals(scoutInfo.DllName))
-                    throw new Exception(String.Format("Attempted to fetch scout, with same binary name scout running. Running: ({0}, v {1}) Fetching: ({2}, v{3})", runningScoutInfo.DllName, runningScoutInfo.Version , scoutInfo.DllName, scoutInfo.Version));
+                if (runningScoutTuple.Item1.DllName.Equals(scoutInfo.DllName))
+                    throw new Exception(String.Format("Attempted to fetch scout, with same binary name scout running. Running: ({0}, v {1}) Fetching: ({2}, v{3})",
+                               runningScoutTuple.Item1.DllName, runningScoutTuple.Item1.Version , scoutInfo.DllName, scoutInfo.Version));
             }
 
             try
@@ -2941,7 +3068,6 @@ namespace HomeOS.Hub.Platform
                 UnpackZip(baseDir + "\\" + scoutInfo.DllName + ".zip", baseDir );
                 
                 File.Delete(baseDir + "\\" + scoutInfo.DllName + ".zip");
-
             }
             catch (Exception e)
             {
@@ -2949,10 +3075,7 @@ namespace HomeOS.Hub.Platform
                 return false;
             }
             return true; 
-
-
         }
-
 
         private Dictionary<string,bool> AvailableOnRep(ModuleInfo moduleInfo)
         {
@@ -2971,7 +3094,21 @@ namespace HomeOS.Hub.Platform
                 foreach (string pathElement in path)
                     zipuri += "/" + pathElement;
 
-                zipuri += '/' + moduleInfo.GetVersion() + '/' + moduleInfo.BinaryName() + ".zip";
+
+                //by default platform should point to the Latest on the repository if a version of the binary isn't specified
+
+                string binaryversion = "Latest";
+                
+                if (moduleInfo.GetVersion() != "0.0.0.0")
+                {
+                    if (moduleInfo.GetVersion() != null) {
+                    binaryversion = moduleInfo.GetVersion();
+                    }
+                  
+                }
+
+
+                zipuri += '/' + binaryversion + '/' + moduleInfo.BinaryName() + ".zip";
 
                 if (UrlIsValid(zipuri))
                 {
@@ -2994,10 +3131,18 @@ namespace HomeOS.Hub.Platform
                 //logger.Log("Checking " + scoutInfo.DllName + " v" + scoutInfo.Version+ "  availability on Rep: " + uri);
                 string zipuri = uri;
 
+                //by default platform should point to the Latest on the repository if a version of the binary isn't specified
+                string binaryversion = "Latest"; 
+                if (scoutInfo.Version != null )
+                {
+                    binaryversion = scoutInfo.Version;
+                }
+
                 foreach (string pathElement in path)
                     zipuri += "/" + pathElement;
 
-                zipuri += '/' + scoutInfo.Version + '/' + scoutInfo.DllName + ".zip";
+
+                zipuri += '/' + binaryversion + '/' + scoutInfo.DllName + ".zip";
 
                 if (UrlIsValid(zipuri))
                 {
@@ -3111,20 +3256,36 @@ namespace HomeOS.Hub.Platform
         {
             try
             {
-                String completePath = addinsDir;
-                if (!System.IO.Directory.Exists(completePath))
-                    System.IO.Directory.CreateDirectory(completePath);
+                int numTries = 3;
 
-                completePath += "\\" + name;
-                if (Directory.Exists(completePath))
-                    Directory.Delete(completePath, true);
+                while (numTries > 0)
+                {
+                    try
+                    {
+                        String completePath = addinsDir;
+                        if (!System.IO.Directory.Exists(completePath))
+                            System.IO.Directory.CreateDirectory(completePath);
 
-                Directory.CreateDirectory(completePath);
-                DirectoryInfo info = new DirectoryInfo(completePath);
-                System.Security.AccessControl.DirectorySecurity security = info.GetAccessControl();
-                security.AddAccessRule(new System.Security.AccessControl.FileSystemAccessRule(Environment.UserName, System.Security.AccessControl.FileSystemRights.FullControl, System.Security.AccessControl.InheritanceFlags.ContainerInherit, System.Security.AccessControl.PropagationFlags.None, System.Security.AccessControl.AccessControlType.Allow));
-                security.AddAccessRule(new System.Security.AccessControl.FileSystemAccessRule(Environment.UserName, System.Security.AccessControl.FileSystemRights.FullControl, System.Security.AccessControl.InheritanceFlags.ContainerInherit, System.Security.AccessControl.PropagationFlags.None, System.Security.AccessControl.AccessControlType.Allow));
-                info.SetAccessControl(security); 
+                        completePath += "\\" + name;
+                        if (Directory.Exists(completePath))
+                            Directory.Delete(completePath, true);
+
+                        Directory.CreateDirectory(completePath);
+                        DirectoryInfo info = new DirectoryInfo(completePath);
+                        System.Security.AccessControl.DirectorySecurity security = info.GetAccessControl();
+                        security.AddAccessRule(new System.Security.AccessControl.FileSystemAccessRule(Environment.UserName, System.Security.AccessControl.FileSystemRights.FullControl, System.Security.AccessControl.InheritanceFlags.ContainerInherit, System.Security.AccessControl.PropagationFlags.None, System.Security.AccessControl.AccessControlType.Allow));
+                        security.AddAccessRule(new System.Security.AccessControl.FileSystemAccessRule(Environment.UserName, System.Security.AccessControl.FileSystemRights.FullControl, System.Security.AccessControl.InheritanceFlags.ContainerInherit, System.Security.AccessControl.PropagationFlags.None, System.Security.AccessControl.AccessControlType.Allow));
+                        info.SetAccessControl(security);
+                    }
+                    //this exception occurs when Windows is still holding a lock on the relevant dll
+                    catch (System.UnauthorizedAccessException e)
+                    {
+                        logger.Log("Could not create directory {0}. Will try again in 10 seconds. NumTries left = {1}", addinsDir, numTries.ToString());
+                        Thread.Sleep(10 * 1000);
+                    }
+
+                    numTries--;
+                }
 
 
             }

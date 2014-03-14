@@ -18,12 +18,17 @@
         var OFF_VALUE = 0;
         var COLOR_MAX = 255;
 
+        var uiRefresh;
+
         //array of switchs, each switch has 8 elements: name, location, type (multi, binary), value, isColored (can you change color), red, green, blue
         var SWITCH_INFORMATION_ARRAY = new Array();
 
         $(document).ready(
           function () {
-              new PlatformServiceHelper().MakeServiceCall("webapp/GetAllSwitches", "", GetSwitchesCallback);
+              CreateUI();
+              //Set up to refresh UI every 10 seconds  - really only needed if speech interaction enabled and light might change underneath
+              uiRefresh = setInterval(function () { CreateUI() }, 10000);
+              //To stop do this: clearInterval(uiRefresh);      
           }
       );
 
@@ -41,6 +46,14 @@
             return switchO;
         }
 
+        function CreateUI() {
+            // Creates the UI in 3 steps. 
+            //1) Ask the switch service for information on all switches 
+            // 2) GetSwtichesCallback - create switch information array 
+            // 3) CreateHTMLUI - process the switch information array and generate appropriate html
+            new PlatformServiceHelper().MakeServiceCall("webapp/GetAllSwitches", "", GetSwitchesCallback);
+        }
+
         function GetSwitchesCallback(context, result) {
            
             SWITCH_INFORMATION_ARRAY = new Array();  //delete the old one
@@ -55,14 +68,16 @@
                     }
                 }
 
-                CreateUI();
+                CreateHTMLUI();
             }
             else {
                 DisplayDebugging("GetSwitchesCallback:" + result[0]);
             }
         }
 
-        function CreateUI() {
+
+
+        function CreateHTMLUI() {
             $("#lights").html("");
 
             var handledLocations = new Array();
@@ -124,12 +139,18 @@
        
 
         function AllLights(level) {
-            //For each switch in the SWITCH INFORMAION ARRAY we are going to set the value to 0 or 1
-            for (i = 0; i < SWITCH_INFORMATION_ARRAY.length; i++) {
-                new PlatformServiceHelper().MakeServiceCall("webapp/SetLevel", '{"switchFriendlyName": "' + SWITCH_INFORMATION_ARRAY[i].switchName + '","level":"' + level +'"}', SetLevelCallback);
-            }
+            new PlatformServiceHelper().MakeServiceCall("webapp/SetAllSwitches", '{"level":"' + level + '"}', SetAllLightsCallback);
         }
 
+        function SetAllLightsCallback(context, result) {
+            if (result[0] == "") {
+                CreateUI(); //rebuild the UI
+            }
+            else {
+                DisplayDebugging("SetAllLightsCallback:" + result[0]);
+            }
+
+        }
 
         // Doing this in a function is important because otherwise the changeColorCallback functions don't get the right lightName.
         function createColorSliders(lightName, redValue, greenValue, blueValue) {
@@ -162,9 +183,7 @@
 
         }
 
-      //important in a function of changeLightCallback gets wrong name
         function createDimmerSlider(currSName, sValue) {
-
             $(function () {
                 $("#" + currSName).slider({
                     min: 0,
@@ -174,11 +193,8 @@
                     change: function () { changeLightCallback(currSName) }  //must be value, not expression
                 });
             });
-
         }
 
-
-       
 
         function SingleSwitch(switchName, level) {
        
@@ -202,13 +218,11 @@
                 var switchName = dataAsObject.switchFriendlyName;
                 var switchLevel = dataAsObject.level;
 
+                //if (isOnAndColoredSwitch(switchName, switchLevel)) {  //if you turned on the switch and it has color - set them.
+                //    changeColorCallback(switchName, "red"); //color doesn't matter here - will get all of them.
+                //}
 
-                if (isOnAndColoredSwitch(switchName, switchLevel)) {  //if you turned on the switch and it has color - set them.
-                    changeColorCallback(switchName, "red"); //color doesn't matter here - will get all of them.
-                }
-
-                //AJB - todo just Switch the UI to reflect the current level of the switch - rather than regenerating the UI
-                new PlatformServiceHelper().MakeServiceCall("webapp/GetAllSwitches", "", GetSwitchesCallback);
+                CreateUI();
             }
             else {
                 DisplayDebugging("SetLevelCallback:" + result[0]);
@@ -221,13 +235,16 @@
         }
 
         function changeColorCallback(lightName, color) {
-            //TODO: fix Callback - maybe go to color specific on - I don't think whole UI needs to be redone.
-            //
+           
             var rSliderVal = ($("#" + lightName + "-red").slider("value"));
             var gSliderVal = ($("#" + lightName + "-green").slider("value"));
             var bSliderVal = ($("#" + lightName + "-blue").slider("value"));
-            
-            new PlatformServiceHelper().MakeServiceCall("webapp/SetColor", '{"switchFriendlyName": "' + lightName + '","red":"' + rSliderVal + '","green":"' + gSliderVal + '","blue":"' + bSliderVal + '"}', SetLevelCallback);
+
+
+            if (rSliderVal > 0 || gSliderVal > 0 || bSliderVal > 0) {
+                new PlatformServiceHelper().MakeServiceCall("webapp/SetColor", '{"switchFriendlyName": "' + lightName + '","red":"' + rSliderVal + '","green":"' + gSliderVal + '","blue":"' + bSliderVal + '"}', SetLevelCallback);
+            }
+       
         }
 
         function SwitchSimpleName(nameWithType) {
@@ -255,9 +272,9 @@
         function isOnorOffColored(currSValue, rValue, gValue, bValue) {
             currState = "On";
             if (currSValue == OFF_VALUE) {
-                if (rValue != OFF_VALUE && gValue != OFF_VALUE & bValue != OFF_VALUE)
-                    currState = "Off";
-                else
+                //if (rValue != OFF_VALUE && gValue != OFF_VALUE & bValue != OFF_VALUE)
+                //    currState = "OFF";
+                //else
                     currState = "Off";
 
             }

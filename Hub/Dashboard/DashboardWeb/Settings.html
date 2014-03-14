@@ -133,8 +133,15 @@
                 else {
                     for (i = 1; i < result.length; i = i + 1) {
                         //i:module facing name, 
-                        $("#orphanedDevices").append('<div class="settings_listitem">' + result[i] + '<button class= "btn" onclick="ConfigureOrphanDevice(' + "'" + result[i] + "'" + ')"  >Configure </button>' +'<button class= "btn" onclick="RemoveOrphanDevice(' + "'" + result[i] + "'" + ')"  >Remove </button> </div>');
+                        if (!IsZwaveDevice(result[i])) {
+                            $("#orphanedDevices").append('<div class="settings_listitem">' + result[i] + '<button class= "btn" onclick="ConfigureOrphanDevice(' + "'" + result[i] + "'" + ')"  >Configure </button>' + '<button class= "btn" onclick="RemoveOrphanDevice(' + "'" + result[i] + "'" + ')"  >Remove </button> </div>');
+                        }
+                        else {//zwave devices do not a get a remove button
+                            $("#orphanedDevices").append('<div class="settings_listitem">' + result[i] + '<button class= "btn" onclick="ConfigureOrphanDevice(' + "'" + result[i] + "'" + ')"  >Configure </button> </div>');
+                        }
                     }
+
+
                 }
 
             }

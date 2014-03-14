@@ -320,7 +320,7 @@ namespace HomeOS.Hub.Apps.Alerts
             StrValue strVal = new StrValue(message);
             try
             {
-                textStream = base.CreateFileStream<StrKey, StrValue>("H2OAlertsText", true);
+                textStream = base.CreateValueDataStream<StrKey, StrValue>("H2OAlertsText", true);
                 textStream.Append(strKey, strVal);
                 logger.Log("WaterAlert message has been written to {0}.", textStream.Get(strKey).ToString());
                 textStream.Close();
@@ -337,7 +337,7 @@ namespace HomeOS.Hub.Apps.Alerts
             ByteValue byteVal = new ByteValue(imageBytes);
             try
             {
-                picStream = base.CreateDirStream<StrKey, ByteValue>("H2OAlertsPics", true);
+                picStream = base.CreateFileDataStream<StrKey, ByteValue>("H2OAlertsPics", true);
                 picStream.Append(strKey, byteVal);
                // logger.Log("WaterAlert picture has been written to {0}.", picStream.Get(strKey).ToString());
                 picStream.Close();

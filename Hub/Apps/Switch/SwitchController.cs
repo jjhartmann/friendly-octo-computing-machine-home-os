@@ -6,6 +6,9 @@ using HomeOS.Hub.Common;
 using System.ServiceModel;
 using HomeOS.Hub.Platform.Views;
 using System.Drawing;
+//using System.Threading.Tasks;
+//using System.Windows.Threading;
+using System.Timers;
 
 namespace HomeOS.Hub.Apps.Switch
 {
@@ -30,8 +33,18 @@ namespace HomeOS.Hub.Apps.Switch
         Dictionary<VPort, SwitchInfo> registeredSwitches = new Dictionary<VPort, SwitchInfo>();
         Dictionary<string, VPort> switchFriendlyNames = new Dictionary<string, VPort>();
 
+        //For Speech
+        List<VPort> speechPorts = new List<VPort>();
+
         private SafeServiceHost serviceHost;
         private WebFileServer appServer;
+
+        //for doing the disco thing speech command is "GO DISCO" (if you have speech reco role installed)
+        private static System.Timers.Timer discoTimer;
+        private static int countDiscoEvents = 0;
+        private const int maxDiscoEvents = 5;
+        private Color[] colorChoices = new Color[] { Color.Red, Color.Pink, Color.Blue, Color.Purple, Color.Orange };
+
 
         public override void Start()
         {
@@ -61,10 +74,38 @@ namespace HomeOS.Hub.Apps.Switch
             return 0;
         }
 
+  
         public override void OnNotification(string roleName, string opName, IList<VParamType> retVals, VPort senderPort)
         {
             lock (this)
             {
+                //check if notification is speech event
+                if (roleName.Contains(RoleSpeechReco.RoleName) && opName.Equals(RoleSpeechReco.OpPhraseRecognizedSubName))
+                { 
+                    string rcvdCmd = (string)retVals[0].Value();
+   
+                    switch (rcvdCmd)
+                    {
+                       case "ALLON":
+                            SetAllSwitches(1.0);
+                           break;
+
+                        case "ALLOFF":
+                           SetAllSwitches(0.0); 
+                        break;
+
+                        case "PLAYMOVIE":
+                            SetAllSwitches(0.1);
+                        break;
+
+                        case "DISCO":
+                            DiscoSwitches();
+                        break;
+
+                    }
+                    return;
+                }
+
                 if (!registeredSwitches.ContainsKey(senderPort))
                     throw new Exception("Got notification from an unknown port " + senderPort.ToString());
 
@@ -130,6 +171,8 @@ namespace HomeOS.Hub.Apps.Switch
             }
         }
 
+       
+
         public override void Stop()
         {
             lock (this)
@@ -146,43 +189,43 @@ namespace HomeOS.Hub.Apps.Switch
         /// <param name="port"></param>
         public override void PortRegistered(VPort port)
         {
-             lock (this)
+            lock (this)
             {
-                if (Role.ContainsRole(port, RoleSwitchMultiLevel.RoleName) || 
-                    Role.ContainsRole(port, RoleSwitchBinary.RoleName) || 
+                if (Role.ContainsRole(port, RoleSwitchMultiLevel.RoleName) ||
+                    Role.ContainsRole(port, RoleSwitchBinary.RoleName) ||
                     Role.ContainsRole(port, RoleLightColor.RoleName))
                 {
-                    if (!registeredSwitches.ContainsKey(port) && 
+                    if (!registeredSwitches.ContainsKey(port) &&
                         GetCapabilityFromPlatform(port) != null)
                     {
-                        var switchType = (Role.ContainsRole(port, RoleSwitchMultiLevel.RoleName))? SwitchType.Multi : SwitchType.Binary;
+                        var switchType = (Role.ContainsRole(port, RoleSwitchMultiLevel.RoleName)) ? SwitchType.Multi : SwitchType.Binary;
 
                         bool colored = Role.ContainsRole(port, RoleLightColor.RoleName);
 
                         InitSwitch(port, switchType, colored);
                     }
-                    //else
-                    //{
-                    //    //the friendly name of the port might have changed. update that.
-                    //    string oldFriendlyName = null;
+                   
+                }
 
-                    //    foreach (var pair in switchFriendlyNames)
-                    //    {
-                    //        if (pair.Value.Equals(port) &&
-                    //            !pair.Key.Equals(port.GetInfo().GetFriendlyName()))
-                    //        {
-                    //            oldFriendlyName = pair.Key;
-                    //            break;
-                    //        }
-                    //    }
+                else if (Role.ContainsRole(port, RoleSpeechReco.RoleName))
+                {
 
-                    //    if (oldFriendlyName != null)
-                    //    {
-                    //        switchFriendlyNames.Remove(oldFriendlyName);
-                    //        switchFriendlyNames.Add(port.GetInfo().GetFriendlyName(), port);
-                    //    }
-                    //}
+                    if (!speechPorts.Contains(port) &&
+                        GetCapabilityFromPlatform(port) != null)
+                    {
 
+                        speechPorts.Add(port);
+
+                        logger.Log("SwitchController:{0} added speech port {1}", this.ToString(), port.ToString());
+
+
+                        //TODO Call it with phrases we care about - FOR NOW HARD CODED in Kinect driver
+                        //  var retVal = Invoke(port, RoleSpeechReco.Instance, RoleSpeechReco.OpSetSpeechPhraseName, new ParamType(ParamType.SimpleType.text, "on"));
+
+                        //subscribe to speech reco
+                        if (Subscribe(port, RoleSpeechReco.Instance, RoleSpeechReco.OpPhraseRecognizedSubName))
+                            logger.Log("{0} subscribed to port {1}", this.ToString(), port.ToString());
+                    }
                 }
             }
         }
@@ -296,6 +339,46 @@ namespace HomeOS.Hub.Apps.Switch
             logger.Log(format, args);
         }
 
+        internal void DiscoSwitches()
+        {
+            //do the first color change
+            SetDiscoColor();
+
+            // Set the Interval to 2 seconds (2000 milliseconds).
+            discoTimer = new System.Timers.Timer(2000);
+            // Hook up the Elapsed event for the timer.
+            discoTimer.Elapsed += new ElapsedEventHandler(OnDiscoEvent);       
+            discoTimer.Start();  
+        }
+
+        //Called by timer 5 times
+        private  void OnDiscoEvent(object source, ElapsedEventArgs e)
+        {
+            if (countDiscoEvents <= maxDiscoEvents) {
+                countDiscoEvents++;
+                SetDiscoColor();
+            }
+            else {
+                discoTimer.Stop();
+                countDiscoEvents = 0;
+            }
+        }
+
+
+        private void SetDiscoColor()
+        {           
+            var r = new Random(); //used to randomly pick color from array of colors
+
+            foreach (KeyValuePair<string, VPort> switchs in switchFriendlyNames) {
+                //check if switch has color and then set it.
+                if (registeredSwitches[switchs.Value].IsColored) {
+                    Color c = colorChoices[r.Next(0, colorChoices.Length - 1)];
+                    SetColor(switchs.Key.ToString(), c); 
+                }
+            }  
+        }
+
+        
         internal void SetLevel(string switchFriendlyName, double level)
         {
             if (switchFriendlyNames.ContainsKey(switchFriendlyName))
@@ -326,7 +409,7 @@ namespace HomeOS.Hub.Apps.Switch
                     else
                     {
                         //interpret all non-zero values as ON
-                        bool boolLevel = (level > 0)? true : false;
+                        bool boolLevel = (level > 0)? true : false; 
 
                         var retVal = Invoke(switchPort, RoleSwitchBinary.Instance, RoleSwitchBinary.OpSetName, new ParamType(boolLevel));
 
@@ -352,6 +435,16 @@ namespace HomeOS.Hub.Apps.Switch
                 throw new Exception("Switch with friendly name " + switchFriendlyName + " not found");
             }
         }
+
+       
+        internal  void SetAllSwitches(double level)
+        {
+            foreach (KeyValuePair<string, VPort> switchs in switchFriendlyNames)
+            {
+                SetLevel(switchs.Key.ToString(), level);
+            }
+        }
+
 
         internal void SetColor(string switchFriendlyName, Color color)
         {

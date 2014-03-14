@@ -55,7 +55,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         protected bool isClosed;
         protected StreamFactory.StreamOp streamop;
         protected StreamFactory.StreamSecurityType streamtype;
-        protected StreamFactory.StreamPhysicalType streamptype;
+        protected StreamFactory.StreamDataType streamptype;
         protected CompressionType streamcompressiontype;
 
         protected int StreamChunkSizeForUpload ;
@@ -99,7 +99,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         protected void Initialize(FqStreamID FQSID, CallerInfo Ci,
             StreamFactory.StreamOp op, StreamFactory.StreamSecurityType type,
             CompressionType ctype,
-            StreamFactory.StreamPhysicalType ptype,
+            StreamFactory.StreamDataType ptype,
             string mdserveraddress, int ChunkSizeForUpload, int ThreadPoolSize, Logger log)
         {
             // Logging related
@@ -155,7 +155,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                 metadataClient = null;
             }
 
-            if (ptype == StreamFactory.StreamPhysicalType.File)
+            if (ptype == StreamFactory.StreamDataType.Values)
             {
                 vstreams = new Dictionary<int, ValueDataStream<KeyType, ValType>>();
             }
@@ -283,7 +283,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                     segment_acl_md.encKey = Crypto.GetSpecificKey(acl_md.encKey, acl_md.keyVersion, ai.keyVersion);
                     segment_acl_md.keyVersion = ai.keyVersion;
                 }
-                if (streamptype == StreamFactory.StreamPhysicalType.File)
+                if (streamptype == StreamFactory.StreamDataType.Values)
                 {
                     ValueDataStream<KeyType, ValType> stream = new ValueDataStream<KeyType, ValType>(logger, streamid, ai.num, ci, li, streamop, streamtype, streamcompressiontype, this.StreamChunkSizeForUpload, this.StreamThreadPoolSize, OwnerPriKey, OwnerPubKey, segment_acl_md, ii, alreadyExists: true);
                     vstreams[ai.num] = stream;
@@ -310,7 +310,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             if (logger != null) logger.Log("Start Segment Create");
             try
             {
-                if (streamptype == StreamFactory.StreamPhysicalType.File)
+                if (streamptype == StreamFactory.StreamDataType.Values)
                 {
                     ValueDataStream<KeyType, ValType> stream =
                         new ValueDataStream<KeyType, ValType>(logger, streamid, num, Ci, Li,
@@ -363,7 +363,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             
         protected bool CreateStream(CallerInfo Ci, LocationInfo Li,
                                 StreamFactory.StreamSecurityType type,
-                                StreamFactory.StreamPhysicalType ptype)
+                                StreamFactory.StreamDataType ptype)
         {
             // Store index_md location info on metadata server
             if (logger != null) logger.Log("Start Stream Create Stream");
@@ -411,14 +411,15 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             if (logger != null) logger.Log("End Stream Create Stream");
             return ret;
         }
-        
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public void Seal(bool checkMemPressure = false)
         {
             // Cannot seal if closed or not writing
             if (isClosed == true || streamop != StreamFactory.StreamOp.Write)
                 return;
 
-            if (streamptype == StreamFactory.StreamPhysicalType.File)
+            if (streamptype == StreamFactory.StreamDataType.Values)
             {
                 int last = vstreams.Values.Count - 1;
                 long currentStreamIndexSize = vstreams[last].GetIndexSize();
@@ -456,8 +457,9 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         public MetaStream(FqStreamID FQSID, CallerInfo Ci, LocationInfo Li,
             StreamFactory.StreamOp op, StreamFactory.StreamSecurityType type,
             CompressionType ctype,
-            StreamFactory.StreamPhysicalType ptype,
-            string mdserveraddress, int ChunkSizeForUpload, int UploadThreadPoolSize, Logger log)
+            StreamFactory.StreamDataType ptype,
+            string mdserveraddress, int ChunkSizeForUpload, int UploadThreadPoolSize, Logger log,
+            bool sideload)
         {
             bool justCreated = false;
             Initialize(FQSID, Ci, op, type, ctype, ptype, mdserveraddress, ChunkSizeForUpload, UploadThreadPoolSize, log);
@@ -468,7 +470,8 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             if (logger != null) logger.Log("Start Stream Check Exists, Fill IndexMD Location");
             this.indexMetaDataLocationInfo = AlreadyExists();
             if (logger != null) logger.Log("End Stream Check Exists, Fill IndexMD Location");
-            if (this.indexMetaDataLocationInfo == null)
+
+            if ((this.indexMetaDataLocationInfo == null) && !sideload)
             {
                 // stream does not exist.  create new stream.
                 if (op == StreamFactory.StreamOp.Read)
@@ -476,6 +479,15 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                 if (CreateStream(Ci, Li, type, ptype) == false)
                     throw new InvalidDataException("Couldn't create stream!");
                 justCreated = true;
+            }
+
+            else if ((this.indexMetaDataLocationInfo == null) && sideload)
+            {
+                this.indexMetaDataLocationInfo = new MetaDataService.AccountInfo();
+                this.indexMetaDataLocationInfo.accountName = Li.accountName;
+                this.indexMetaDataLocationInfo.accountKey = Li.accountKey;
+                this.indexMetaDataLocationInfo.location = Li.st + "";
+                //this.indexMetaDataLocationInfo.num = ai.num;
             }
 
             // Download index metadata if reqd.
@@ -538,9 +550,13 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                 // Fetch accounts info for the individual indices
                 if (logger != null) logger.Log("Start Stream Get Segment Location Infos");
                 Dictionary<int, MetaDataService.AccountInfo> accounts;
-                if ((accounts = GetSegmentsLocationInfo()) == null)
+                if ( ((accounts = GetSegmentsLocationInfo()) == null) && !sideload)
                 {
                     throw new InvalidDataException("Couldn't get segment LI's for meta stream");
+                }
+                else if (sideload)
+                {
+                    accounts = SideloadSegmentsLocationInfo(Li, indexMetaData.index_infos.Count());
                 }
                 if (logger != null) logger.Log("End Stream Get Segment Location Infos");
                 
@@ -552,6 +568,22 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
 
             isClosed = false;
             disposed = false;
+        }
+
+        protected Dictionary<int, MetaDataService.AccountInfo> SideloadSegmentsLocationInfo(LocationInfo li, int numSegments)
+        {
+            Dictionary<int, MetaDataService.AccountInfo> accounts = new Dictionary<int, MetaDataService.AccountInfo>();
+            for (int i = 0; i < numSegments; i++ )
+            {
+                MetaDataService.AccountInfo ai = new MetaDataService.AccountInfo();
+                ai.accountKey = li.accountKey;
+                ai.accountName = li.accountName;
+                ai.location = li.st + "";
+                ai.keyVersion = 0;
+                ai.num = i;
+                accounts[i] = ai;
+            }
+            return accounts;
         }
 
         protected Dictionary<int, MetaDataService.AccountInfo> GetSegmentsLocationInfo()
@@ -833,11 +865,13 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public bool GrantReadAccess(string AppId)
         {
             return GrantReadAccess(caller.HomeId, AppId);
         }
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public bool GrantReadAccess(string HomeId, string AppId)
         {
             if (logger != null) logger.Log("Start Stream GrantReadAccess to " + HomeId + "/" + AppId);
@@ -856,11 +890,13 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             return ret;
         }
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public bool RevokeReadAccess(string AppId)
         {
             return RevokeReadAccess(caller.HomeId, AppId);
         }
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public bool RevokeReadAccess(string HomeId, string AppId)
         {
             if (logger != null) logger.Log("Start Stream RevokeReadAccess to " + HomeId + "/" + AppId);
@@ -920,7 +956,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         {
             if (logger != null) logger.Log("Start Stream Get");
             IValue ret = null;
-            if (streamptype == StreamFactory.StreamPhysicalType.File)
+            if (streamptype == StreamFactory.StreamDataType.Values)
             {
                 for (int i = vstreams.Keys.Count - 1; i >= 0; i--)// iterate backwards over streams to find the latest val for the given key
                 {
@@ -929,7 +965,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                         break;
                 }
             }
-            else if (streamptype == StreamFactory.StreamPhysicalType.Directory)
+            else if (streamptype == StreamFactory.StreamDataType.Files)
             {
                 for (int i = fstreams.Keys.Count - 1; i >= 0; i--)// iterate backwards over dstreams to find the latest val for the given key
                 {
@@ -951,7 +987,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         {
             IEnumerable<IDataItem> retVal = null;
 
-            if (streamptype == StreamFactory.StreamPhysicalType.File)
+            if (streamptype == StreamFactory.StreamDataType.Values)
             {
                 foreach (int streamNum in vstreams.Keys)
                 {
@@ -960,7 +996,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                         retVal = retVal == null ? temp : retVal.Concat(temp);
                 }
             }
-            else if (streamptype == StreamFactory.StreamPhysicalType.Directory)
+            else if (streamptype == StreamFactory.StreamDataType.Files)
             {
                 foreach (int streamNum in fstreams.Keys)
                 {
@@ -979,20 +1015,26 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             if (logger != null) logger.Log("Start Stream GetAll");
             IEnumerable<IDataItem> retVal = null;
 
-            if (streamptype == StreamFactory.StreamPhysicalType.File)
+            if (streamptype == StreamFactory.StreamDataType.Values)
             {
                 foreach (int streamNum in vstreams.Keys)
                 {
                     IEnumerable<IDataItem> temp = vstreams[streamNum].GetAll(key, startTimeStamp, endTimeStamp);
-                    retVal = retVal == null ? temp : retVal.Concat(temp);
+                    if ((temp != null) && (temp.Count() > 0))
+                    {
+                        retVal = retVal == null ? temp : retVal.Concat(temp);
+                    }
                 }
             }
-            else if (streamptype == StreamFactory.StreamPhysicalType.Directory)
+            else if (streamptype == StreamFactory.StreamDataType.Files)
             {
                 foreach (int streamNum in fstreams.Keys)
                 {
                     IEnumerable<IDataItem> temp = fstreams[streamNum].GetAll(key, startTimeStamp, endTimeStamp);
-                    retVal = retVal == null ? temp : retVal.Concat(temp);
+                    if ((temp != null) && (temp.Count() > 0))
+                    {
+                        retVal = retVal == null ? temp : retVal.Concat(temp);
+                    }
                 }
             }
 
@@ -1005,7 +1047,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         {
             IEnumerable<IDataItem> retVal = null;
             if (logger != null) logger.Log("Start Stream GetWithSkip");
-            if (streamptype == StreamFactory.StreamPhysicalType.File)
+            if (streamptype == StreamFactory.StreamDataType.Values)
             {
                 long startTimeStampInSegment = startTimeStamp; 
                 foreach (int streamNum in vstreams.Keys)
@@ -1018,7 +1060,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                     }
                 }
             }
-            else if (streamptype == StreamFactory.StreamPhysicalType.Directory)
+            else if (streamptype == StreamFactory.StreamDataType.Files)
             {
                 long startTimeStampInSegment = startTimeStamp;
                 foreach (int streamNum in vstreams.Keys)
@@ -1038,24 +1080,44 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public List<IKey> GetKeys(IKey startKey, IKey endKey)
+        public HashSet<IKey> GetKeys(IKey startKey, IKey endKey)
         {
-            List<IKey> retVal = null;
+            HashSet<IKey> retVal = null;
 
-            if (streamptype == StreamFactory.StreamPhysicalType.File)
+            if (streamptype == StreamFactory.StreamDataType.Values)
             {
                 foreach (int streamNum in vstreams.Keys)
                 {
-                    List<IKey> temp = vstreams[streamNum].GetKeys(startKey, endKey);
-                    retVal = retVal == null ? temp : retVal.Concat(temp).ToList();
+                    HashSet<IKey> temp = vstreams[streamNum].GetKeys(startKey, endKey);
+                    if (temp != null && temp.Count() > 0)
+                    {
+                        if (retVal == null)
+                        {
+                            retVal = temp;
+                        }
+                        else
+                        {
+                            retVal.UnionWith(temp);
+                        }
+                    }
                 }
             }
-            else if (streamptype == StreamFactory.StreamPhysicalType.Directory)
+            else if (streamptype == StreamFactory.StreamDataType.Files)
             {
                 foreach (int streamNum in fstreams.Keys)
                 {
-                    List<IKey> temp = fstreams[streamNum].GetKeys(startKey, endKey);
-                    retVal = retVal == null ? temp : retVal.Concat(temp).ToList();
+                    HashSet<IKey> temp = fstreams[streamNum].GetKeys(startKey, endKey);
+                    if (temp != null && temp.Count() > 0)
+                    {
+                        if (retVal == null)
+                        {
+                            retVal = temp;
+                        }
+                        else
+                        {
+                            retVal.UnionWith(temp);
+                        }
+                    }
                 }
             }
 
@@ -1066,7 +1128,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         public Tuple<IKey, IValue> GetLatest()
         {
             Tuple<IKey,IValue> retVal = null;
-            if (streamptype == StreamFactory.StreamPhysicalType.File)
+            if (streamptype == StreamFactory.StreamDataType.Values)
             {
                 for (int i = vstreams.Keys.Count - 1; i >= 0; i--)// iterate backwards over streams to find the latest val 
                 {
@@ -1075,7 +1137,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                         break;
                 }
             }
-            else if (streamptype == StreamFactory.StreamPhysicalType.Directory)
+            else if (streamptype == StreamFactory.StreamDataType.Files)
             {
                 for (int i = fstreams.Keys.Count - 1; i >= 0; i--)// iterate backwards over dstreams to find the latest val
                 {
@@ -1100,7 +1162,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         {
             if (logger != null) logger.Log("Start Stream Append");
             UpdateHelper();
-            if (streamptype == StreamFactory.StreamPhysicalType.File)
+            if (streamptype == StreamFactory.StreamDataType.Values)
             {
                 vstreams[vstreams.Count - 1].Append(key, value, timestamp);
             }
@@ -1117,7 +1179,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         {
             if (logger != null) logger.Log("Start Stream Append");
             UpdateHelper();
-            if (streamptype == StreamFactory.StreamPhysicalType.File)
+            if (streamptype == StreamFactory.StreamDataType.Values)
             {
                 vstreams[vstreams.Count - 1].Append(list);
             }
@@ -1134,7 +1196,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         {
             if (logger != null) logger.Log("Start Stream Append");
             UpdateHelper();
-            if (streamptype == StreamFactory.StreamPhysicalType.File)
+            if (streamptype == StreamFactory.StreamDataType.Values)
             {
                 vstreams[vstreams.Count - 1].Append(listOfKeys, value);
             }
@@ -1151,7 +1213,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         {
             UpdateHelper();
             if (logger != null) logger.Log("Start Stream Update");
-            if (streamptype == StreamFactory.StreamPhysicalType.File)
+            if (streamptype == StreamFactory.StreamDataType.Values)
             {
                 vstreams[vstreams.Count - 1].Update(key, value);
             }
@@ -1163,6 +1225,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             if (logger != null) logger.Log("End Stream Update");
         }
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public void Flush()
         {
             // TODO: flush segments
@@ -1184,7 +1247,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             if (logger != null) logger.Log("Start Stream Close");
             if (!isClosed && streamop == StreamFactory.StreamOp.Write)
             {
-                if (streamptype == StreamFactory.StreamPhysicalType.File)
+                if (streamptype == StreamFactory.StreamDataType.Values)
                 {
                     foreach (ValueDataStream<KeyType, ValType> stream in vstreams.Values)
                     {
@@ -1226,8 +1289,8 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                     localMdServer.FlushMetaDataServer();
                 }
                 if (logger != null) logger.Log("End StreamMD Flush");
-                isClosed = true;
             }
+            isClosed = true;
             if (logger != null) logger.Log("End Stream Close");
             return isClosed;
         }

@@ -25,17 +25,23 @@ namespace HomeOS.Shared
         public double PhysicalMemoryBytes { get; set; }
         [DataMember(Name = "ModuleMonitorInfoList")]
         public List<ModuleMonitorInfo> ModuleMonitorInfoList { get; set; }
+        [DataMember(Name = "ScoutInfoList")]
+        public List<ScoutInfo> ScoutInfoList { get; set; }
         [DataMember(Name = "HeartbeatIntervalMins")]
         public UInt32 HeartbeatIntervalMins { get; set; }
         [DataMember(Name = "SequenceNumber")]
         public UInt32 SequenceNumber { get; set; }
         [DataMember(Name = "HardwareId")]
         public string HardwareId { get; set; }
+        [DataMember(Name = "PlatformVersion")]
+        public string PlatformVersion { get; set; }
 
         public override string ToString()
         {
-            string s = string.Format("HomeId:{0},\n OrgId={1},\n StudyId:{2},\n HubTimeStamp:{3},\n Total Cpu Usage:{4:0.00} %,\n Physical Memory Usage:{5:0.###} MBytes,\n ModuleMonitorInfoList: {6},\n HeartbeatIntervalMins:{7},\n SequenceNumber:{8},\n HardwareId:{9}",
-                    this.HomeId.ToString(), this.OrgId, this.StudyId, this.HubTimestamp, this.TotalCpuPercentage, this.PhysicalMemoryBytes / 1.0E6, this.ModuleMonitorInfoList.ToString(), this.HeartbeatIntervalMins, this.SequenceNumber, this.HardwareId);
+            string s = string.Format("HomeId:{0},\n OrgId={1},\n StudyId:{2},\n HubTimeStamp:{3},\n Total Cpu Usage:{4:0.00} %,\n Physical Memory Usage:{5:0.###} MBytes,\n ModuleMonitorInfoList: {6},\n  ScoutInfoList: {7},\n HeartbeatIntervalMins:{8},\n SequenceNumber:{9},\n HardwareId:{10},\n PlatformVersion:{11}",
+                    this.HomeId.ToString(), this.OrgId, this.StudyId, this.HubTimestamp, this.TotalCpuPercentage, this.PhysicalMemoryBytes / 1.0E6,
+                    this.ModuleMonitorInfoList.ToString(), this.ScoutInfoList.ToString(), this.HeartbeatIntervalMins, this.SequenceNumber, this.HardwareId,
+                    this.PlatformVersion);
             return s;
         }
     }   

@@ -254,6 +254,47 @@ namespace HomeOS.Hub.Tools.PackagerHelper
                 }
             }
         }
+
+        public static void CreateFolder(String folder, bool deleteIfExists = true)
+        {
+            if (Directory.Exists(folder) && deleteIfExists)
+                Directory.Delete(folder, true);
+
+            Directory.CreateDirectory(folder);
+        }
+
+        public static bool ExtractZipToFolder(string zipFile, string tmpBinFolder)
+        {
+            CreateFolder(tmpBinFolder);
+            System.IO.Compression.ZipFile.ExtractToDirectory(zipFile, tmpBinFolder);
+            return true;
+        }
+
+        public static void DeleteFolder(string folder, bool recursive = false)
+        {
+            Exception exception = null;
+
+            for (int i = 0; i < 3; i++)
+            {
+                try
+                {
+                    Directory.Delete(folder, recursive);
+
+                    return;
+                }
+                catch (Exception e)
+                {
+                    exception = e;
+                }
+
+                //lets wait 5 seconds and then we try to delete again
+                System.Threading.Thread.Sleep(5 * 1000);
+            }
+
+            throw exception;
+        }
+
+
         #endregion
     }
 }

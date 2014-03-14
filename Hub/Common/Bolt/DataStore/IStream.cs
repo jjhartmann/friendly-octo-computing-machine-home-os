@@ -143,7 +143,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         /// IKey endKey = new IKey("end");
         /// List result = datastream.GetKeys(startKey, endKey);]]>
         /// </example>
-        List<IKey> GetKeys(IKey startKey, IKey endKey);
+        HashSet<IKey> GetKeys(IKey startKey, IKey endKey);
 
         /*
         /// <summary>

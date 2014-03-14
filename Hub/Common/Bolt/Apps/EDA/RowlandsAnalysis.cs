@@ -34,7 +34,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.EDA
             FqStreamID fq_sid = new FqStreamID("RowlandsAnalysis"+ width, "A", "TestBS");
             CallerInfo ci = new CallerInfo(null, "A", "A", 1);
             streamFactory.deleteStream(fq_sid, ci);
-            dataStream = streamFactory.openFileStream<DoubleKey, ByteValue>(fq_sid, ci, null, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write, null, 4*1024*1024, 1, new Logger());
+            dataStream = streamFactory.openValueDataStream<DoubleKey, ByteValue>(fq_sid, ci, null, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write, null, 4*1024*1024, 1, new Logger());
 
             string line;
             System.IO.StreamReader file = new System.IO.StreamReader(dataFilePath);
@@ -76,10 +76,11 @@ namespace HomeOS.Hub.Common.Bolt.Apps.EDA
             long computeTime = 0, retrievalTime = 0;
 
             long start = DateTime.Now.Ticks;
-            List<IKey> keys = dataStream.GetKeys(new DoubleKey(double.MinValue), new DoubleKey(double.MaxValue));
+            HashSet<IKey> keySet = dataStream.GetKeys(new DoubleKey(double.MinValue), new DoubleKey(double.MaxValue));
             long end = DateTime.Now.Ticks;
             retrievalTime += end - start;
 
+            List<IKey> keys = keySet.ToList();
             keys.Sort();
 
             List<Tuple<double, double, double, double>> retVal = new List<Tuple<double, double, double, double>>();

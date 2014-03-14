@@ -522,7 +522,7 @@ namespace HomeOS.Hub.Common
             get { return defaultPortCapabilities[ControlPort]; }
         }
 
-        protected IStream CreateFileStream<KeyType, ValType>(string streamId, bool remoteSync)
+        protected IStream CreateValueDataStream<KeyType, ValType>(string streamId, bool remoteSync)
             where KeyType : IKey, new()
             where ValType : IValue, new()
         {
@@ -531,17 +531,17 @@ namespace HomeOS.Hub.Common
             if (remoteSync)
             {
                 LocationInfo li = new LocationInfo(GetConfSetting("DataStoreAccountName"), GetConfSetting("DataStoreAccountKey"), SynchronizerType.Azure);
-                return this.streamFactory.openFileStream<KeyType, ValType>
+                return this.streamFactory.openValueDataStream<KeyType, ValType>
                     (fq_sid, ci, li, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write);
             }
             else
             {
-                return this.streamFactory.openFileStream<KeyType, ValType>
+                return this.streamFactory.openValueDataStream<KeyType, ValType>
                     (fq_sid, ci, null, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write);
             }
         }
 
-        protected IStream CreateDirStream<KeyType, ValType>(string streamId, bool remoteSync)
+        protected IStream CreateFileDataStream<KeyType, ValType>(string streamId, bool remoteSync)
             where KeyType : IKey, new()
         {
             CallerInfo ci = new CallerInfo(this.moduleInfo.WorkingDir(), this.moduleInfo.FriendlyName(), this.moduleInfo.AppName(), this.Secret());
@@ -549,12 +549,12 @@ namespace HomeOS.Hub.Common
             if (remoteSync)
             {
                 LocationInfo Li = new LocationInfo(GetConfSetting("DataStoreAccountName"), GetConfSetting("DataStoreAccountKey"), SynchronizerType.Azure);
-                return this.streamFactory.openDirStream<KeyType>(
+                return this.streamFactory.openFileDataStream<KeyType>(
                     fq_sid, ci, Li, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write);
             }
             else
             {
-                return this.streamFactory.openDirStream<KeyType>(
+                return this.streamFactory.openFileDataStream<KeyType>(
                     fq_sid, ci, null, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write);
             }
         }

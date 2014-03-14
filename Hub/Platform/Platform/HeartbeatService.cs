@@ -108,9 +108,11 @@ namespace HomeOS.Hub.Platform
             hbi.PhysicalMemoryBytes = this.perfCountWorkingSet.NextValue(); 
             hbi.TotalCpuPercentage = this.perfCountPercentProcTime.NextValue();
             hbi.ModuleMonitorInfoList = this.platform.GetModuleMonitorInfoList();
+            hbi.ScoutInfoList = this.platform.GetScoutInfoList();
             hbi.HeartbeatIntervalMins = this.heartbeatIntervalMins;
             hbi.SequenceNumber = this.sequenceNumber++;
             hbi.HardwareId = HomeOS.Hub.Common.Utils.HardwareId;
+            hbi.PlatformVersion = this.platform.GetPlatformVersion();
 
             return hbi;
         }

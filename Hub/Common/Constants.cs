@@ -13,7 +13,13 @@ namespace HomeOS.Hub.Common
 
         // ..... the base address at which we host all the services
         public const int InfoServicePort = 51430;
-        public static readonly string InfoServiceAddress = "http://localhost:" + InfoServicePort;         
+        public static readonly string InfoServiceAddress = "http://localhost:" + InfoServicePort;
+
+        // .... the port where platform is discovered
+        public const int PlatformDiscoveryPort = 51432;
+
+        public const string PlatformDiscoveryQueryStr = "Are you HomeOS platform?";
+        public const string PlatformDiscoveryResponseStr = "Yes, I am HomeOS platform.";
 
         // ..... where to find various resources
         public static string AddInRoot = System.IO.Path.GetFullPath(PlatformBinaryDir + "\\..\\Pipeline");

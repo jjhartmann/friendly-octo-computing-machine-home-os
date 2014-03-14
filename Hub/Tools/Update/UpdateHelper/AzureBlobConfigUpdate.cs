@@ -11,6 +11,8 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using HomeOS.Hub.Common;
+using NLog;
+using HomeOS.Hub.Tools.PackagerHelper;
 
 namespace HomeOS.Hub.Tools.UpdateHelper
 {
@@ -19,10 +21,11 @@ namespace HomeOS.Hub.Tools.UpdateHelper
         // paths for storage on the blob store
         private const string actualConfigFilePathInHubFolder = "/config/actual/";
         private const string desiredConfigFilePathInHubFolder = "/config/desired/";
+        private const string AzureConfigContainerName = "configs";
 
         private const int AzureBlobLeaseTimeout = 60; 
 
-        public static bool UploadConfig(string configZipPath, string AzureAccountName, string AzureAccountKey, string orgID, string studyID, string homeID, string containerName, string desiredConfigFilename)
+        public static bool UploadConfig(string configZipPath, string AzureAccountName, string AzureAccountKey, string orgID, string studyID, string homeID, string desiredConfigFilename, NLog.Logger logger = null)
         {
             Microsoft.WindowsAzure.CloudStorageAccount storageAccount = null;
             Microsoft.WindowsAzure.StorageClient.CloudBlobClient blobClient = null;
@@ -34,20 +37,23 @@ namespace HomeOS.Hub.Tools.UpdateHelper
             {
                 storageAccount = new Microsoft.WindowsAzure.CloudStorageAccount(new Microsoft.WindowsAzure.StorageCredentialsAccountAndKey(AzureAccountName, AzureAccountKey), true);
                 blobClient = storageAccount.CreateCloudBlobClient();
-                container = blobClient.GetContainerReference(containerName);
+                container = blobClient.GetContainerReference(AzureConfigContainerName);
                 container.CreateIfNotExist();
                 blockBlob = container.GetBlockBlobReference(DesiredConfigBlobName(orgID, studyID, homeID, desiredConfigFilename));
 
                 bool blobExists = BlockBlobExists(blockBlob);
 
                 if (blobExists)
-                    leaseId = AcquireLease(blockBlob); // Acquire Lease on Blob
+                    leaseId = AcquireLease(blockBlob, logger); // Acquire Lease on Blob
                 else
                     blockBlob.Container.CreateIfNotExist();
 
                 if (blobExists && leaseId == null)
                 {
-                    Utils.configLog("ER", "AcquireLease on Blob: " + DesiredConfigBlobName(orgID, studyID, homeID, desiredConfigFilename) + " Failed");
+                    if (null != logger)
+                    {
+                        logger.Error("AcquireLease on Blob: " + DesiredConfigBlobName(orgID, studyID, homeID, desiredConfigFilename) + " Failed");
+                    }
                     return false;
                 }
 
@@ -72,7 +78,10 @@ namespace HomeOS.Hub.Tools.UpdateHelper
             }
             catch (Exception e)
             {
-                Utils.configLog("E", e.Message + ". UploadConfig_Azure, configZipPath: " + configZipPath + ". " + e);
+                if (null != logger)
+                {
+                    logger.ErrorException("UploadConfig_Azure, configZipPath: " + configZipPath, e);
+                }
                 ReleaseLease(blockBlob, leaseId);
                 return false;
             }
@@ -83,7 +92,7 @@ namespace HomeOS.Hub.Tools.UpdateHelper
             return "/" + orgID + "/" + studyID + "/" + homeID + desiredConfigFilePathInHubFolder + desiredConfigFilename;
         }
 
-        public static bool DownloadConfig(string downloadedZipPath, string AzureAccountName, string AzureAccountKey, string orgID, string studyID, string homeID, string containerName, string actualConfigFilename)
+        public static bool DownloadConfig(string downloadedZipPath, string AzureAccountName, string AzureAccountKey, string orgID, string studyID, string homeID, string configFilename, NLog.Logger logger=null)
         {
 
             Microsoft.WindowsAzure.CloudStorageAccount storageAccount = null;
@@ -96,20 +105,30 @@ namespace HomeOS.Hub.Tools.UpdateHelper
             {
                 storageAccount = new Microsoft.WindowsAzure.CloudStorageAccount(new Microsoft.WindowsAzure.StorageCredentialsAccountAndKey(AzureAccountName, AzureAccountKey), true);
                 blobClient = storageAccount.CreateCloudBlobClient();
-                container = blobClient.GetContainerReference(containerName);
+                container = blobClient.GetContainerReference(AzureConfigContainerName);
 
-                blockBlob = container.GetBlockBlobReference(ActualConfigBlobName(orgID, studyID, homeID, actualConfigFilename));
+                if (configFilename == PackagerHelper.ConfigPackagerHelper.actualConfigFileName)
+                {
+                    blockBlob = container.GetBlockBlobReference(ActualConfigBlobName(orgID, studyID, homeID, configFilename));
+                }
+                else if (configFilename == PackagerHelper.ConfigPackagerHelper.desiredConfigFileName)
+                {
+                    blockBlob = container.GetBlockBlobReference(DesiredConfigBlobName(orgID, studyID, homeID, configFilename));
+                }
 
                 bool blobExists = BlockBlobExists(blockBlob);
 
                 if (blobExists)
-                    leaseId = AcquireLease(blockBlob); // Acquire Lease on Blob
+                    leaseId = AcquireLease(blockBlob, logger); // Acquire Lease on Blob
                 else
                     return false;
 
                 if (blobExists && leaseId == null)
                 {
-                    Utils.configLog("ER", "AcquireLease on Blob: " + ActualConfigBlobName(orgID, studyID, homeID, actualConfigFilename) + " Failed");
+                    if (null != logger)
+                    {
+                        logger.Error("AcquireLease on Blob: " + ActualConfigBlobName(orgID, studyID, homeID, configFilename) + " Failed");
+                    }
                     return false;
                 }
 
@@ -135,7 +154,10 @@ namespace HomeOS.Hub.Tools.UpdateHelper
             }
             catch (Exception e)
             {
-                Utils.configLog("E", e.Message + ". DownloadConfig_Azure, downloadZipPath: " + downloadedZipPath + ". " + e);
+                if (null != logger)
+                {
+                    logger.ErrorException("DownloadConfig_Azure, downloadZipPath: " + downloadedZipPath, e);
+                }
                 ReleaseLease(blockBlob, leaseId);
                 return false;
             }
@@ -146,14 +168,79 @@ namespace HomeOS.Hub.Tools.UpdateHelper
             return "/" + orgID + "/" + studyID + "/" + homeID + actualConfigFilePathInHubFolder + actualConfigFilename;
         }
 
-        public static Tuple<bool, List<string>> listHubs(string account, string accountKey, string container, string orgID, string studyID)
+        public static Tuple<bool, Exception> IsValidAccount(string account, string accountKey)
+        {
+            bool accountValid = true;
+            Exception exception = null;
+            try
+            {
+                Microsoft.WindowsAzure.CloudStorageAccount storageAccount = null;
+                Microsoft.WindowsAzure.StorageClient.CloudBlobClient blobClient = null;
+                Microsoft.WindowsAzure.StorageClient.CloudBlobContainer container = null;
+
+                storageAccount = new Microsoft.WindowsAzure.CloudStorageAccount(new Microsoft.WindowsAzure.StorageCredentialsAccountAndKey(account, accountKey), true);
+                blobClient = storageAccount.CreateCloudBlobClient();
+                container = blobClient.GetContainerReference(AzureConfigContainerName);
+                container.CreateIfNotExist();
+            }
+            catch(Exception e)
+            {
+                accountValid = false;
+                exception = e;
+            }
+
+            return new Tuple<bool, Exception>(accountValid, exception);
+        }
+
+        public static Tuple<bool, List<string>> listStudies(string account, string accountKey, string orgId)
+        {
+            try
+            {
+                CloudStorageAccount storageAccount = new CloudStorageAccount(new Microsoft.WindowsAzure.Storage.Auth.StorageCredentials(account, accountKey), true);
+                Microsoft.WindowsAzure.Storage.Blob.CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+                Microsoft.WindowsAzure.Storage.Blob.CloudBlobContainer storageContainer = blobClient.GetContainerReference(AzureConfigContainerName);
+
+                List<String> orgList = lsDirectory(storageContainer.ListBlobs(), "/" + orgId + "/");
+
+                return new Tuple<bool, List<string>>(true, orgList);
+
+            }
+            catch (Exception e)
+            {
+                return new Tuple<bool, List<string>>(false, new List<string>() { e.Message });
+            }
+
+        }
+
+        public static Tuple<bool, List<string>> listOrgs(string account, string accountKey)
         {
 
             try
             {
                 CloudStorageAccount storageAccount = new CloudStorageAccount(new Microsoft.WindowsAzure.Storage.Auth.StorageCredentials(account, accountKey), true);
                 Microsoft.WindowsAzure.Storage.Blob.CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-                Microsoft.WindowsAzure.Storage.Blob.CloudBlobContainer storageContainer = blobClient.GetContainerReference(container);
+                Microsoft.WindowsAzure.Storage.Blob.CloudBlobContainer storageContainer = blobClient.GetContainerReference(AzureConfigContainerName);
+
+                List<String> orgList = lsDirectory(storageContainer.ListBlobs(), "/");
+
+                return new Tuple<bool, List<string>>(true, orgList);
+
+            }
+            catch (Exception e)
+            {
+                return new Tuple<bool, List<string>>(false, new List<string>() { e.Message });
+            }
+
+        }
+
+        public static Tuple<bool, List<string>> listHubs(string account, string accountKey, string orgID, string studyID)
+        {
+
+            try
+            {
+                CloudStorageAccount storageAccount = new CloudStorageAccount(new Microsoft.WindowsAzure.Storage.Auth.StorageCredentials(account, accountKey), true);
+                Microsoft.WindowsAzure.Storage.Blob.CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+                Microsoft.WindowsAzure.Storage.Blob.CloudBlobContainer storageContainer = blobClient.GetContainerReference(AzureConfigContainerName);
 
                 List<String> hubList = lsDirectory(storageContainer.ListBlobs(), "/" + orgID + "/" + studyID + "/");
 
@@ -169,7 +256,6 @@ namespace HomeOS.Hub.Tools.UpdateHelper
 
         private static List<string> lsDirectory(IEnumerable<Microsoft.WindowsAzure.Storage.Blob.IListBlobItem> enumerable, string dirPath)
         {
-
             List<string> ret = new List<string>();
 
             foreach (var item in enumerable.Where((blobItem, type) => blobItem is Microsoft.WindowsAzure.Storage.Blob.CloudBlockBlob))
@@ -191,6 +277,7 @@ namespace HomeOS.Hub.Tools.UpdateHelper
                 else if (directory.Parent != null && directory.Parent.Prefix.Equals(dirPath))
                 {
                     directoryName = directoryName.Replace(directory.Parent.Prefix, "");
+                    directoryName = directoryName.Replace("/", "");
                     ret.Add(directoryName);
                 }
                 else
@@ -201,7 +288,7 @@ namespace HomeOS.Hub.Tools.UpdateHelper
 
 
         #region methods to acquire and relinquich leases on azure blobs; and check if a blob already exists
-        private static string AcquireLease(Microsoft.WindowsAzure.StorageClient.CloudBlockBlob blob)
+        private static string AcquireLease(Microsoft.WindowsAzure.StorageClient.CloudBlockBlob blob, NLog.Logger logger)
         {
             try
             {
@@ -219,17 +306,20 @@ namespace HomeOS.Hub.Tools.UpdateHelper
 
             catch (WebException e)
             {
-                Utils.configLog("WebException", e.Message + ". AcquireLease, blob: " + blob);
+                if (null != logger)
+                {
+                    logger.ErrorException("AcquireLease, blob: " + blob, e);
+                }
                 return null;
             }
         }
 
-        public static void ReleaseLease(CloudBlob blob, string leaseId)
+        public static void ReleaseLease(CloudBlob blob, string leaseId, NLog.Logger logger = null)
         {
-            DoLeaseOperation(blob, leaseId, Microsoft.WindowsAzure.StorageClient.Protocol.LeaseAction.Release);
+            DoLeaseOperation(blob, leaseId, Microsoft.WindowsAzure.StorageClient.Protocol.LeaseAction.Release, logger);
         }
 
-        private static void DoLeaseOperation(CloudBlob blob, string leaseId, Microsoft.WindowsAzure.StorageClient.Protocol.LeaseAction action)
+        private static void DoLeaseOperation(CloudBlob blob, string leaseId, Microsoft.WindowsAzure.StorageClient.Protocol.LeaseAction action, NLog.Logger logger)
         {
             try
             {
@@ -243,7 +333,10 @@ namespace HomeOS.Hub.Tools.UpdateHelper
             }
             catch (WebException e)
             {
-                Utils.configLog("WebException", e.Message + ". DoLeaseOperation, blob: " + blob.Name + ", leaseId: " + leaseId + ", action " + action);
+                if (null != logger)
+                {
+                    logger.ErrorException("DoLeaseOperation, blob: " + blob.Name + ", leaseId: " + leaseId + ", action " + action, e);
+                }
             }
         }
         private static bool BlockBlobExists(Microsoft.WindowsAzure.StorageClient.CloudBlockBlob blob)
@@ -266,7 +359,6 @@ namespace HomeOS.Hub.Tools.UpdateHelper
             }
         }
 
-        #endregion 
-
+        #endregion     
     }
 }

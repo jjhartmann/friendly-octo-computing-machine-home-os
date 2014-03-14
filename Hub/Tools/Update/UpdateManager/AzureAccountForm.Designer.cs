@@ -30,9 +30,9 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AzureAccountForm));
             this.labelAzureAccountName = new System.Windows.Forms.Label();
-            this.maskedTextBoxAzureAccountName = new System.Windows.Forms.MaskedTextBox();
+            this.textBoxAzureAccountName = new System.Windows.Forms.MaskedTextBox();
             this.labelAzureAccountKey = new System.Windows.Forms.Label();
-            this.maskedTextBoxAzureAccountKey = new System.Windows.Forms.MaskedTextBox();
+            this.textBoxAzureAccountKey = new System.Windows.Forms.MaskedTextBox();
             this.buttonAzureAccountAdd = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
@@ -45,13 +45,12 @@
             this.labelAzureAccountName.TabIndex = 0;
             this.labelAzureAccountName.Text = "Account Name";
             // 
-            // maskedTextBoxAzureAccountName
+            // textBoxAzureAccountName
             // 
-            this.maskedTextBoxAzureAccountName.Location = new System.Drawing.Point(110, 28);
-            this.maskedTextBoxAzureAccountName.Name = "maskedTextBoxAzureAccountName";
-            this.maskedTextBoxAzureAccountName.Size = new System.Drawing.Size(197, 20);
-            this.maskedTextBoxAzureAccountName.TabIndex = 1;
-            this.maskedTextBoxAzureAccountName.MaskInputRejected += new System.Windows.Forms.MaskInputRejectedEventHandler(this.maskedTextBoxAzureAccountName_MaskInputRejected);
+            this.textBoxAzureAccountName.Location = new System.Drawing.Point(110, 28);
+            this.textBoxAzureAccountName.Name = "textBoxAzureAccountName";
+            this.textBoxAzureAccountName.Size = new System.Drawing.Size(197, 20);
+            this.textBoxAzureAccountName.TabIndex = 1;
             // 
             // labelAzureAccountKey
             // 
@@ -62,13 +61,12 @@
             this.labelAzureAccountKey.TabIndex = 2;
             this.labelAzureAccountKey.Text = "Account Key";
             // 
-            // maskedTextBoxAzureAccountKey
+            // textBoxAzureAccountKey
             // 
-            this.maskedTextBoxAzureAccountKey.Location = new System.Drawing.Point(110, 71);
-            this.maskedTextBoxAzureAccountKey.Name = "maskedTextBoxAzureAccountKey";
-            this.maskedTextBoxAzureAccountKey.Size = new System.Drawing.Size(197, 20);
-            this.maskedTextBoxAzureAccountKey.TabIndex = 3;
-            this.maskedTextBoxAzureAccountKey.MaskInputRejected += new System.Windows.Forms.MaskInputRejectedEventHandler(this.maskedTextBoxAzureAccountKey_MaskInputRejected);
+            this.textBoxAzureAccountKey.Location = new System.Drawing.Point(110, 71);
+            this.textBoxAzureAccountKey.Name = "textBoxAzureAccountKey";
+            this.textBoxAzureAccountKey.Size = new System.Drawing.Size(197, 20);
+            this.textBoxAzureAccountKey.TabIndex = 3;
             // 
             // buttonAzureAccountAdd
             // 
@@ -76,8 +74,9 @@
             this.buttonAzureAccountAdd.Name = "buttonAzureAccountAdd";
             this.buttonAzureAccountAdd.Size = new System.Drawing.Size(75, 23);
             this.buttonAzureAccountAdd.TabIndex = 4;
-            this.buttonAzureAccountAdd.Text = "Add";
+            this.buttonAzureAccountAdd.Text = "Update";
             this.buttonAzureAccountAdd.UseVisualStyleBackColor = true;
+            this.buttonAzureAccountAdd.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.buttonAzureAccountAdd.Click += new System.EventHandler(this.buttonAzureAccountAdd_Click);
             // 
             // AzureAccountForm
@@ -86,16 +85,16 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(338, 177);
             this.Controls.Add(this.buttonAzureAccountAdd);
-            this.Controls.Add(this.maskedTextBoxAzureAccountKey);
+            this.Controls.Add(this.textBoxAzureAccountKey);
             this.Controls.Add(this.labelAzureAccountKey);
-            this.Controls.Add(this.maskedTextBoxAzureAccountName);
+            this.Controls.Add(this.textBoxAzureAccountName);
             this.Controls.Add(this.labelAzureAccountName);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "AzureAccountForm";
-            this.Text = "Azure Account";
+            this.Text = "Azure Storage Account";
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -104,9 +103,9 @@
         #endregion
 
         private System.Windows.Forms.Label labelAzureAccountName;
-        private System.Windows.Forms.MaskedTextBox maskedTextBoxAzureAccountName;
+        private System.Windows.Forms.MaskedTextBox textBoxAzureAccountName;
         private System.Windows.Forms.Label labelAzureAccountKey;
-        private System.Windows.Forms.MaskedTextBox maskedTextBoxAzureAccountKey;
+        private System.Windows.Forms.MaskedTextBox textBoxAzureAccountKey;
         private System.Windows.Forms.Button buttonAzureAccountAdd;
     }
 }

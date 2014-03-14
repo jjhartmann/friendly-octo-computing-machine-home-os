@@ -12,6 +12,8 @@ namespace HomeOS.Shared
     {
         [DataMember(Name = "ModuleFriendlyName")]
         public string ModuleFriendlyName { get; set; }
+        [DataMember(Name = "ModuleVersion")]
+        public string ModuleVersion { get; set; }
         [DataMember(Name = "MonitoringTotalProcessorTime")]
         public long MonitoringTotalProcessorTime { get; set; }
         [DataMember(Name = "MonitoringTotalAllocatedMemorySize")]
@@ -23,8 +25,9 @@ namespace HomeOS.Shared
 
         public override string ToString()
         {
-            string s = string.Format("modName:{0,15}, cpu:{1,15} msecs, allocMem:{2,15} Bytes, surMem:{3,15} Bytes, procMem:{4,15} Bytes",
+            string s = string.Format("modName:{0,15}, modVersion:{1,15}, cpu:{2,15} msecs, allocMem:{3,15} Bytes, surMem:{4,15} Bytes, procMem:{5,15} Bytes",
                     this.ModuleFriendlyName,
+                    this.ModuleVersion,
                     this.MonitoringTotalProcessorTime,
                     this.MonitoringTotalAllocatedMemorySize,
                     this.MonitoringSurvivedMemorySize,

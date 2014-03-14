@@ -54,7 +54,7 @@ namespace HomeOS.Hub.Apps.Dummy
 
             // remoteSync flag can be set to true, if the Platform Settings has the Cloud storage
             // information i.e., DataStoreAccountName, DataStoreAccountKey values
-            datastream = base.CreateFileStream<StrKey, StrValue>("test", false /* remoteSync */);
+            datastream = base.CreateValueDataStream<StrKey, StrValue>("test", false /* remoteSync */);
 
             worker = new SafeThread(delegate()
             {

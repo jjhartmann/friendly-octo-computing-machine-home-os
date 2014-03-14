@@ -172,7 +172,7 @@ namespace HomeOS.Hub.Platform
                 string temporaryDirectoryToUpload = temporaryZipLocation + "\\" + CurrentConfigZipName.Replace(".zip", "");
                 Utils.CreateDirectory(logger, temporaryDirectoryToUpload);
 
-                foreach (string file in GetFileNamesInVersionDef(Settings.ConfigDir))
+                foreach (string file in GetFileNamesInVersionDef(logger, Settings.ConfigDir))
                 {
                     Utils.CopyFile(logger, Settings.ConfigDir + "\\" + file, temporaryDirectoryToUpload + "\\" + file);
                 }
@@ -225,8 +225,8 @@ namespace HomeOS.Hub.Platform
                     currentVersion = ConvertVersionToString(GetConfigVersion(Settings.ConfigDir));
                 }
 
-                string currentVersionDef = string.Join(",", GetVersionDef(Settings.ConfigDir));
-                string newVersionDef = string.Join(",", GetVersionDef(newconfigdir));
+                string currentVersionDef = string.Join(",", GetVersionDef(logger, Settings.ConfigDir));
+                string newVersionDef = string.Join(",", GetVersionDef(logger, newconfigdir));
 
                 if (currentVersion.Equals(ConvertVersionToString(GetConfigVersion(newconfigdir))) && currentVersionDef.Equals(newVersionDef, StringComparison.CurrentCultureIgnoreCase))
                 {
@@ -386,7 +386,7 @@ namespace HomeOS.Hub.Platform
         private Dictionary<string, string> GetConfigVersion(string configDir)
         {
             Dictionary<string, string> retVal = new Dictionary<string, string>();
-            List<string> configFilesToHash = GetFileNamesInVersionDef(configDir);
+            List<string> configFilesToHash = GetFileNamesInVersionDef(logger, configDir);
 
             foreach (string name in configFilesToHash)
             {
@@ -399,7 +399,7 @@ namespace HomeOS.Hub.Platform
             return retVal;
         }
 
-        private List<string> GetFileNamesInVersionDef(string configDir)
+        public static  List<string> GetFileNamesInVersionDef(VLogger logger, string configDir)
         {
             List<string> filesInVersion = Constants.DefaultConfigVersionDefinition.ToList();
             List<string> filesInConfigDir = Utils.ListFiles(logger, configDir);
@@ -407,20 +407,23 @@ namespace HomeOS.Hub.Platform
 
             try
             {
-                filesInVersion = GetVersionDef(configDir);
+                filesInVersion = GetVersionDef(logger, configDir);
                 filesInConfigDir.Sort();
                 configFilesToHash = filesInConfigDir.Intersect(filesInVersion.ToList()).ToList();
             }
             catch (Exception e)
             {
-                Utils.structuredLog(logger, "E", e.Message + " .GetConfigVersion");
+                if (null != logger)
+                {
+                    Utils.structuredLog(logger, "E", e.Message + " .GetConfigVersion");
+                }
             }
 
             configFilesToHash.Sort();
             return configFilesToHash;
         }
 
-        private List<string> GetVersionDef(string configDir)
+        public static List<string> GetVersionDef(VLogger logger, string configDir)
         {
             List<string> retVal = new List<string>();
             try
@@ -435,7 +438,10 @@ namespace HomeOS.Hub.Platform
             }
             catch (Exception e)
             {
-                Utils.structuredLog(logger, "E", e.Message + " .GetVersionDef " + configDir);
+                if (null != logger)
+                {
+                    Utils.structuredLog(logger, "E", e.Message + " .GetVersionDef " + configDir);
+                }
             }
 
             return retVal;

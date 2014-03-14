@@ -13,8 +13,8 @@ namespace HomeOS.Hub.UnitTests.Common.Bolt.DataStore
         [TestMethod]
         public void AzureChunkWriteRead()
         {
-            string accountName = "msrlot";
-            string accountKey = "wC3ou+VLBTu8ryKbsiSMtsIIHIpxGSIAWA0NtK58da2wELQ+USgYQwmVMtyq/p8ILsuZc8TiLeHBjaPI+a3A2Q==";
+            string accountName = "testdrive";
+            string accountKey = "zRTT++dVryOWXJyAM7NM0TuQcu0Y23BgCQfkt7xh2f/Mm+r6c8/XtPTY0xxaF6tPSACJiuACsjotDeNIVyXM8Q==";
             RemoteInfo ri = new RemoteInfo(accountName, accountKey);
 
             AzureHelper helper = new AzureHelper(accountName, accountKey, "testuploadchunksfile", CompressionType.None, EncryptionType.None, null, null, new Logger(), 4*1024*1024 , 1);

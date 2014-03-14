@@ -11,6 +11,9 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Xml.Linq;
+using System.AddIn.Hosting;
+using System.Collections.ObjectModel;
 
 namespace HomeOS.Hub.Common
 {
@@ -39,6 +42,59 @@ namespace HomeOS.Hub.Common
 
                 return hwId;
             }
+        }
+
+        public static string GetAddInConfigFilepath(string moduleName)
+        {
+            return Constants.AddInRoot + "\\AddIns\\" + moduleName + "\\" + moduleName + ".dll.config";
+        }
+
+        public static Collection<AddInToken> GetAddInTokens(string addInRoot, string moduleName)
+        {
+            // rebuild the cache files of the pipeline segments and add-ins.
+            string[] warnings = AddInStore.Rebuild(addInRoot);
+
+            foreach (string warning in warnings)
+                Console.WriteLine(warning);
+
+            // Search for add-ins of type VModule
+            Collection<AddInToken> tokens = AddInStore.FindAddIns(typeof(VModule), addInRoot);
+
+            return tokens;
+        }
+
+
+        public const string UnknownHomeOSUpdateVersionValue = "0.0.0.0";
+        public const string ConfigAppSettingKeyHomeOSUpdateVersion = "HomeOSUpdateVersion";
+
+        public static string GetHomeOSUpdateVersion(string configFile)
+        {
+            return GetHomeOSUpdateVersion(configFile, null);
+        }
+
+        public static string GetHomeOSUpdateVersion(string configFile, Logger logger)
+        {
+            string homeosUpdateVersion = UnknownHomeOSUpdateVersionValue;
+            try
+            {
+                XElement xmlTree = XElement.Load(configFile);
+                IEnumerable<XElement> das =
+                    from el in xmlTree.DescendantsAndSelf()
+                    where el.Name == "add" && el.Parent.Name == "appSettings" && el.Attribute("key").Value == ConfigAppSettingKeyHomeOSUpdateVersion
+                    select el;
+                if (das.Count() > 0)
+                {
+                    homeosUpdateVersion = das.First().Attribute("value").Value;
+                }
+            }
+            catch (Exception e)
+            {
+                if (null != logger)
+                {
+                    logger.Log(String.Format("Failed to parse {0}, exception: {1}", configFile, e.ToString()));
+                }
+            }
+            return homeosUpdateVersion;
         }
 
         /// <summary>
@@ -286,7 +342,10 @@ namespace HomeOS.Hub.Common
             }
             catch (Exception e)
             {
-                Utils.structuredLog(logger,"E", e.Message + ". ListFiles, directory: " + directory);
+                if (null != logger)
+                {
+                    Utils.structuredLog(logger, "E", e.Message + ". ListFiles, directory: " + directory);
+                }
             }
             return retVal;
         }
@@ -385,7 +444,10 @@ namespace HomeOS.Hub.Common
             }
             catch (Exception e)
             {
-                Utils.structuredLog(logger, "E", e.Message + ". GetMD5HashOfFile(), file" + filePath);
+                if (null != logger)
+                {
+                    Utils.structuredLog(logger, "E", e.Message + ". GetMD5HashOfFile(), file" + filePath);
+                }
                 return "";
             }
         }

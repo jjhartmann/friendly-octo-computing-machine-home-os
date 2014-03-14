@@ -199,7 +199,7 @@ function GetCompatiableAppsNotInstalledWebCallback(context, result) {
 function GetCompatiableAppsInstalledWebCallback(context, result) {
     UpdateDebugInfo(context, result);
     if (result[0] == "") {
-        UpdateDebugInfo(context, "AppsInstalled callback");
+       // UpdateDebugInfo(context, "AppsInstalled callback");
 
         parseReturnedAppList(result, "#divIApps");
     }

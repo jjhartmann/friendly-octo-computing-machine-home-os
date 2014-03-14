@@ -7,6 +7,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Xml;
 using System.Xml.Linq;
+using NLog;
 
 //needed for ArgumentHelper
 using HomeOS.Hub.Common;
@@ -25,15 +26,23 @@ namespace PlatformPackager
             string platformRootDir = (string)argsDict["PlatformRootDir"];
             string repoDir = (string)argsDict["RepoDir"];
 
+
             // check the platform binary is present
             string platformExe = platformRootDir + "\\" + platformBinaryName + ".exe";
+
+            // file/directory status
+            string currentDir = Directory.GetCurrentDirectory();
+            Console.WriteLine("Current Directory is {0}", currentDir);
+            Console.WriteLine("PlatformRootDir is {0}", Path.GetFullPath(platformExe));
+            Console.WriteLine("RepoDir is {0}", Path.GetFullPath(repoDir));
+
             if (!File.Exists(platformExe))
             {
                 Console.Error.WriteLine("Platform binary {0} not found. Quitting.", platformExe);
                 return;
             }
-
-            BinaryPackagerHelper.Package(platformRootDir, platformBinaryName, true /*singleBin*/, "exe", "platform", repoDir);
+            string[] filePaths = new string[0];
+            BinaryPackagerHelper.Package(platformRootDir, platformBinaryName, true /*singleBin*/, "exe", "platform", repoDir, ref filePaths);
         }
 
         /// <summary>

@@ -78,6 +78,23 @@ namespace HomeOS.Hub.Apps.Switch
             }
         }
 
+        public List<string> SetAllSwitches(string level)
+        {
+            try
+            {
+                double dblLevel = double.Parse(level);
+
+                controller.SetAllSwitches(dblLevel);
+
+                return new List<string>() { "" };
+            }
+            catch (Exception e)
+            {
+                logger.Log("Got exception in SetAllSwitches ({0}): {1}", level, e.ToString());
+                return new List<string>() { e.Message };
+            }
+        }
+
         public List<string> SetColor(string switchFriendlyName, string red, string green, string blue)
         {
             try
@@ -113,6 +130,21 @@ namespace HomeOS.Hub.Apps.Switch
                 return new List<string>() { e.Message };
             }
         }
+
+
+        public List<string> DiscoSwitches()
+        {
+            try
+            {
+                controller.DiscoSwitches();
+                return new List<string>() { "" };
+            }
+            catch (Exception e)
+            {
+                logger.Log("Got exception in DiscoSwitches: " + e);
+                return new List<string>() { e.Message };
+            }
+        }
     }
 
 
@@ -125,7 +157,16 @@ namespace HomeOS.Hub.Apps.Switch
 
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        List<string> DiscoSwitches();
+
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
         List<string> SetLevel(string switchFriendlyName, string level);
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        List<string> SetAllSwitches(string level);
 
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
@@ -134,5 +175,7 @@ namespace HomeOS.Hub.Apps.Switch
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
         List<string> GetColor(string switchFriendlyName);
+
+
     }
 }

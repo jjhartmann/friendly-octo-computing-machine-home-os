@@ -10,7 +10,7 @@ var liveIdLogoutUrl = "http://login.live.com/logout.srf?appid="+LiveIdAppId+"&ap
 var policyEndpointSuffix = "/auth/policy";
 var statusEndpointSuffix = "/auth/status";
 var GuiWebEndpointSuffix = "../GuiWeb/SignIn.html";
-var GateKeeperDomain = "cloudapp.net"; // If the page is being accessed from this domain i.e. remotel, then we dont query the hub for the status of the endpoint 
+var GateKeeperDomain = "lab-of-things.net"; // If the page is being accessed from this domain i.e. remotel, then we dont query the hub for the status of the endpoint 
 //
 
 

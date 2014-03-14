@@ -18,7 +18,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
 
         public enum StreamOp : byte { Read = 0, Write }
         public enum StreamSecurityType : byte { Plain = 0, Secure}
-        public enum StreamPhysicalType : byte { File = 0, Directory }
+        public enum StreamDataType : byte { Values = 0, Files }
 
         private StreamFactory() { }
 
@@ -44,33 +44,47 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             }
         }
 
-        public IStream openFileStream<KeyType, ValType>(FqStreamID FQSID,
+        public IStream openValueDataStream<KeyType, ValType>(FqStreamID FQSID,
                                                         CallerInfo Ci,
                                                         LocationInfo Li,
                                                         StreamSecurityType type,
                                                         CompressionType ctype,
                                                         StreamOp op,
-                                                        string mdserveraddress = null, int ChunkSizeForUpload = 4*1024*1024 , int ThreadPoolSize = 1, Logger log = null)
+                                                        string mdserveraddress = null, 
+                                                        int ChunkSizeForUpload = 4*1024*1024 , 
+                                                        int ThreadPoolSize = 1, 
+                                                        Logger log = null,
+                                                        bool sideload = false)
             where KeyType : IKey, new()
             where ValType : IValue, new()
         {
             if (Li == null)
                 Li = new LocationInfo("", "", SynchronizerType.None);
-            return new MetaStream<KeyType, ValType>(FQSID, Ci, Li, op, type, ctype, StreamPhysicalType.File, mdserveraddress, ChunkSizeForUpload, ThreadPoolSize, log);
+            return new MetaStream<KeyType, ValType>(FQSID, Ci, Li, 
+                                                    op, type, ctype, StreamDataType.Values, mdserveraddress, 
+                                                    ChunkSizeForUpload, ThreadPoolSize, 
+                                                    log, sideload);
         }
 
-        public IStream openDirStream<KeyType>(FqStreamID FQSID, 
+        public IStream openFileDataStream<KeyType>(FqStreamID FQSID, 
                                                 CallerInfo Ci, 
                                                 LocationInfo Li,
                                                 StreamFactory.StreamSecurityType type,
                                                 CompressionType ctype,
                                                 StreamFactory.StreamOp op,
-                                                string mdserveraddress = null, int ChunkSizeForUpload = 4*1024*1024 , int ThreadPoolSize = 1, Logger log = null )
+                                                string mdserveraddress = null, 
+                                                int ChunkSizeForUpload = 4*1024*1024 , 
+                                                int ThreadPoolSize = 1,
+                                                Logger log = null,
+                                                bool sideload = false)
             where KeyType : IKey, new()
         {
             if (Li == null)
                 Li = new LocationInfo("", "", SynchronizerType.None);
-            return new MetaStream<KeyType, ByteValue>(FQSID, Ci, Li, op, type, ctype, StreamPhysicalType.Directory, mdserveraddress, ChunkSizeForUpload, ThreadPoolSize, log );
+            return new MetaStream<KeyType, ByteValue>(FQSID, Ci, Li, 
+                                                      op, type, ctype, StreamDataType.Files, mdserveraddress, 
+                                                      ChunkSizeForUpload, ThreadPoolSize, 
+                                                      log, sideload);
         }
 
 
@@ -182,13 +196,13 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                         ai.keyVersion = account.keyVersion;
                         ai.num = account.num;
                         synchronizerForDelete = CreateSyncForAccount(ai , containerName, log);
-                        synchronizerForDelete.Delete();
+                        if (synchronizerForDelete != null) synchronizerForDelete.Delete();
                         if(segment0Ai==null)
                             segment0Ai = ai;
                     }
                     containerName = streamId.ToString().Replace('/', '-').ToLower();// TODO account info for meta stream = that of seg 0? something is wrong. 
                     synchronizerForDelete = CreateSyncForAccount(segment0Ai, containerName, log);
-                    synchronizerForDelete.Delete();
+                    if (synchronizerForDelete != null) synchronizerForDelete.Delete();
                 }
             }
 

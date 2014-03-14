@@ -19,4 +19,5 @@
   <Role Name=":skeletontracker:" />
   <Role Name=":actuator:" />
   <Role Name=":sensormultilevel:"/>
+  <Role Name=":speechreco:"/>
 </Roles>

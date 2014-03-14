@@ -19,8 +19,8 @@ namespace HomeOS.Hub.UnitTests.Common.Bolt.DataStore
         {
             k1 = new StrKey("k1");
             k2 = new StrKey("k2");
-            string AzureaccountName = "msrlot";
-            string AzureaccountKey = "wC3ou+VLBTu8ryKbsiSMtsIIHIpxGSIAWA0NtK58da2wELQ+USgYQwmVMtyq/p8ILsuZc8TiLeHBjaPI+a3A2Q==";
+            string AzureaccountName = "testdrive";
+            string AzureaccountKey = "zRTT++dVryOWXJyAM7NM0TuQcu0Y23BgCQfkt7xh2f/Mm+r6c8/XtPTY0xxaF6tPSACJiuACsjotDeNIVyXM8Q==";
             locationInfo = new LocationInfo(AzureaccountName, AzureaccountKey, SynchronizerType.Azure);
         }
 
@@ -35,7 +35,7 @@ namespace HomeOS.Hub.UnitTests.Common.Bolt.DataStore
             for (int i = 0; i < 10; ++i)
             {
                 StreamFactory sf = StreamFactory.Instance;
-                IStream dfs_byte_val = sf.openFileStream<StrKey, ByteValue>(new FqStreamID("99-2729", "A0", "TestMultiClose"),
+                IStream dfs_byte_val = sf.openValueDataStream<StrKey, ByteValue>(new FqStreamID("99-2729", "A0", "TestMultiClose"),
                             new CallerInfo(null, "A0", "A0", 1),
                             locationInfo,
                             StreamFactory.StreamSecurityType.Plain,

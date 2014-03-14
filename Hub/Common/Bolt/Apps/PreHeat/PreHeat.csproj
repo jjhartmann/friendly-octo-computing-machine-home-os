@@ -21,7 +21,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\..\..\..\output\binaries\Platform\HomeOS.Hub.Common.Bolt.Apps.PreHeat\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -45,6 +45,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ListExtensions.cs" />
+    <Compile Include="NaivePreHeat-RemoteRead.cs" />
     <Compile Include="OptimalPreHeat.cs" />
     <Compile Include="IPreHeat.cs" />
     <Compile Include="MainClass.cs" />

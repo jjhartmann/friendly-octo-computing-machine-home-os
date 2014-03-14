@@ -41,7 +41,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.Eval
         static int[] n_operations = { 1000 };
         static int num_multi_segment_operations = 1000;
         static int n_iterations = 10;
-        static StreamFactory.StreamPhysicalType[] ptypes = { StreamFactory.StreamPhysicalType.Directory};
+        static StreamFactory.StreamDataType[] ptypes = { StreamFactory.StreamDataType.Files};
         static CompressionType[] ctypes = { CompressionType.None};
         //  static int[] data_size = { 10, 1000, 10000 };
         static int[] data_size = { 1000, 10000, 100000 };
@@ -350,7 +350,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.Eval
             bool doscale = false)
         {
             double baseline = 1;
-            foreach (StreamFactory.StreamPhysicalType ptype in ptypes)
+            foreach (StreamFactory.StreamDataType ptype in ptypes)
             {
                 double x = 1.0;
                 foreach (int size in data_size)
@@ -450,7 +450,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.Eval
                 {
                     foreach (int size in data_size)
                     {
-                        foreach (StreamFactory.StreamPhysicalType ptype in ptypes)
+                        foreach (StreamFactory.StreamDataType ptype in ptypes)
                         {
                             foreach (CompressionType ctype in ctypes)
                             {

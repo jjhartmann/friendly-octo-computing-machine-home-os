@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
 using HomeOS.Hub.Tools.PackagerHelper;
+using NLog;
 
 namespace HomeOS.Hub.Tools
 {
@@ -26,6 +27,12 @@ namespace HomeOS.Hub.Tools
             string addInRoot = (string)argsDict["AddInRoot"];
             string moduleName = (string)argsDict["ModuleName"];
             string repoDir = (string)argsDict["RepoDir"];
+
+            // file/directory status
+            string currentDir = Directory.GetCurrentDirectory();
+            Console.WriteLine("Current Directory is {0}", currentDir);
+            Console.WriteLine("AddInRoot is {0}", Path.GetFullPath(addInRoot));
+            Console.WriteLine("RepoDir is {0}", Path.GetFullPath(repoDir));
 
             if (!Directory.Exists(addInRoot))
             {
@@ -43,7 +50,8 @@ namespace HomeOS.Hub.Tools
                 if (string.IsNullOrWhiteSpace(moduleName) ||
                     token.Name.Equals(moduleName))
                 {
-                    BinaryPackagerHelper.Package(addInRoot + "\\AddIns", token.Name, false /*singleBin*/, "dll", "module", repoDir);
+                    string[] filePaths = new string[0];
+                    BinaryPackagerHelper.Package(addInRoot + "\\AddIns", token.Name, false /*singleBin*/, "dll", "module", repoDir, ref filePaths);
                     packagedSomething = true;
                 }
             }   

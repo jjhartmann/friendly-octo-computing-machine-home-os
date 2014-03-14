@@ -17,7 +17,6 @@ namespace HomeOS.Hub.Watchdog
     public partial class WatchdogService : ServiceBase
     {
         public const bool SendHeartBeats = false;
-        public const bool CheckForUpdates = true;
         public const bool CheckForProcessLiveness = true;
 
 
@@ -46,6 +45,7 @@ namespace HomeOS.Hub.Watchdog
             public string ExeDir;       //stored as absolute path, but should be relative watchdog.exe in watchdog.txt
             public string ExeName;     
             public int nSecondsRunDelay;
+            public bool checkForUpdates;
             public string UpdateUri;
             public string Args;
 
@@ -178,10 +178,11 @@ namespace HomeOS.Hub.Watchdog
                             pd.ExeDir = inputDir + "\\" + data[1];
                             pd.ExeName = data[2];
                             pd.nSecondsRunDelay = Convert.ToInt32(data[3]);
-                            pd.UpdateUri = data[4];
+                            pd.checkForUpdates = Convert.ToBoolean(data[4]);
+                            pd.UpdateUri = data[5];
                             // add in args if any
-                            if (data.Length > 5)
-                                pd.Args = data[5];
+                            if (data.Length > 6)
+                                pd.Args = data[6];
 
                             pd.fRunningAtLastCheck = false;
                             pd.dtLastRun = DateTime.Now.AddHours(-1.0);
@@ -320,10 +321,7 @@ namespace HomeOS.Hub.Watchdog
                 }
 
                 //2. check if there is a new version of the platform
-                if (CheckForUpdates)
-                {
-                    CheckProcessUpdatedness();
-                }
+                CheckProcessUpdatedness();
 
                 //3. check if the process is running
                 if (CheckForProcessLiveness)
@@ -345,7 +343,6 @@ namespace HomeOS.Hub.Watchdog
         private string GetDesiredPlatformChecksumValueFromUrl(string hashUrl, string localHashFile)
         {
             string checksumValue = "";
-
             try
             {
                 WebClient webClient = new WebClient();
@@ -362,6 +359,7 @@ namespace HomeOS.Hub.Watchdog
 
             return checksumValue.Trim(); 
         }
+
 
         private bool GetDesiredPlatformZipFromUrl(string zipUrl, string localZipFile)
         {
@@ -415,6 +413,10 @@ namespace HomeOS.Hub.Watchdog
         {
             foreach (ProgramDetails pd in aPrograms)
             {
+                // should we check for update for this program
+                if (!pd.checkForUpdates)
+                    continue;
+
                 //did enough time elapse since the last update
                 if (pd.lastUpdateCheck.AddSeconds(UPDATE_CHECK_SECONDS) > DateTime.Now)
                     continue;
@@ -487,28 +489,14 @@ namespace HomeOS.Hub.Watchdog
 
                 do
                 {
-                    string[] folders = null;
                     if (!Directory.Exists(tmpBinFolder))
                     {
                         CreateFolder(tmpBinFolder);
                         System.IO.Compression.ZipFile.ExtractToDirectory(tmpZipFile, tmpBinFolder);
-                        // check contents of the unzipped temp folder. 
-                        // we should have exactly one top-level folder and zero files
-                        string[] files = Directory.GetFiles(tmpBinFolder);
-                        folders = Directory.GetDirectories(tmpBinFolder);
-                        if (files.Length != 0 || folders.Length != 1)
-                        {
-                            LogMessage(String.Format("Unexpected outcome from unzipping. #files = {0} #folders = {1}", files.Length, folders.Length), true);
-                            goto next;
-                        }
-                    }
-                    else
-                    {
-                        folders = Directory.GetDirectories(tmpBinFolder);
                     }
                     if (string.IsNullOrEmpty(this.DesiredVersion))
                     {
-                        this.DesiredVersion = GetHomeOSUpdateVersion(folders[0] + "\\" + pd.ExeName + ".config");
+                        this.DesiredVersion = GetHomeOSUpdateVersion(tmpBinFolder + "\\" + pd.ExeName + ".config");
                     }
                     if (string.IsNullOrEmpty(this.InstalledVersion))
                     {
@@ -526,7 +514,7 @@ namespace HomeOS.Hub.Watchdog
                     KillProcess(pd);
 
                     // copy over the folder
-                    CopyFolder(folders[0], pd.ExeDir);
+                    CopyFolder(tmpBinFolder, pd.ExeDir);
 
                     // remember the new version installed
                     this.InstalledVersion = this.DesiredVersion;

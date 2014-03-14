@@ -161,6 +161,7 @@ namespace HomeOS.Hub.Tools.UpdateHelper
             // Get the object used to communicate with the server.
             FtpWebRequest request = (FtpWebRequest)WebRequest.Create(serverUri);
             request.EnableSsl = enableSSL;
+            request.UsePassive = true;
             request.Method = WebRequestMethods.Ftp.GetFileSize;
             request.Credentials = new NetworkCredential(userName, password);
 
@@ -339,12 +340,14 @@ namespace HomeOS.Hub.Tools.UpdateHelper
             {
                 Utils.configLog("I", String.Format("The operation completed - {0}", state.StatusDescription));
             }
+
         }
 
         private static void EndGetStreamCallback(IAsyncResult ar)
         {
             FtpState state = (FtpState)ar.AsyncState;
 
+            FileStream stream = null;
             Stream requestStream = null;
             // End the asynchronous call to get the request stream. 
             try
@@ -355,7 +358,6 @@ namespace HomeOS.Hub.Tools.UpdateHelper
                 byte[] buffer = new byte[bufferLength];
                 int count = 0;
                 int readBytes = 0;
-                FileStream stream = null;
 
                 stream = File.OpenRead(state.Argument);
                 do
@@ -369,6 +371,7 @@ namespace HomeOS.Hub.Tools.UpdateHelper
 
                 // IMPORTANT: Close the request stream before sending the request.
                 requestStream.Close();
+                requestStream = null;
                 // Asynchronously get the response to the upload request.
                 state.Request.BeginGetResponse(
                     new AsyncCallback(EndGetResponseCallback),
@@ -382,6 +385,17 @@ namespace HomeOS.Hub.Tools.UpdateHelper
                 state.OperationException = e;
                 state.OperationComplete.Set();
                 return;
+            }
+            finally
+            {
+                if (null != requestStream)
+                {
+                    requestStream.Close();
+                }
+                if (null != stream)
+                {
+                    stream.Close();
+                }
             }
         }
 
@@ -440,6 +454,24 @@ namespace HomeOS.Hub.Tools.UpdateHelper
                     stream.Close();
                 }
             }
+        }
+
+        public static bool GetZipFromUrl(Uri zipUrl, string localZipFile, string user, string password, bool enableSSL)
+        {
+            bool success = false;
+            try
+            {
+                DownloadFile(zipUrl, localZipFile, user, password, enableSSL);
+
+                if (File.Exists(localZipFile))
+                {
+                    success = true;
+                }
+            }
+            catch(Exception)
+            {
+            }
+            return success;
         }
     }
 }

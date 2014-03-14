@@ -40,6 +40,7 @@ namespace ConfigPackager
                 string.IsNullOrEmpty((string)argsDict["DesiredConfigDir"]) )
                 Utils.die(Utils.missingArgumentMessage("DesiredConfigDir"));
 
+
             if(getactual.Equals((string)argsDict["Function"]))
             {
                 Console.WriteLine("\nPerforming GetActualConfig with following arguments:");
@@ -53,6 +54,13 @@ namespace ConfigPackager
                 Utils.printArgumentsDictionary(argsDict);
                 setDesiredConfig(argsDict);
             }
+
+            // file/directory status
+            string currentDir = Directory.GetCurrentDirectory();
+            Console.WriteLine("Current Directory is {0}", currentDir);
+            Console.WriteLine("ActualConfigDir is {0}", Path.GetFullPath((string)argsDict["ActualConfigDir"]));
+            Console.WriteLine("DesiredConfigDir is {0}", Path.GetFullPath((string)argsDict["DesiredConfigDir"]));
+
             
         }
 
@@ -63,7 +71,6 @@ namespace ConfigPackager
             string orgId = (string)argsDict["OrgID"];
             string studyId = (string)argsDict["StudyID"];
             string homeIDs = (string)argsDict["HomeIDs"];
-            string container = (string)argsDict["Container"];
             string actualConfigDir = (string)argsDict["ActualConfigDir"];
             string desiredConfigDir = (string)argsDict["DesiredConfigDir"];
             string accountName = (string)argsDict["AccountName"];
@@ -106,13 +113,13 @@ namespace ConfigPackager
             foreach (string h in homeID)
             {
                 Console.WriteLine("\nSetting desired config for homeID:" + h);
-                writeDesiredConfigToAzure(accountName, accountKey, container, orgId, studyId, h, actualConfigDir, desiredConfigDir);
+                writeDesiredConfigToAzure(accountName, accountKey, orgId, studyId, h, actualConfigDir, desiredConfigDir);
             }
 
 
         }
 
-        private static void writeDesiredConfigToAzure(string accountName, string accountKey, string container, string orgId, string studyId, string homeID, string actualConfigDir, string desiredConfigDir)
+        private static void writeDesiredConfigToAzure(string accountName, string accountKey, string orgId, string studyId, string homeID, string actualConfigDir, string desiredConfigDir)
         {
             string zipPath_desired = desiredConfigDir + "/" + orgId + "/" + studyId + "/" + homeID + "/";
             string zipPath_actual = actualConfigDir + "/" + orgId + "/" + studyId + "/" + homeID + "/";
@@ -151,7 +158,7 @@ namespace ConfigPackager
             PackagerHelper.MoveFile(desiredConfigDir + "/" + ConfigPackagerHelper.desiredConfigFileName, zipPath_desired + ConfigPackagerHelper.desiredConfigFileName);
 
             Console.WriteLine("Uploading desired config for homeID {0} ", homeID);
-            if (!AzureBlobConfigUpdate.UploadConfig(zipPath_desired + ConfigPackagerHelper.desiredConfigFileName, accountName, accountKey, orgId, studyId, homeID, container, ConfigPackagerHelper.desiredConfigFileName))
+            if (!AzureBlobConfigUpdate.UploadConfig(zipPath_desired + ConfigPackagerHelper.desiredConfigFileName, accountName, accountKey, orgId, studyId, homeID, ConfigPackagerHelper.desiredConfigFileName))
             {
                 Console.WriteLine("WARNING! unable to upload config for homeID: " + homeID);
                 
@@ -169,7 +176,6 @@ namespace ConfigPackager
             string orgId = (string)argsDict["OrgID"];
             string studyId = (string)argsDict["StudyID"];
             string homeIDs = (string)argsDict["HomeIDs"];
-            string container = (string)argsDict["Container"];
             string actualConfigDir = (string)argsDict["ActualConfigDir"];
             string accountName = (string)argsDict["AccountName"];
 
@@ -190,9 +196,7 @@ namespace ConfigPackager
             }
             else
             {
-
-                Console.WriteLine("\nFetching list of homeIDs from container: "+container);
-                Tuple<bool, List<string>> fetchHubList = AzureBlobConfigUpdate.listHubs(accountName, accountKey, container, orgId, studyId );
+                Tuple<bool, List<string>> fetchHubList = AzureBlobConfigUpdate.listHubs(accountName, accountKey, orgId, studyId );
                 if (fetchHubList.Item1)
                     homeID = fetchHubList.Item2.ToArray();
                 else
@@ -208,21 +212,21 @@ namespace ConfigPackager
 
             foreach (string h in homeID)
             {
-                Console.WriteLine("\nFetching config for homeID:"+h );
-                writeActualConfigToDisk(accountName, accountKey, container, orgId, studyId, h, actualConfigDir);
+                Console.WriteLine("\nFetching config for homeID:" + h);
+                writeActualConfigToDisk(accountName, accountKey, orgId, studyId, h, actualConfigDir);
             }
+            
         }
 
-        private static void writeActualConfigToDisk(string accountName, string accountKey, string container, string orgId, string studyId, string homeID, string actualConfigDir)
+        private static void writeActualConfigToDisk(string accountName, string accountKey, string orgId, string studyId, string homeID, string actualConfigDir)
         {
-
             string zipPath = actualConfigDir + "/" + orgId + "/" + studyId + "/" + homeID +"/";
             
             Console.WriteLine("Creating directory: "+zipPath);
             PackagerHelper.CreateDirectory(zipPath);
 
             Console.WriteLine("Downloading config blob...");
-            if (!AzureBlobConfigUpdate.DownloadConfig(zipPath + ConfigPackagerHelper.actualConfigFileName, accountName, accountKey, orgId, studyId, homeID, container, ConfigPackagerHelper.actualConfigFileName))
+            if (!AzureBlobConfigUpdate.DownloadConfig(zipPath + ConfigPackagerHelper.actualConfigFileName, accountName, accountKey, orgId, studyId, homeID, ConfigPackagerHelper.actualConfigFileName))
             {
                 Console.WriteLine("WARNING! unable to download config for homeID: " + homeID);
                 return;
@@ -277,13 +281,6 @@ namespace ConfigPackager
                    "homelab",
                    "Azure account name",
                    "Azure account name"),
-
-                   new ArgumentSpec(
-                   "Container",
-                   'c',
-                   "configs",
-                   "Config storage container name",
-                   "Config storage container name"),
 
                    new ArgumentSpec(
                    "OrgID",

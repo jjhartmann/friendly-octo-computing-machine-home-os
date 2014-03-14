@@ -31,7 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RepoAccountInfoForm));
             this.textBoxRepoAccountHost = new System.Windows.Forms.TextBox();
             this.textBoxRepoAccountLogin = new System.Windows.Forms.TextBox();
-            this.textBoxRepoAccountPassword = new System.Windows.Forms.TextBox();
+            this.maskedTextBoxRepoAccountPassword = new System.Windows.Forms.MaskedTextBox();
             this.buttonRepoAccountAdd = new System.Windows.Forms.Button();
             this.textBoxRepoAccountPort = new System.Windows.Forms.TextBox();
             this.labelRepoAccountPort = new System.Windows.Forms.Label();
@@ -46,7 +46,6 @@
             this.textBoxRepoAccountHost.Name = "textBoxRepoAccountHost";
             this.textBoxRepoAccountHost.Size = new System.Drawing.Size(171, 20);
             this.textBoxRepoAccountHost.TabIndex = 0;
-            this.textBoxRepoAccountHost.TextChanged += new System.EventHandler(this.textBoxRepoAccountHost_TextChanged);
             // 
             // textBoxRepoAccountLogin
             // 
@@ -54,23 +53,23 @@
             this.textBoxRepoAccountLogin.Name = "textBoxRepoAccountLogin";
             this.textBoxRepoAccountLogin.Size = new System.Drawing.Size(100, 20);
             this.textBoxRepoAccountLogin.TabIndex = 1;
-            this.textBoxRepoAccountLogin.TextChanged += new System.EventHandler(this.textBoxRepoAccountLogin_TextChanged);
             // 
-            // textBoxRepoAccountPassword
+            // maskedTextBoxRepoAccountPassword
             // 
-            this.textBoxRepoAccountPassword.Location = new System.Drawing.Point(71, 141);
-            this.textBoxRepoAccountPassword.Name = "textBoxRepoAccountPassword";
-            this.textBoxRepoAccountPassword.Size = new System.Drawing.Size(100, 20);
-            this.textBoxRepoAccountPassword.TabIndex = 2;
-            this.textBoxRepoAccountPassword.TextChanged += new System.EventHandler(this.textBoxRepoAccountPassword_TextChanged);
+            this.maskedTextBoxRepoAccountPassword.Location = new System.Drawing.Point(71, 141);
+            this.maskedTextBoxRepoAccountPassword.Name = "maskedTextBoxRepoAccountPassword";
+            this.maskedTextBoxRepoAccountPassword.PasswordChar = '*';
+            this.maskedTextBoxRepoAccountPassword.Size = new System.Drawing.Size(100, 20);
+            this.maskedTextBoxRepoAccountPassword.TabIndex = 2;
             // 
             // buttonRepoAccountAdd
             // 
-            this.buttonRepoAccountAdd.Location = new System.Drawing.Point(268, 170);
+            this.buttonRepoAccountAdd.DialogResult = System.Windows.Forms.DialogResult.OK;
+            this.buttonRepoAccountAdd.Location = new System.Drawing.Point(272, 138);
             this.buttonRepoAccountAdd.Name = "buttonRepoAccountAdd";
             this.buttonRepoAccountAdd.Size = new System.Drawing.Size(75, 23);
             this.buttonRepoAccountAdd.TabIndex = 3;
-            this.buttonRepoAccountAdd.Text = "Add";
+            this.buttonRepoAccountAdd.Text = "Update";
             this.buttonRepoAccountAdd.UseVisualStyleBackColor = true;
             this.buttonRepoAccountAdd.Click += new System.EventHandler(this.buttonRepoAccountAdd_Click);
             // 
@@ -80,7 +79,6 @@
             this.textBoxRepoAccountPort.Name = "textBoxRepoAccountPort";
             this.textBoxRepoAccountPort.Size = new System.Drawing.Size(53, 20);
             this.textBoxRepoAccountPort.TabIndex = 4;
-            this.textBoxRepoAccountPort.TextChanged += new System.EventHandler(this.textBoxRepoAccountPort_TextChanged);
             // 
             // labelRepoAccountPort
             // 
@@ -122,14 +120,14 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(355, 205);
+            this.ClientSize = new System.Drawing.Size(385, 233);
             this.Controls.Add(this.labelRepAccountPassword);
             this.Controls.Add(this.labelRepAccountLogin);
             this.Controls.Add(this.labelRepAccountHost);
             this.Controls.Add(this.labelRepoAccountPort);
             this.Controls.Add(this.textBoxRepoAccountPort);
             this.Controls.Add(this.buttonRepoAccountAdd);
-            this.Controls.Add(this.textBoxRepoAccountPassword);
+            this.Controls.Add(this.maskedTextBoxRepoAccountPassword);
             this.Controls.Add(this.textBoxRepoAccountLogin);
             this.Controls.Add(this.textBoxRepoAccountHost);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -149,7 +147,7 @@
 
         private System.Windows.Forms.TextBox textBoxRepoAccountHost;
         private System.Windows.Forms.TextBox textBoxRepoAccountLogin;
-        private System.Windows.Forms.TextBox textBoxRepoAccountPassword;
+        private System.Windows.Forms.MaskedTextBox maskedTextBoxRepoAccountPassword;
         private System.Windows.Forms.Button buttonRepoAccountAdd;
         private System.Windows.Forms.TextBox textBoxRepoAccountPort;
         private System.Windows.Forms.Label labelRepoAccountPort;

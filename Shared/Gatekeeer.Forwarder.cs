@@ -1,16 +1,10 @@
-﻿// -
-// <copyright file="Forwarder.cs" company="Microsoft Corporation">
-//    Copyright (c) Microsoft Corporation.  All rights reserved.
-// </copyright>
-// -
+﻿using System;
+using System.IO;
+using System.Net.Sockets;
+using System.Threading;
 
 namespace HomeOS.Shared.Gatekeeper
 {
-    using System;
-    using System.Net;
-    using System.Net.Sockets;
-    using System.IO;
-    using System.Threading;
 
     /// <summary>
     /// Represents a forwarder that bi-directionally forwards all
@@ -199,7 +193,7 @@ using (AutoEnterExitTrace aeet = new AutoEnterExitTrace(wd, wd.WebTrace, "Forwar
 {
 #endregion ENTER
 
-                aeet.WriteDiagnosticInfo(System.Diagnostics.TraceEventType.Information, DiagnosticsHelper.TraceEventID.traceFlow, "PerDirection Forwarder object: {0} was created for streams:  from:{1} to:{2}", this.GetHashCode(), from.GetHashCode(), to.GetHashCode());
+                aeet.WriteDiagnosticInfo(System.Diagnostics.TraceEventType.Information, TraceEventID.traceFlow, "PerDirection Forwarder object: {0} was created for streams:  from:{1} to:{2}", this.GetHashCode(), from.GetHashCode(), to.GetHashCode());
                 
                 this.forwarder = forwarder;
                 this.inbound = from;
@@ -237,7 +231,7 @@ using (AutoEnterExitTrace aeet = new AutoEnterExitTrace(wd, wd.WebTrace, "Forwar
                     // -
                     // If something failed, close the connection.
                     // -
-                    aeet.WriteDiagnosticInfo(System.Diagnostics.TraceEventType.Error, DiagnosticsHelper.TraceEventID.traceException, "BeginRead threw an exception:{0}", e.Message);
+                    aeet.WriteDiagnosticInfo(System.Diagnostics.TraceEventType.Error, TraceEventID.traceException, "BeginRead threw an exception:{0}", e.Message);
                     this.HandleReceiveError();
                     return;
                 }
@@ -264,7 +258,7 @@ using (AutoEnterExitTrace aeet = new AutoEnterExitTrace(wd, wd.WebTrace, "Forwar
                 }
                 catch (Exception e)
                 {
-                    aeet.WriteDiagnosticInfo(System.Diagnostics.TraceEventType.Error, DiagnosticsHelper.TraceEventID.traceException, "EndRead threw an exception:{0}", e.Message);
+                    aeet.WriteDiagnosticInfo(System.Diagnostics.TraceEventType.Error, TraceEventID.traceException, "EndRead threw an exception:{0}", e.Message);
                     this.HandleReceiveError();
                     return;
                 }
@@ -309,7 +303,7 @@ using (AutoEnterExitTrace aeet = new AutoEnterExitTrace(wd, wd.WebTrace, "Forwar
                 }
                 catch (Exception e)
                 {
-                    aeet.WriteDiagnosticInfo(System.Diagnostics.TraceEventType.Error, DiagnosticsHelper.TraceEventID.traceException, "BeginWrite threw an exception:{0}", e.Message);
+                    aeet.WriteDiagnosticInfo(System.Diagnostics.TraceEventType.Error, TraceEventID.traceException, "BeginWrite threw an exception:{0}", e.Message);
                     this.HandleSendError(SocketError.SocketError);
                     return;
                 }
@@ -337,7 +331,7 @@ using (AutoEnterExitTrace aeet = new AutoEnterExitTrace(wd, wd.WebTrace, "Client
                     // -
                     // If something failed, close the connection.
                     // -
-                    aeet.WriteDiagnosticInfo(System.Diagnostics.TraceEventType.Error, DiagnosticsHelper.TraceEventID.traceException, "EndWrite threw an exception:{0}", e.Message);
+                    aeet.WriteDiagnosticInfo(System.Diagnostics.TraceEventType.Error, TraceEventID.traceException, "EndWrite threw an exception:{0}", e.Message);
                     this.HandleSendError(SocketError.SocketError);
                     return;
                 }

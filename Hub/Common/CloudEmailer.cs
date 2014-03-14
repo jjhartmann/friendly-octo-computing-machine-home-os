@@ -22,16 +22,40 @@ namespace HomeOS.Hub.Common
         public override Tuple<bool, string> Send(Notification notification)
         {
             string error = "";
-            if (string.IsNullOrWhiteSpace(base.smtpServer) ||
-                string.IsNullOrWhiteSpace(base.smtpUsername) ||
-                string.IsNullOrWhiteSpace(base.smtpPassword) ||
-                string.IsNullOrWhiteSpace(notification.toAddress) || 
-                (this.serviceHostUri == null) ||
-                string.IsNullOrWhiteSpace(this.serviceHostUri.OriginalString))
+            bool skipEmailSetupCheck = false;
+
+            // if there is no user name, or password specified, then we assume that the default email configuration
+            // setup on the cloud should be used (note that we don't check the smtp server here since there is 
+            // always a default value on the clients)
+            if (string.IsNullOrWhiteSpace(base.smtpUsername) && string.IsNullOrWhiteSpace(base.smtpPassword))
             {
-                error = "Cannot send email. Email Setup not done correctly";
-                base.logger.Log(error);
-                return new Tuple<bool, string>(false, error);
+                skipEmailSetupCheck = true;
+            }
+
+            if (skipEmailSetupCheck)
+            {
+                if (string.IsNullOrWhiteSpace(notification.toAddress) ||
+                    (this.serviceHostUri == null) ||
+                    string.IsNullOrWhiteSpace(this.serviceHostUri.OriginalString))
+                {
+                    error = "Cannot send email. Email Setup not done correctly";
+                    base.logger.Log(error);
+                    return new Tuple<bool, string>(false, error);
+                }
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(base.smtpUsername) ||
+                    string.IsNullOrWhiteSpace(base.smtpServer) ||
+                    string.IsNullOrWhiteSpace(base.smtpPassword) ||
+                    string.IsNullOrWhiteSpace(notification.toAddress) ||
+                    (this.serviceHostUri == null) ||
+                    string.IsNullOrWhiteSpace(this.serviceHostUri.OriginalString))
+                {
+                    error = "Cannot send email. Email Setup not done correctly";
+                    base.logger.Log(error);
+                    return new Tuple<bool, string>(false, error);
+                }
             }
 
             try
