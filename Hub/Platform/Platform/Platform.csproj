@@ -134,7 +134,7 @@
     </ProjectReference>
     <ProjectReference Include="..\HomeService\HomeService.csproj">
       <Project>{62467325-6d15-4161-a09d-07b7793dab68}</Project>
-      <Name>HomeService %28Platform\HomeService%29</Name>
+      <Name>HomeService</Name>
     </ProjectReference>
     <ProjectReference Include="..\ManagedWifi\ManagedWifi.csproj">
       <Project>{d9b1e621-4c9d-4e76-8575-5b2f8fbb8988}</Project>

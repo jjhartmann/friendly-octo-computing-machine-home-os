@@ -14,7 +14,7 @@ namespace HomeOS.Hub.Platform
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     public class GuiService : IGuiServiceWeb, IGuiServiceWebSec, IDisposable
     {
-        const int ZWaveAddRemoveTimeoutSecs = 10;
+        const int ZWaveAddRemoveTimeoutSecs = 20;
 
         Platform platform;
         Configuration config;

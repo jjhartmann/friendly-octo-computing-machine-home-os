@@ -56,6 +56,7 @@
             //Convention is that first result should be empty if success.
             if (result[0] == "") {
                 $("#retryButton").show();   //always show the retry/scanAgain button because it can take some time to find everything
+                $("#scoutButton").show();  //show the configure scouts button in case they want to configure what scouts are showing
                 if (result.length == 1) {
                     if (SCOUTNAME != "")
                         $("#deviceList").html("No unconfigured devices found by " + SCOUTNAME);
@@ -108,6 +109,7 @@
         //User pushed scan again
         function ScanAgain() {
             $("#retryButton").hide();
+            $("#scoutButton").hide();
             $("#deviceList").html("Scanning...");
             GetUnconfiguredDevices(SCOUTNAME);
         }
@@ -132,6 +134,7 @@
 
     <button class="btn" type="button" id="addZwaveButton" onclick="GoToHTMLPage('AddDeviceZwave.html')">Add Zwave</button> 
     <button class="btn" style="display:none" id="retryButton" onclick="ScanAgain()">Scan Again</button>
+    <button class="btn" style="display:none" id="scoutButton" onclick="GoToHTMLPage('ConfigureScouts.html?RefName=AddDeviceUnconfiguredDevicesForScout.html')">Scouts</button>
    
 
  <!-- Change display style to 'normal' to show debug information and 'none' to turn it off  -->

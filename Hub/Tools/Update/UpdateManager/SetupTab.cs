@@ -250,6 +250,13 @@ namespace HomeOS.Hub.Tools.UpdateManager
                 {
                     this.textBoxSetupRepoAcctInfo.Text += "   [***Password Required***]";
                 }
+                //AJB added so that the repo account name shows up. For this and PopulateAzureAccountInfoTitle, I think the first line is incorrect, since default will always have a value
+                //and else at the end of method will never be called. However, the goal and posisble uses cases are large enough that I am making only this small local change. 
+                else if (!string.IsNullOrWhiteSpace(this.formRepoAccountInfo.RepoAccountHost))
+                {
+                    this.textBoxSetupRepoAcctInfo.Text = this.formRepoAccountInfo.RepoAccountHost + "[Login=" + this.formRepoAccountInfo.RepoAccountLogin + "]";
+                }
+
             }
             else
             {
@@ -276,6 +283,13 @@ namespace HomeOS.Hub.Tools.UpdateManager
                 else if (string.IsNullOrWhiteSpace(this.formAzureAccount.AzureAccountKey))
                 {
                     this.textBoxAzureAcctInfo.Text += "   [***Account Key Required***]";
+                }
+                    //AJB added so that the azure account name shows up not the default "Azure Storage Account Title" This is a workaround
+                //I think the problem is the first line is this methods because the default will never be null, but I don't understand what the goal was enough to make a larger change
+                //if (!string.IsNullOrWhiteSpace(Properties.Settings.Default.SetupAzureAccountTitle))
+                else if (!string.IsNullOrWhiteSpace(this.formAzureAccount.AzureAccountName))
+                {
+                    this.textBoxAzureAcctInfo.Text = this.formAzureAccount.AzureAccountName;
                 }
             }
             else

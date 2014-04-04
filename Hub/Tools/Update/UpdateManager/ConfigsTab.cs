@@ -64,7 +64,7 @@ namespace HomeOS.Hub.Tools.UpdateManager
         public const string ScoutName = "scouts";
         public const string BinaryStatus_OK = "OK";
         public const string BinaryStatus_Repo_Update = "Repo Update";
-        public bool EnableValidation = true;
+        public bool EnableValidation = false;
 
         protected AzureHubConfigDataLocalCache configDataCache;
         protected List<HubConfigUpdatePanelRowItem> HubConfigUpdatePanelList;
