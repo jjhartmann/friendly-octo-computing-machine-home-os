@@ -14,7 +14,7 @@ namespace HomeOS.Hub.Apps.Sensor
     /// Logging module that logs data reported by sensors to UI and to data store
     /// </summary>
 
-    [System.AddIn.AddIn("HomeOS.Hub.Apps.Sensor", Version = "1.0.0.0")]
+    [System.AddIn.AddIn("HomeOS.Hub.Apps.Sensor")]
     public class Sensor : ModuleBase
     {
         //list of accessible sensor ports in the system
@@ -25,8 +25,6 @@ namespace HomeOS.Hub.Apps.Sensor
         private WebFileServer appServer;
 
         List<string> receivedMessageList;
-
-        List<string> tagList;
 
         IStream datastream;
         DateTime streamClosed = DateTime.Now;
@@ -57,8 +55,6 @@ namespace HomeOS.Hub.Apps.Sensor
                 ProcessAllPortsList(allPortsList);
 
             this.receivedMessageList = new List<string>();
-
-            this.tagList = new List<string>();
         }
 
         public override void Stop()
@@ -71,29 +67,39 @@ namespace HomeOS.Hub.Apps.Sensor
         public void WriteToStream(string tag, string data)
         {
 
-            //add the tag to a list if it's not already in there
-            if (!tagList.Contains(tag))
-            {
-                this.tagList.Add(tag);
-            }
-
             StrKey key = new StrKey(tag);
             if (datastream != null)
             {
                 datastream.Append(key, new StrValue(data));
-             // Don't put in log twice   logger.Log("Sensor:Writing tag {0},{1} to stream ", key.ToString(), datastream.Get(key).ToString());
+                // Don't put in log twice   logger.Log("Sensor:Writing tag {0},{1} to stream ", key.ToString(), datastream.Get(key).ToString());
 
                 //Check if we should close it to force data to be written to Azure (AJB - remove once there is option to open stream with sycning at least every N minutes)
                 double minutes = DateTime.Now.Subtract(streamClosed).TotalMinutes;
                 if (minutes > 60)
                 {
                     streamClosed = DateTime.Now;
-                    datastream.Close();
-                    logger.Log("Sensor:{0}: closed and reopened data stream", streamClosed.ToString());
-                    datastream = base.CreateValueDataStream<StrKey, StrValue>("data", true /* remoteSync */);
-
+                    try
+                    {
+                        datastream.Close();
+                        logger.Log("Sensor: closed data stream", streamClosed.ToString());
+                    }
+                    catch (Exception exp)
+                    {
+                        logger.Log("Sensor: Data stream close failed. Exception caught. {0}", exp.ToString());
+                    }
+                    finally
+                    {
+                        datastream = null;
+                        logger.Log("Sensor: Reopening data stream");
+                        datastream = base.CreateValueDataStream<StrKey, StrValue>("data", true /* remoteSync */);
+                    }
                 }
-
+            }
+            else
+            {
+                logger.Log("Sensor: datastream is null!");
+                // try reopening the stream?
+                // datastream = base.CreateValueDataStream<StrKey, StrValue>("data", true /* remoteSync */);
             }
         }
 
@@ -120,10 +126,19 @@ namespace HomeOS.Hub.Apps.Sensor
                 {
                     sensorData = String.Format("Invalid role->op {0}->{1} from {2}", roleName, opName, sensorTag);                 
                 }
+
+                try
+                {
+                    //Write to the stream
+                    WriteToStream(sensorTag, sensorData);
+                }
+                catch (Exception exp)
+                {
+                    logger.Log("Sensor:{0}: WriteToStream failed. Exception caught.");
+                    logger.Log(exp.ToString());
+                }
             }
 
-            //Write to the stream
-            WriteToStream(sensorTag, sensorData);
             //Create local list of alerts for display
             message = String.Format("{0}\t{1}\t{2}", DateTime.Now, sensorTag, sensorData);
             this.receivedMessageList.Add(message);

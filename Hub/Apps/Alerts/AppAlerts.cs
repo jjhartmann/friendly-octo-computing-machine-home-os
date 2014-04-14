@@ -89,6 +89,8 @@ namespace HomeOS.Hub.Apps.Alerts
         
         //DataStream for writing the alert pictures and text.
         IStream picStream, textStream;
+        private Object picStreamLock = new Object();
+        private Object textStreamLock = new Object();
 
         ////Email address to receive the alert pictures.
         //string emailAdrs;
@@ -320,10 +322,13 @@ namespace HomeOS.Hub.Apps.Alerts
             StrValue strVal = new StrValue(message);
             try
             {
-                textStream = base.CreateValueDataStream<StrKey, StrValue>("H2OAlertsText", true);
-                textStream.Append(strKey, strVal);
-                logger.Log("WaterAlert message has been written to {0}.", textStream.Get(strKey).ToString());
-                textStream.Close();
+                lock (textStreamLock)
+                {
+                    textStream = base.CreateValueDataStream<StrKey, StrValue>("H2OAlertsText", true);
+                    textStream.Append(strKey, strVal);
+                    logger.Log("WaterAlert message has been written to {0}.", textStream.Get(strKey).ToString());
+                    textStream.Close();
+                }
             }
             catch (Exception e)
             {
@@ -337,10 +342,13 @@ namespace HomeOS.Hub.Apps.Alerts
             ByteValue byteVal = new ByteValue(imageBytes);
             try
             {
-                picStream = base.CreateFileDataStream<StrKey, ByteValue>("H2OAlertsPics", true);
-                picStream.Append(strKey, byteVal);
-               // logger.Log("WaterAlert picture has been written to {0}.", picStream.Get(strKey).ToString());
-                picStream.Close();
+                lock (picStreamLock)
+                {
+                    picStream = base.CreateFileDataStream<StrKey, ByteValue>("H2OAlertsPics", true);
+                    picStream.Append(strKey, byteVal);
+                    //logger.Log("WaterAlert picture has been written to {0}.", picStream.Get(strKey).ToString());
+                    picStream.Close();
+                }
             }
             catch (Exception e)
             {

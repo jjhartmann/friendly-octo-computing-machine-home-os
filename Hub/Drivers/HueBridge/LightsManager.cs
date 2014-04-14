@@ -852,7 +852,7 @@ namespace HomeOS.Hub.Drivers.HueBridge
             //change the value first
             lstate.Brightness = bValue;
 
-            MakeLightRequest("/api/" + m_strUser + "/lights/" + (lstate.Index + 1) + "/state", "PUT", lstate.ToJSON());
+            MakeLightRequest("/api/" + m_strUser + "/lights/" + (lstate.Index) + "/state", "PUT", lstate.ToJSON());
         }
 
         internal void SetLightColor(LightState lstate, Color color)
@@ -860,7 +860,7 @@ namespace HomeOS.Hub.Drivers.HueBridge
             //change the value first
             lstate.Color = color;
 
-            MakeLightRequest("/api/" + m_strUser + "/lights/" + (lstate.Index + 1) + "/state", "PUT", lstate.ToJSON());
+            MakeLightRequest("/api/" + m_strUser + "/lights/" + (lstate.Index) + "/state", "PUT", lstate.ToJSON());
         }
     }
 }
