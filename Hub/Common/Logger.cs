@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Diagnostics;
+using System.IO.Compression;
 
 namespace HomeOS.Hub.Common
 {
@@ -221,20 +222,48 @@ namespace HomeOS.Hub.Common
 
             string archivingFile = archivingDirectory + "\\" + GetTimeStamp() + "-" + Path.GetFileName(fName);
 
-            while (File.Exists(archivingFile))
+            while (File.Exists(archivingFile) || File.Exists(archivingFile + ".gz"))
                 archivingFile += ".1";
 
             File.Move(fName, archivingFile);
 
             logWriter = new StreamWriter(fName, true);
 
-            //if we are syncing, start that on a separate thread
-            if (synchronizer != null)
+            SafeThread worker = new SafeThread(delegate()
             {
-                SafeThread syncThread = new SafeThread(delegate() { synchronizer.Sync(); }, "logsync", this);
-                syncThread.Start();
+                //compress the file
+                CompressFile(archivingFile);
+
+                //if we are syncing, start that on a separate thread
+                if (synchronizer != null)
+                {
+                    synchronizer.Sync();
+                }
+            },
+            "post-log-rotation-work", 
+            this
+            );
+
+            worker.Start();
+        }
+
+        public static void CompressFile(string fileToCompress)
+        {
+            FileInfo fileInfoToCompress = new FileInfo(fileToCompress);
+
+            if ((File.GetAttributes(fileInfoToCompress.FullName) & FileAttributes.Hidden) != FileAttributes.Hidden & fileInfoToCompress.Extension != ".zip")
+            {
+                string compressedFileName = fileInfoToCompress.FullName + ".zip";
+
+                ZipArchive archive = ZipFile.Open(compressedFileName, ZipArchiveMode.Create);
+                archive.CreateEntryFromFile(fileToCompress, fileInfoToCompress.Name, CompressionLevel.Optimal);
+                archive.Dispose();
+
+                File.Delete(fileToCompress);
             }
         }
+        
+
 
         private string GetTimeStamp()
         {
