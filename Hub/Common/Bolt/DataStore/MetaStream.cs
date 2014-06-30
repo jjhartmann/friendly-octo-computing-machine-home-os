@@ -11,6 +11,7 @@ using System.ServiceModel;
 using System.Configuration;
 
 using HomeOS.Hub.Common.MDServer;
+using System.Threading;
 
 namespace HomeOS.Hub.Common.Bolt.DataStore
 {
@@ -57,6 +58,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         protected StreamFactory.StreamSecurityType streamtype;
         protected StreamFactory.StreamDataType streamptype;
         protected CompressionType streamcompressiontype;
+        protected bool sideload;
 
         protected int StreamChunkSizeForUpload ;
         protected int StreamThreadPoolSize ;
@@ -68,8 +70,12 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         public static readonly string PriKeyFileName = ".key";
         public static readonly string  PubKeyFileName = ".pubkey";
 
-        // private static long IndexSizeThreshold = 1 * 1024 * 1024; // in bytes; index size is calculated in filestream.getIndexSize()
-        private static long IndexSizeThreshold = 1 * 1024 * 512; // in bytes; index size is calculated in filestream.getIndexSize()
+        private static long IndexSizeThreshold = 1 * 1024 * 1024; // in bytes; index size is calculated in filestream.getIndexSize()
+
+        protected DateTime lastSyncTime;
+        protected int syncIntervalSec = -1;
+        Thread syncWorker = null;
+        private bool isSyncWorkerRunning = false; // flag to let the syncWorker Thread exit safely
 
         public void DumpLogs(string file)
         {
@@ -271,6 +277,12 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         protected bool OpenPart(MetaDataService.AccountInfo ai)
         {
             if (logger != null) logger.Log("Start Segment Open");
+
+
+            // if we do not have the indexinfo for this account, return
+            if (ai.num > indexMetaData.index_infos.Count - 1)
+                return false;
+
             IndexInfo ii = indexMetaData.index_infos[ai.num];
             LocationInfo li = new LocationInfo(ai.accountName, ai.accountKey, SyncFactory.GetSynchronizerType(ai.location));
             
@@ -368,18 +380,17 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             // Store index_md location info on metadata server
             if (logger != null) logger.Log("Start Stream Create Stream");
             if (logger != null) logger.Log("Start Stream Store IndexMD Location");
-            if (StoreMDIndexLocationInfo(Li) == false)
+            if (!StoreMDIndexLocationInfo(Li))
             {
                 return false;
             }
-            else
-            {
-                // cache location info for index_metadata locally
-                indexMetaDataLocationInfo = new MetaDataService.AccountInfo();
-                indexMetaDataLocationInfo.accountKey = Li.accountKey;
-                indexMetaDataLocationInfo.accountName = Li.accountName;
-                indexMetaDataLocationInfo.location = Li.st + "";
-            }
+            
+            // cache location info for index_metadata locally
+            indexMetaDataLocationInfo = new MetaDataService.AccountInfo();
+            indexMetaDataLocationInfo.accountKey = Li.accountKey;
+            indexMetaDataLocationInfo.accountName = Li.accountName;
+            indexMetaDataLocationInfo.location = Li.st + "";
+            
             if (logger != null) logger.Log("End Stream Store IndexMD Location");
             
             if (type == StreamFactory.StreamSecurityType.Secure)
@@ -457,12 +468,13 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         public MetaStream(FqStreamID FQSID, CallerInfo Ci, LocationInfo Li,
             StreamFactory.StreamOp op, StreamFactory.StreamSecurityType type,
             CompressionType ctype,
-            StreamFactory.StreamDataType ptype,
+            StreamFactory.StreamDataType ptype, int sync_interval_sec,
             string mdserveraddress, int ChunkSizeForUpload, int UploadThreadPoolSize, Logger log,
-            bool sideload)
+            bool sideLoad)
         {
             bool justCreated = false;
             Initialize(FQSID, Ci, op, type, ctype, ptype, mdserveraddress, ChunkSizeForUpload, UploadThreadPoolSize, log);
+            this.sideload = sideLoad;
             
             if (op == StreamFactory.StreamOp.Write && !IsCallerOwner())
                 throw new InvalidDataException("Cannot write to meta stream with other's name!");
@@ -471,7 +483,21 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             this.indexMetaDataLocationInfo = AlreadyExists();
             if (logger != null) logger.Log("End Stream Check Exists, Fill IndexMD Location");
 
-            if ((this.indexMetaDataLocationInfo == null) && !sideload)
+            /* this.indexMetaDataLocationInfo == null
+             * implies that this is a stream that we do not know about
+             * A) for writers, this means that it is a NEW stream - create it
+             * b) for readers and sideload is enabled (only readers can sideload) - LocationInfo is provided - go fetch stream from there
+             */
+
+            if ( streamop==StreamFactory.StreamOp.Read && (this.indexMetaDataLocationInfo == null) && sideload)
+            {
+                this.indexMetaDataLocationInfo = new MetaDataService.AccountInfo();
+                this.indexMetaDataLocationInfo.accountName = Li.accountName;
+                this.indexMetaDataLocationInfo.accountKey = Li.accountKey;
+                this.indexMetaDataLocationInfo.location = Li.st + "";
+                //this.indexMetaDataLocationInfo.num = ai.num;
+            }
+            else if ((this.indexMetaDataLocationInfo == null))
             {
                 // stream does not exist.  create new stream.
                 if (op == StreamFactory.StreamOp.Read)
@@ -481,24 +507,68 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                 justCreated = true;
             }
 
-            else if ((this.indexMetaDataLocationInfo == null) && sideload)
-            {
-                this.indexMetaDataLocationInfo = new MetaDataService.AccountInfo();
-                this.indexMetaDataLocationInfo.accountName = Li.accountName;
-                this.indexMetaDataLocationInfo.accountKey = Li.accountKey;
-                this.indexMetaDataLocationInfo.location = Li.st + "";
-                //this.indexMetaDataLocationInfo.num = ai.num;
-            }
+        
 
+            LoadStream(Li, justCreated);
+
+            syncIntervalSec = sync_interval_sec;
+            if (syncIntervalSec > 0)
+            {
+                lastSyncTime = DateTime.Now;
+                syncWorker = new Thread(delegate()
+                {
+                    try
+                    {
+                        while (!disposed)
+                        {
+                            DateTime now = DateTime.Now;
+                            if (now.Subtract(lastSyncTime).TotalSeconds > syncIntervalSec)
+                            {
+                                Console.WriteLine("[" + now + "] periodic-sync-worker for {0}: syncing ...", FQSID.ToString());
+                                Flush();
+                                lastSyncTime = DateTime.Now;
+                                Console.WriteLine("[" + lastSyncTime + "] periodic-sync-worker for {0}: syncing done", FQSID.ToString());
+                            }
+
+                            if (isSyncWorkerRunning)
+                                System.Threading.Thread.Sleep(syncIntervalSec * 1000);
+                            else
+                                break;
+                        }
+                    }
+                   catch (Exception exception)
+                    {
+                        string message = "periodic-sync-worker raised exception: " + exception.ToString();
+                        //if (logger != null) logger.Log(message);
+                        Console.Error.WriteLine(message);
+                    }
+                }
+                );
+                isSyncWorkerRunning = true;
+                syncWorker.Start();
+                
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        protected void LoadStream(LocationInfo Li, bool justCreated)
+        {
             // Download index metadata if reqd.
             if (logger != null) logger.Log("Start Stream Download IndexMD");
             CreateSync(SynchronizeDirection.Download);
+            bool syncSuccess=true;
+            Dictionary<int, MetaDataService.AccountInfo> accounts;
             if (!justCreated)
-                Sync();
+            {   // for prexisting streams, if local, Sync() returns true (always), if remote, sync() return true or false(if disconnected)
+                syncSuccess = Sync();
+                if (!syncSuccess)
+                    throw new Exception("MetaStream Sync Failed.");
+            }
+
             if (logger != null) logger.Log("End Stream Download IndexMD");
 
             // Restore synchronizer to upload if writing
-            if (op == StreamFactory.StreamOp.Write)
+            if (streamop == StreamFactory.StreamOp.Write)
             {
                 CreateSync(SynchronizeDirection.Upload);
             }
@@ -549,19 +619,42 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             {
                 // Fetch accounts info for the individual indices
                 if (logger != null) logger.Log("Start Stream Get Segment Location Infos");
-                Dictionary<int, MetaDataService.AccountInfo> accounts;
-                if ( ((accounts = GetSegmentsLocationInfo()) == null) && !sideload)
+
+                if (mdserver == null) // if this is not a remote-listed stream then re-load localmetadataserver
+                {
+                    localMdServer.LoadMetaDataServer();
+                }
+
+                accounts = GetSegmentsLocationInfo();
+
+                if ((accounts==null && streamop==StreamFactory.StreamOp.Write) || (accounts==null &&  streamop==StreamFactory.StreamOp.Read && !sideload))
                 {
                     throw new InvalidDataException("Couldn't get segment LI's for meta stream");
                 }
-                else if (sideload)
+                else if (sideload && streamop==StreamFactory.StreamOp.Read)
                 {
                     accounts = SideloadSegmentsLocationInfo(Li, indexMetaData.index_infos.Count());
                 }
+                
+
                 if (logger != null) logger.Log("End Stream Get Segment Location Infos");
                 
                 foreach (MetaDataService.AccountInfo ai in accounts.Values)
                 {
+                    /*
+                     * Writer's sync path
+                     * 1. syncs all segments. For each segment:
+                     *      a. Upload stream.dat 
+                     *      b. ChunkMD-stream.dat
+                     *      c. Upload index.dat
+                     * 2. syncs stream_md.dat (for unlisted streams)
+                     * 3. sync index_md.dat
+                     * 4. update md server (listed streams, currently being done in createpart by calling StoreMDIndexLocationInfo, and by calling StoreSegmentLocationInfo)
+                     * TODO: merge StoreSegmentLocationInfo and StoreMDIndexLocationInfo
+                     * 
+                     * Because 4. is being done in createpart (i.e. writer updates accountinfo at md_server before uploading the segment) , reader might see more account infos than indexinfos (read from index_md.dat) 
+                     * So, open part checks if we have the indexinfo for a given accountinfo, else it returns
+                     */
                     OpenPart(ai);
                 }
             }
@@ -1151,6 +1244,32 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
+        public Tuple<IValue, long> GetLatest(IKey tag)
+        {
+            Tuple<IValue, long> retVal = null;
+            if (streamptype == StreamFactory.StreamDataType.Values)
+            {
+                for (int i = vstreams.Keys.Count - 1; i >= 0; i--)// iterate backwards over streams to find the latest val 
+                {
+                    retVal = vstreams[i].GetLatest(tag);
+                    if (retVal != null)// if found 
+                        break;
+                }
+            }
+            else if (streamptype == StreamFactory.StreamDataType.Files)
+            {
+                for (int i = fstreams.Keys.Count - 1; i >= 0; i--)// iterate backwards over dstreams to find the latest val
+                {
+                    retVal = fstreams[i].GetLatest(tag);
+                    if (retVal != null)// if found 
+                        break;
+                }
+            }
+
+            return retVal;
+        }
+        
+        [MethodImpl(MethodImplOptions.Synchronized)]
         protected void UpdateHelper()
         {
             if (streamop != StreamFactory.StreamOp.Write)
@@ -1171,6 +1290,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                 fstreams[fstreams.Count - 1].Append(key, value, timestamp);
             }
             Seal(checkMemPressure:true);
+            if (syncIntervalSec == 0) Flush();
             if (logger != null) logger.Log("End Stream Append");
         }
 
@@ -1188,6 +1308,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                 fstreams[fstreams.Count - 1].Append(list);
             }
             Seal(checkMemPressure: true);
+            if (syncIntervalSec == 0) Flush();
             if (logger != null) logger.Log("End Stream Append");
         }
 
@@ -1205,6 +1326,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                 fstreams[fstreams.Count - 1].Append(listOfKeys, value);
             }
             Seal(checkMemPressure: true);
+            if (syncIntervalSec == 0) Flush();
             if (logger != null) logger.Log("End Stream Append");
         }
 
@@ -1222,73 +1344,148 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                 fstreams[fstreams.Count - 1].Update(key, value);
             }
             Seal(checkMemPressure:true);
+            if (syncIntervalSec == 0) Flush();
             if (logger != null) logger.Log("End Stream Update");
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public void Flush()
+        internal void Flush()
         {
-            // TODO: flush segments
+            if (!isClosed && streamop == StreamFactory.StreamOp.Write)
+            {
+                Close(true);
+                Reopen();
+            }
+            else if (!isClosed && streamop == StreamFactory.StreamOp.Read)
+            {
+                Close(false);
+                try
+                {
+                    LoadStream(new LocationInfo(this.indexMetaDataLocationInfo.accountName,
+                                                this.indexMetaDataLocationInfo.accountKey,
+                                                SyncFactory.GetSynchronizerType(indexMetaDataLocationInfo.location)),
+                               false);
+                }
+                catch(Exception e)
+                {
+                    if(logger!=null) logger.Log(e.StackTrace);
+                }
+
+            }
         }
 
-        internal void Sync()
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        protected void Reopen()
         {
+            if (logger != null) logger.Log("Start Stream Reopen");
+            if (isClosed)
+            {
+                if (streamop == StreamFactory.StreamOp.Write)
+                {
+                    if (streamptype == StreamFactory.StreamDataType.Values)
+                    {
+                        foreach (ValueDataStream<KeyType, ValType> stream in vstreams.Values)
+                        {
+                            stream.OpenStream();
+                        }
+                    }
+                    else
+                    {
+                        foreach (FileDataStream<KeyType> dstream in fstreams.Values)
+                        {
+                            dstream.OpenStream();
+                        }
+                    }
+                }
+
+            }
+            isClosed = false;
+            if (logger != null) logger.Log("End Stream Reopen");
+        }
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        internal bool Sync()
+        {
+            bool retVal= true;
             if (logger != null) logger.Log("Start Stream Sync");
             if (null != synchronizer)
             {
-                synchronizer.Sync();
+                retVal = synchronizer.Sync();
+                if (retVal)
+                {
+                    lastSyncTime = DateTime.Now;
+                }
             }
             if (logger != null) logger.Log("End Stream Sync");
+            return retVal;
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
         public bool Close()
         {
+            isSyncWorkerRunning = false;
+            return Close(false);
+        }
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        protected bool Close(bool retainIndex)
+        {
             if (logger != null) logger.Log("Start Stream Close");
-            if (!isClosed && streamop == StreamFactory.StreamOp.Write)
+            if (!isClosed)
             {
                 if (streamptype == StreamFactory.StreamDataType.Values)
                 {
                     foreach (ValueDataStream<KeyType, ValType> stream in vstreams.Values)
                     {
-                        stream.Close();
-                    }
-                    foreach (ValueDataStream<KeyType, ValType> stream in vstreams.Values)
-                    {
-                        IndexInfo ii = stream.GetIndexInfo();
-                        indexMetaData.index_infos[stream.seq_num] = ii;
+                        stream.Close(retainIndex);
                     }
                 }
                 else
                 {
                     foreach (FileDataStream<KeyType> dstream in fstreams.Values)
                     {
-                        dstream.Close();
-                    }
-                    foreach (FileDataStream<KeyType> dstream in fstreams.Values)
-                    {
-                        IndexInfo ii = dstream.GetIndexInfo();
-                        indexMetaData.index_infos[dstream.seq_num] = ii;
+                        dstream.Close(retainIndex);
                     }
                 }
-                if (logger != null) logger.Log("Start IndexMD Flush");
-                if (streamtype == StreamFactory.StreamSecurityType.Secure)
-                {
-                    indexMetaData.SignMetadata(OwnerPriKey);
-                }
-                else
-                {
-                    indexMetaData.FlushIndexMetaData();
-                }
-                if (logger != null) logger.Log("End IndexMD Flush");
-                Sync();
 
-                if (logger != null) logger.Log("Start StreamMD Flush");
-                if (metadataClient == null)
+                // Flush IndexMD if stream is opened for writing
+                if (streamop == StreamFactory.StreamOp.Write)
                 {
-                    localMdServer.FlushMetaDataServer();
+                    if (logger != null) logger.Log("Start IndexMD Flush");
+                    if (streamptype == StreamFactory.StreamDataType.Values)
+                    {
+                        foreach (ValueDataStream<KeyType, ValType> stream in vstreams.Values)
+                        {
+                            IndexInfo ii = stream.GetIndexInfo();
+                            indexMetaData.index_infos[stream.seq_num] = ii;
+                        }
+                    }
+                    else
+                    {
+                        foreach (FileDataStream<KeyType> dstream in fstreams.Values)
+                        {
+                            IndexInfo ii = dstream.GetIndexInfo();
+                            indexMetaData.index_infos[dstream.seq_num] = ii;
+                        }
+                    }
+                    if (streamtype == StreamFactory.StreamSecurityType.Secure)
+                    {
+                        indexMetaData.SignMetadata(OwnerPriKey);
+                    }
+                    else
+                    {
+                        indexMetaData.FlushIndexMetaData();
+                    }
+                    if (logger != null) logger.Log("End IndexMD Flush");
+                    Sync();
+
+                    if (logger != null) logger.Log("Start StreamMD Flush");
+                    if (metadataClient == null)
+                    {
+                        localMdServer.FlushMetaDataServer();
+                    }
+                    if (logger != null) logger.Log("End StreamMD Flush");
                 }
-                if (logger != null) logger.Log("End StreamMD Flush");
             }
             isClosed = true;
             if (logger != null) logger.Log("End Stream Close");
@@ -1303,17 +1500,24 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposed)
+            try
             {
-                if (disposing)
+                if (!disposed)
                 {
-                    // Call Dispose() on other objects owned by this instance.
-                    // You can reference other finalizable objects here.
-                }
+                    disposed = true;
+                    if (disposing)
+                    {
+                        // Call Dispose() on other objects owned by this instance.
+                        // You can reference other finalizable objects here.
+                    }
 
-                // Release unmanaged resources owned by (just) this object.
-                Close();
-                disposed = true;
+                    // Release unmanaged resources owned by (just) this object.
+                    Close();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in Dispose: " + e.StackTrace);
             }
         }
 

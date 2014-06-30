@@ -70,9 +70,17 @@ namespace HomeOS.Hub.Common
 
                 smtpClient.Send(message);
             }
+            //this usually happens when the port is blocked
+            catch (System.Net.Mail.SmtpException exception)
+            {
+                error = string.Format("SmtpException while sending direct message: {0}", exception.Message);
+                // no need to log this here. it will get logged at the caller if its important. base.logger.Log(error);
+                return new Tuple<bool, string>(false, error);
+            }
+            //some other unknown exception
             catch (Exception exception)
             {
-                error = string.Format("Exception while sending message: {0}", exception.ToString());
+                error = string.Format("Exception while sending direct message: {0}", exception.ToString());
                 base.logger.Log(error);
                 return new Tuple<bool, string>(false, error);
             }

@@ -398,18 +398,34 @@ namespace HomeOS.Hub.Tools.UpdateManager
             }
         }
 
-        void buttonSetupLoad_Click(object sender, EventArgs e)
+        async void buttonSetupLoad_Click(object sender, EventArgs e)
         {
+            //disable the UI
+            outputBox.Text += "Retrieving config, module and platform information\r\n";
+            btnSetupBrowseFolder.Enabled = false;
+            btnSetupEditRepoAcctInfo.Enabled = false;
+            btnSetupEditAzureAcctInfo.Enabled = false;
+            btnSetupRemoveRepoAcctInfo.Enabled = false;
+            btnSetupRemoveAzureAcctInfo.Enabled = false;
+            buttonSetupLoad.Enabled = false;
             // after loading the persisted state we should see if we are setup to show the update tab
-            if (TryShowingConfigsTab())
+            if (await TryShowingConfigsTab())
             {
                 OnShowingConfigsTab();
             }
-            if (TryShowingBinaryTabs())
+            if (await TryShowingBinaryTabs())
             {
                 OnShowingPlatformTab();
                 OnShowingModuleScoutTab();
             }
+            //enable UI
+            outputBox.Text += "Done loading configs, modules and platform information\r\n";
+            btnSetupBrowseFolder.Enabled = true;
+            btnSetupEditRepoAcctInfo.Enabled = true;
+            btnSetupEditAzureAcctInfo.Enabled = true;
+            btnSetupRemoveRepoAcctInfo.Enabled = true;
+            btnSetupRemoveAzureAcctInfo.Enabled = true;
+            buttonSetupLoad.Enabled = true;
         }
 
 

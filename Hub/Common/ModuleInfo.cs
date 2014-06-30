@@ -77,7 +77,7 @@ namespace HomeOS.Hub.Common
                 this.args = args;
 
             Background = false;
-            this.version = Utils.UnknownHomeOSUpdateVersionValue;
+            this.version = Constants.UnknownHomeOSUpdateVersionValue;
         }
 
         public override string[] Args()

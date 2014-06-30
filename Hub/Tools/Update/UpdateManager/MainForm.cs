@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace HomeOS.Hub.Tools.UpdateManager
@@ -41,11 +42,13 @@ namespace HomeOS.Hub.Tools.UpdateManager
 
         private bool IsValidWorkingDirPresent()
         {
+            
             return (!string.IsNullOrWhiteSpace(this.textBoxSetupWorkingFolder.Text) && (new DirectoryInfo(this.textBoxSetupWorkingFolder.Text).Exists));
         }
 
         private bool IsValidRepositoryAccountPresent()
         {
+           
             bool valid = true;
             try
             {
@@ -69,27 +72,31 @@ namespace HomeOS.Hub.Tools.UpdateManager
         {
             bool valid = true;
             try
-            {
+            {      
                 Tuple<bool, Exception> tuple = AzureBlobConfigUpdate.IsValidAccount(this.formAzureAccount.AzureAccountName, this.formAzureAccount.AzureAccountKey);
                 if (!tuple.Item1)
                 {
                     throw tuple.Item2;
                 }
+               
             }
             catch (Exception ex)
             {
                 logger.ErrorException("Failed to validate the azure storage account", ex);
+                outputBox.Text += "Failed to validate the azure storage account" + ex + "\r\n";
                 valid = false;
             }
 
             return valid;
         }
 
-        private bool TryShowingBinaryTabs()
+        private async Task<bool> TryShowingBinaryTabs()
         {
             bool show = false;
-            bool validWorkingDir = IsValidWorkingDirPresent();
-            bool validRepoAccount = IsValidRepositoryAccountPresent();
+            outputBox.Text += "Checking for Valid Working Directory \r\n";
+            bool validWorkingDir = await Task.Run(() => IsValidWorkingDirPresent());
+            outputBox.Text += "Checking for Valid Repository Account \r\n";
+            bool validRepoAccount = await Task.Run(() => IsValidRepositoryAccountPresent());
 
             if (validWorkingDir && validRepoAccount)
             {
@@ -118,10 +125,11 @@ namespace HomeOS.Hub.Tools.UpdateManager
             return show;
         }
 
-        private bool TryShowingConfigsTab()
+        private async Task<bool> TryShowingConfigsTab()
         {
+            outputBox.Text += "Checking for valid azure account \r\n";
             bool show = false;
-            bool validAzureStorageAccount = IsValidAzureStorageAcctPresent();
+            bool validAzureStorageAccount = await Task.Run(() => IsValidAzureStorageAcctPresent());
 
             if (validAzureStorageAccount)
             {
@@ -139,6 +147,7 @@ namespace HomeOS.Hub.Tools.UpdateManager
                 }
                 show = false;
             }
+            outputBox.Text += "Found valid azure account \r\n";
             return show;
         }
 
@@ -184,6 +193,7 @@ namespace HomeOS.Hub.Tools.UpdateManager
             catch (Exception e)
             {
                 logger.ErrorException("Failed to retrieve the latest version from remote ftp server", e);
+             
             }
 
             return highest;

@@ -921,16 +921,8 @@ namespace HomeOS.Hub.Common
     public class RoleCouch: Role
     {
         public const string RoleName = ":couch:";
-        public const string OpGoHappyName = RoleName + "->" + "gohappy";
-        //public const string OpUpName = "up";
-        //public const string OpDownName = "down";
-        //public const string OpLeftName = "left";
-        //public const string OpRightName = "right";
-        //public const string OpZoomInName = "zoomin";
-        //public const string OpZommOutName = "zoomout";
-        //public const string OpGetImageName = "getimage";
-        //public const string OpGetVideo = "getvideo";
-
+        public const string OpSetEmotion = RoleName + "->" + "setemotion";
+        
         private static RoleCouch _instance;
 
         public static RoleCouch Instance
@@ -950,222 +942,270 @@ namespace HomeOS.Hub.Common
             _instance = this;
 
             {
-                List<VParamType> args = new List<VParamType>() {new ParamType(0)};
-                List<VParamType> retVals = new List<VParamType>() {new ParamType(0)};
-                AddOperation(new Operation(OpGoHappyName, args, retVals));
+                List<VParamType> eArgs = new List<VParamType>() { new ParamType(0) };
+                List<VParamType> eRetVals = new List<VParamType>() { new ParamType(0) };
+                AddOperation(new Operation(OpSetEmotion, eArgs, eRetVals));
             }
         }
     }
 
-
-    public class RoleHueBridge : Role
+    //Not sure if we want to have the couch as mulitple different roles (lights, pressure)
+    public class RoleWeather : Role
     {
-        public const string RoleName = ":huebridge:";
-        public const string OpToggleAll = RoleName + "->" + "toggleall";
-        public const string OpTurnOffAll = RoleName + "->" + "turnoffall";
-        public const string OpTurnOnAll = RoleName + "->" + "turnonall";
-        public const string OpResetAll = RoleName + "->" + "resetall";
-        public const string OpUnlockAll = RoleName + "->" + "unlockall";
-        public const string OpSetColorAll = RoleName + "->" + "setcolorall";
-        public const string OpSetBrightnessAll = RoleName + "->" + "setbrightnessall";
+        public const string RoleName = ":weather:";
 
-        public const string OpToggleBulb = RoleName + "->" + "togglebulb";
-        public const string OpTurnOffBulb = RoleName + "->" + "turnoffbulb";
-        public const string OpTurnOnBulb = RoleName + "->" + "turnonbulb";
-        public const string OpResetBulb = RoleName + "->" + "resetbulb";
-        public const string OpUnlockBulb = RoleName + "->" + "unlockbulb";
-        public const string OpSetColorBulb = RoleName + "->" + "setcolorbulb";
-        public const string OpGetColorBulb = RoleName + "->" + "getcolorbulb";
-        public const string OpSetBrightnessBulb = RoleName + "->" + "setbrightnessbulb";
-        public const string OpBumpBulb = RoleName + "->" + "bumpbulb";
+        public const string OpGetWeather = RoleName + "->" + "getweather";
+        public const string OpGetTemperature = RoleName + "->" + "gettemperature";
+        public const string OpGetPrecipitation = RoleName + "->" + "getprecipitation";
 
-        private static Role _instance;
+        private static RoleWeather _instance;
 
-        public static Role Instance
+        public static RoleWeather Instance
         {
             get
             {
                 if (_instance == null)
-                    _instance = new RoleHueBridge();
+                    new RoleWeather();
                 return _instance;
             }
         }
 
-        public RoleHueBridge()
+        protected RoleWeather()
             : base(RoleName)
         {
             SetName(RoleName);
             _instance = this;
 
             {
-                List<VParamType> args = new List<VParamType>();
-
-                List<VParamType> retVals = new List<VParamType>();
-                retVals.Add(new ParamType(false));
-
-                AddOperation(new Operation(OpToggleAll, args, retVals));
+                List<VParamType> eArgs = new List<VParamType>() { };
+                List<VParamType> eRetVals = new List<VParamType>() { new ParamType("text") };
+                AddOperation(new Operation(OpGetWeather, eArgs, eRetVals));
             }
 
             {
-                List<VParamType> args = new List<VParamType>();
-
-                List<VParamType> retVals = new List<VParamType>();
-                retVals.Add(new ParamType(false));
-
-                AddOperation(new Operation(OpTurnOffAll, args, retVals));
+                List<VParamType> eArgs = new List<VParamType>() { };
+                List<VParamType> eRetVals = new List<VParamType>() { new ParamType(0.0), new ParamType(0.0), new ParamType(0.0) };
+                AddOperation(new Operation(OpGetTemperature, eArgs, eRetVals));
             }
 
             {
-                List<VParamType> args = new List<VParamType>();
-
-                List<VParamType> retVals = new List<VParamType>();
-                retVals.Add(new ParamType(false));
-
-                AddOperation(new Operation(OpTurnOnAll, args, retVals));
-            }
-
-            {
-                List<VParamType> args = new List<VParamType>();
-
-                List<VParamType> retVals = new List<VParamType>();
-                retVals.Add(new ParamType(false));
-
-                AddOperation(new Operation(OpResetAll, args, retVals));
-            }
-
-            {
-                List<VParamType> args = new List<VParamType>();
-
-                List<VParamType> retVals = new List<VParamType>();
-                retVals.Add(new ParamType(false));
-
-                AddOperation(new Operation(OpUnlockAll, args, retVals));
-            }
-
-            {
-                List<VParamType> args = new List<VParamType>();
-                args.Add(new ParamType(0));
-                args.Add(new ParamType(0));
-                args.Add(new ParamType(0));
-
-                List<VParamType> retVals = new List<VParamType>();
-                retVals.Add(new ParamType(false));
-
-                AddOperation(new Operation(OpSetColorAll, args, retVals));
-            }
-
-            {
-                List<VParamType> args = new List<VParamType>();
-                args.Add(new ParamType(0));
-
-                List<VParamType> retVals = new List<VParamType>();
-                retVals.Add(new ParamType(false));
-
-                AddOperation(new Operation(OpSetBrightnessAll, args, retVals));
-            }
-
-            {
-                List<VParamType> args = new List<VParamType>();
-                args.Add(new ParamType(0));
-                args.Add(new ParamType(0));
-
-                List<VParamType> retVals = new List<VParamType>();
-                retVals.Add(new ParamType(false));
-
-                AddOperation(new Operation(OpToggleBulb, args, retVals));
-            }
-
-            {
-                List<VParamType> args = new List<VParamType>();
-                args.Add(new ParamType(0));
-                args.Add(new ParamType(0));
-
-                List<VParamType> retVals = new List<VParamType>();
-                retVals.Add(new ParamType(false));
-
-                AddOperation(new Operation(OpTurnOffBulb, args, retVals));
-            }
-
-            {
-                List<VParamType> args = new List<VParamType>();
-                args.Add(new ParamType(0));
-                args.Add(new ParamType(0));
-
-                List<VParamType> retVals = new List<VParamType>();
-                retVals.Add(new ParamType(false));
-
-                AddOperation(new Operation(OpTurnOnBulb, args, retVals));
-            }
-
-            {
-                List<VParamType> args = new List<VParamType>();
-                args.Add(new ParamType(0));
-
-                List<VParamType> retVals = new List<VParamType>();
-                retVals.Add(new ParamType(false));
-
-                AddOperation(new Operation(OpResetBulb, args, retVals));
-            }
-
-            {
-                List<VParamType> args = new List<VParamType>();
-                args.Add(new ParamType(0));
-
-                List<VParamType> retVals = new List<VParamType>();
-                retVals.Add(new ParamType(false));
-
-                AddOperation(new Operation(OpUnlockBulb, args, retVals));
-            }
-
-            {
-                List<VParamType> args = new List<VParamType>();
-                args.Add(new ParamType(0));
-                args.Add(new ParamType(0));
-                args.Add(new ParamType(0));
-                args.Add(new ParamType(0));
-                args.Add(new ParamType(0));
-
-                List<VParamType> retVals = new List<VParamType>();
-                retVals.Add(new ParamType(false));
-
-                AddOperation(new Operation(OpSetColorBulb, args, retVals));
-            }
-
-            {
-                List<VParamType> args = new List<VParamType>();
-                args.Add(new ParamType(0));
-
-                List<VParamType> retVals = new List<VParamType>();
-                retVals.Add(new ParamType(false));
-                retVals.Add(new ParamType(0));
-                retVals.Add(new ParamType(0));
-                retVals.Add(new ParamType(0));
-
-                AddOperation(new Operation(OpGetColorBulb, args, retVals));
-            }
-
-            {
-                List<VParamType> args = new List<VParamType>();
-                args.Add(new ParamType(0));
-                args.Add(new ParamType(0));
-                args.Add(new ParamType(0));
-
-                List<VParamType> retVals = new List<VParamType>();
-                retVals.Add(new ParamType(false));
-
-                AddOperation(new Operation(OpSetBrightnessBulb, args, retVals));
-            }
-
-            {
-                List<VParamType> args = new List<VParamType>();
-                args.Add(new ParamType(0));
-
-                List<VParamType> retVals = new List<VParamType>();
-                retVals.Add(new ParamType(false));
-
-                AddOperation(new Operation(OpBumpBulb, args, retVals));
+                List<VParamType> eArgs = new List<VParamType>() { };
+                List<VParamType> eRetVals = new List<VParamType>() { new ParamType("text") };
+                AddOperation(new Operation(OpGetPrecipitation, eArgs, eRetVals));
             }
 
         }
     }
+
+
+    //public class RoleHueBridge : Role
+    //{
+    //    public const string RoleName = ":huebridge:";
+    //    public const string OpToggleAll = RoleName + "->" + "toggleall";
+    //    public const string OpTurnOffAll = RoleName + "->" + "turnoffall";
+    //    public const string OpTurnOnAll = RoleName + "->" + "turnonall";
+    //    public const string OpResetAll = RoleName + "->" + "resetall";
+    //    public const string OpUnlockAll = RoleName + "->" + "unlockall";
+    //    public const string OpSetColorAll = RoleName + "->" + "setcolorall";
+    //    public const string OpSetBrightnessAll = RoleName + "->" + "setbrightnessall";
+
+    //    public const string OpToggleBulb = RoleName + "->" + "togglebulb";
+    //    public const string OpTurnOffBulb = RoleName + "->" + "turnoffbulb";
+    //    public const string OpTurnOnBulb = RoleName + "->" + "turnonbulb";
+    //    public const string OpResetBulb = RoleName + "->" + "resetbulb";
+    //    public const string OpUnlockBulb = RoleName + "->" + "unlockbulb";
+    //    public const string OpSetColorBulb = RoleName + "->" + "setcolorbulb";
+    //    public const string OpGetColorBulb = RoleName + "->" + "getcolorbulb";
+    //    public const string OpSetBrightnessBulb = RoleName + "->" + "setbrightnessbulb";
+    //    public const string OpBumpBulb = RoleName + "->" + "bumpbulb";
+
+    //    private static Role _instance;
+
+    //    public static Role Instance
+    //    {
+    //        get
+    //        {
+    //            if (_instance == null)
+    //                _instance = new RoleHueBridge();
+    //            return _instance;
+    //        }
+    //    }
+
+    //    public RoleHueBridge()
+    //        : base(RoleName)
+    //    {
+    //        SetName(RoleName);
+    //        _instance = this;
+
+    //        {
+    //            List<VParamType> args = new List<VParamType>();
+
+    //            List<VParamType> retVals = new List<VParamType>();
+    //            retVals.Add(new ParamType(false));
+
+    //            AddOperation(new Operation(OpToggleAll, args, retVals));
+    //        }
+
+    //        {
+    //            List<VParamType> args = new List<VParamType>();
+
+    //            List<VParamType> retVals = new List<VParamType>();
+    //            retVals.Add(new ParamType(false));
+
+    //            AddOperation(new Operation(OpTurnOffAll, args, retVals));
+    //        }
+
+    //        {
+    //            List<VParamType> args = new List<VParamType>();
+
+    //            List<VParamType> retVals = new List<VParamType>();
+    //            retVals.Add(new ParamType(false));
+
+    //            AddOperation(new Operation(OpTurnOnAll, args, retVals));
+    //        }
+
+    //        {
+    //            List<VParamType> args = new List<VParamType>();
+
+    //            List<VParamType> retVals = new List<VParamType>();
+    //            retVals.Add(new ParamType(false));
+
+    //            AddOperation(new Operation(OpResetAll, args, retVals));
+    //        }
+
+    //        {
+    //            List<VParamType> args = new List<VParamType>();
+
+    //            List<VParamType> retVals = new List<VParamType>();
+    //            retVals.Add(new ParamType(false));
+
+    //            AddOperation(new Operation(OpUnlockAll, args, retVals));
+    //        }
+
+    //        {
+    //            List<VParamType> args = new List<VParamType>();
+    //            args.Add(new ParamType(0));
+    //            args.Add(new ParamType(0));
+    //            args.Add(new ParamType(0));
+
+    //            List<VParamType> retVals = new List<VParamType>();
+    //            retVals.Add(new ParamType(false));
+
+    //            AddOperation(new Operation(OpSetColorAll, args, retVals));
+    //        }
+
+    //        {
+    //            List<VParamType> args = new List<VParamType>();
+    //            args.Add(new ParamType(0));
+
+    //            List<VParamType> retVals = new List<VParamType>();
+    //            retVals.Add(new ParamType(false));
+
+    //            AddOperation(new Operation(OpSetBrightnessAll, args, retVals));
+    //        }
+
+    //        {
+    //            List<VParamType> args = new List<VParamType>();
+    //            args.Add(new ParamType(0));
+    //            args.Add(new ParamType(0));
+
+    //            List<VParamType> retVals = new List<VParamType>();
+    //            retVals.Add(new ParamType(false));
+
+    //            AddOperation(new Operation(OpToggleBulb, args, retVals));
+    //        }
+
+    //        {
+    //            List<VParamType> args = new List<VParamType>();
+    //            args.Add(new ParamType(0));
+    //            args.Add(new ParamType(0));
+
+    //            List<VParamType> retVals = new List<VParamType>();
+    //            retVals.Add(new ParamType(false));
+
+    //            AddOperation(new Operation(OpTurnOffBulb, args, retVals));
+    //        }
+
+    //        {
+    //            List<VParamType> args = new List<VParamType>();
+    //            args.Add(new ParamType(0));
+    //            args.Add(new ParamType(0));
+
+    //            List<VParamType> retVals = new List<VParamType>();
+    //            retVals.Add(new ParamType(false));
+
+    //            AddOperation(new Operation(OpTurnOnBulb, args, retVals));
+    //        }
+
+    //        {
+    //            List<VParamType> args = new List<VParamType>();
+    //            args.Add(new ParamType(0));
+
+    //            List<VParamType> retVals = new List<VParamType>();
+    //            retVals.Add(new ParamType(false));
+
+    //            AddOperation(new Operation(OpResetBulb, args, retVals));
+    //        }
+
+    //        {
+    //            List<VParamType> args = new List<VParamType>();
+    //            args.Add(new ParamType(0));
+
+    //            List<VParamType> retVals = new List<VParamType>();
+    //            retVals.Add(new ParamType(false));
+
+    //            AddOperation(new Operation(OpUnlockBulb, args, retVals));
+    //        }
+
+    //        {
+    //            List<VParamType> args = new List<VParamType>();
+    //            args.Add(new ParamType(0));
+    //            args.Add(new ParamType(0));
+    //            args.Add(new ParamType(0));
+    //            args.Add(new ParamType(0));
+    //            args.Add(new ParamType(0));
+
+    //            List<VParamType> retVals = new List<VParamType>();
+    //            retVals.Add(new ParamType(false));
+
+    //            AddOperation(new Operation(OpSetColorBulb, args, retVals));
+    //        }
+
+    //        {
+    //            List<VParamType> args = new List<VParamType>();
+    //            args.Add(new ParamType(0));
+
+    //            List<VParamType> retVals = new List<VParamType>();
+    //            retVals.Add(new ParamType(false));
+    //            retVals.Add(new ParamType(0));
+    //            retVals.Add(new ParamType(0));
+    //            retVals.Add(new ParamType(0));
+
+    //            AddOperation(new Operation(OpGetColorBulb, args, retVals));
+    //        }
+
+    //        {
+    //            List<VParamType> args = new List<VParamType>();
+    //            args.Add(new ParamType(0));
+    //            args.Add(new ParamType(0));
+    //            args.Add(new ParamType(0));
+
+    //            List<VParamType> retVals = new List<VParamType>();
+    //            retVals.Add(new ParamType(false));
+
+    //            AddOperation(new Operation(OpSetBrightnessBulb, args, retVals));
+    //        }
+
+    //        {
+    //            List<VParamType> args = new List<VParamType>();
+    //            args.Add(new ParamType(0));
+
+    //            List<VParamType> retVals = new List<VParamType>();
+    //            retVals.Add(new ParamType(false));
+
+    //            AddOperation(new Operation(OpBumpBulb, args, retVals));
+    //        }
+
+    //    }
+    //}
 }

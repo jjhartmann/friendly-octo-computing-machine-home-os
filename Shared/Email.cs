@@ -101,7 +101,8 @@ namespace HomeOS.Shared
                     }
                 }
             }
-            return string.Format("SmtpUser: {0} SmtpPassword: { 1} SmtpServer: {2} Destination: {3} Subject: {4} Body: {5}, Attachments Count: {6}, Attachments Total Size: {7}", SmtpUser, SmtpPassword, SmtpServer, Destination, Subject, Body, cAttachments, bytesAttachTotal);
+            return string.Format("SmtpUser: {0} SmtpPassword: {1} SmtpServer: {2} Destination: {3} Subject: {4} Body: {5}, Attachments Count: {6}, Attachments Total Size: {7}", 
+                                 SmtpUser, SmtpPassword, SmtpServer, Destination, Subject, Body, cAttachments, bytesAttachTotal);
         }
     }
 

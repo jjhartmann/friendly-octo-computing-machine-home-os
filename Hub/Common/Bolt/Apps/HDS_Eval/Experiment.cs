@@ -346,6 +346,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.Eval
                     }
                     catch (Exception e)
                     {
+                        Console.WriteLine("exception: " + e);
                     }
                     end = DateTime.UtcNow;//////////////////////////////////////
                     logger.Log("End Stream Append");
@@ -372,6 +373,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.Eval
                     }
                     catch (Exception e)
                     {
+                        Console.WriteLine("exception: " + e);
                     }
                     end = DateTime.UtcNow;//////////////////////////////////////
                     logger.Log("End Stream Get");

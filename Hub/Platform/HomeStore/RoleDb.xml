@@ -20,4 +20,5 @@
   <Role Name=":actuator:" />
   <Role Name=":sensormultilevel:"/>
   <Role Name=":speechreco:"/>
+  <Role Name=":weather:"/>
 </Roles>

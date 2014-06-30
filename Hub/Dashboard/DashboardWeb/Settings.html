@@ -13,6 +13,7 @@
         var ORGID;
         var DATASTOREACCOUNTNAME;
         var DEFAULTEMAIL;
+        var WIRELESSNETWORK;
         //Load  1. HomeID, 2. RemoteAccessURL  3. Apps  4. Devices
         
         $(document).ready(
@@ -22,6 +23,7 @@
                 new PlatformServiceHelper().MakeServiceCall("webapp/GetConfSettingWeb", '{"confKey":"DataStoreAccountName"}', GetSettingsCallback);
                 new PlatformServiceHelper().MakeServiceCall("webapp/GetConfSettingWeb", '{"confKey":"OrgId"}', GetSettingsCallback);
                 new PlatformServiceHelper().MakeServiceCall("webapp/GetPrivateConfSettingWeb", '{"confKey":"NotificationEmail"}', GetSettingsCallback);
+                new PlatformServiceHelper().MakeServiceCall("webapp/GetPrivateConfSettingWeb", '{"confKey":"WifiSsid"}', GetSettingsCallback);
                 new PlatformServiceHelper().MakeServiceCall("webapp/GetRemoteAccessUrlWeb", "", GetSettingsRemoteAccessUrlWebCallback);
                 new PlatformServiceHelper().MakeServiceCall("webapp/GetInstalledAppsWeb", "", GetAppsCallback);
                 new PlatformServiceHelper().MakeServiceCall("webapp/GetConfiguredDevicesWeb", "", GetConfiguredDevicesCallback);
@@ -56,6 +58,10 @@
                         DEFAULTEMAIL = result[1];
                         $("#defaultEmail").html("Email: " + DEFAULTEMAIL + '<button class="btn" onclick="ShowEditButton(' + "'NotificationEmail'" + ')">Edit</button>');
                         break;
+                    case "WifiSsid":
+                        $("#editWireless").hide();
+                        WIRELESSNETWORK = result[1];
+                        $("#wirelessSetting").html("Wireless:" + WIRELESSNETWORK + '<button class="btn" onclick="ShowEditButton(' + "'WifiSsid'" + ')">Edit</button>');
 
                 }
             }
@@ -250,6 +256,11 @@
                 case "NotificationEmail":
                     $("#editEmail").show();
                     break;
+
+                case "WifiSsid":
+                    //need to load wireless names 
+                    new PlatformServiceHelper().MakeServiceCall("webapp/GetVisibleWifiNetworksWeb", "", GetVisibleWifiNetworksWebCallback);
+                    break;
             }
 
         }
@@ -265,7 +276,7 @@
              if (result[0] == "") {
                 $("#status").show();
                 $("#status").html("Email reset was successful");  
-                new PlatformServiceHelper().MakeServiceCall("webapp/GetConfSettingWeb", '{"confKey":"NotificationEmail"}', GetSettingsCallback);
+                new PlatformServiceHelper().MakeServiceCall("webapp/GetPrivateConfSettingWeb", '{"confKey":"NotificationEmail"}', GetSettingsCallback);
             }
         }
 
@@ -316,9 +327,72 @@
             else {
                 DisplayDebugging("GetGroups" + result[0]);
             }
+        }
 
+        function DoRestart() {
+            new PlatformServiceHelper().MakeServiceCall("webapp/RestartWeb", "", RestartShutCallback);
 
         }
+
+        function DoShutdown() {
+            new PlatformServiceHelper().MakeServiceCall("webapp/ShutdownWeb", "", RestartShutCallback);
+        }
+
+        function RestartShutCallback(context, result) {
+            if (result[0] = "") {
+
+
+            }
+            else 
+            {
+                DisplayDebugging("Restart or ShutDown " + result[0]);
+            }
+        }
+
+        //Wireless stuff
+        function GetVisibleWifiNetworksWebCallback(context, result) {
+            if (result[0] == "") {
+                PopulateWifiList(result);
+                $("#editWireless").show();
+            }
+            else {
+                DisplayDebugging("Settings: GetVisibleWifiNetworksWebCallback: " + result[0]);
+
+            }
+        }
+
+        function PopulateWifiList(result) {
+            //Read through the network and add to the list   
+            $("#wirelessNetworkList").html("");
+            for (i = 1; i < result.length; i++) {
+                $("#wirelessNetworkList").append("<option>" + result[i] + "</option>");
+            }
+        }
+
+        function JoinWireless() {
+            //AJB TODO - fix for this page - use json parameter packing
+            $("#status").show();
+            $("#statusInfo").html("Joining wireless network");
+            var homeWireless = $('#wirelessNetworkList option:selected').val();     //figure out the selected option
+            var pPhrase = $('#newWirelessPwd').val();
+            var data2 = JSON.stringify({ targetSsid: homeWireless, passPhrase: pPhrase });           
+            new PlatformServiceHelper().MakeServiceCall("webapp/ConnectToWifiNetworkWeb", data2, ConnectToWifiNetworksWebCallback);
+        }
+
+
+        function ConnectToWifiNetworksWebCallback(context, result) {
+
+            if (result[0] == "") {
+                    $("#status").show();
+                    $("#status").html("Connect to Wireless successful");
+                    new PlatformServiceHelper().MakeServiceCall("webapp/GetPrivateConfSettingWeb", '{"confKey":"WifiSsid"}', GetSettingsCallback);
+                }
+            else {
+               DisplayDebugging("Settings:Connect to Wifi Callback: " + result[0]); //only shows up if debug div is set to normal in .html file
+                $("#status").html(result[0]);
+            }
+        }
+
 
     </script>
 
@@ -335,6 +409,9 @@
          <div  class="settings_listitem" id="homeIDSetting"> </div>
          <div  class="settings_listitem" id="orgIDSetting"> </div>
          <div class="settings_listitem" id="editOrgId" style="display:none">New Org ID: <input type="text" id="newOrgID"/><button class="btn" onclick="SetOrgId()">Set</button></div>
+         <div class="settings_listitem" id="wirelessSetting"> </div>
+         <div class="settings_listitem" id="editWireless" style="display:none">     
+            Please select your wireless network: &nbsp <select id="wirelessNetworkList"></select> Password: <input type="text" id="newWirelessPwd" /><button class="btn" onclick="JoinWireless()">Join</button></div>
           <div  class="settings_listitem" id="datastoreAccountNameSetting"> </div>
 
          <div class="settings_listitem" id="urlInfo">  </div>
@@ -378,6 +455,12 @@
          
              <button class="btn" onclick="GoToHTMLPage('ConfigureScouts.html?RefName=Settings.html')">Configure Scouts</button>
        
+         <div class="row">
+             <div class="related_content col" id="restart">Danger Zone</div>
+         </div>
+
+         <button class="btn" onclick="DoRestart()">Restart</button> <button class="btn" onclick="DoShutdown()">Shutdown</button>
+         
          <br />
             <div class="settings_listitem" id="divDebugInfo" style="display:none">DEBUG info</div>
   

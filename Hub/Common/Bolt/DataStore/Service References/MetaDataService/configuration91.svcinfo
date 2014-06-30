@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<SavedWcfConfigurationInformation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="9.1" CheckSum="DLcL8ssy1yPR/uZOkq/lEOFeWWM=">
+<SavedWcfConfigurationInformation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="9.1" CheckSum="DI/gK855W9r6/HWlNT8hxG+46XE=">
   <bindingConfigurations>
     <bindingConfiguration bindingType="basicHttpBinding" name="BasicHttpBinding_IMetaDataService">
       <properties>
@@ -112,10 +112,10 @@
     </bindingConfiguration>
   </bindingConfigurations>
   <endpoints>
-    <endpoint name="BasicHttpBinding_IMetaDataService" contract="MetaDataService.IMetaDataService" bindingType="basicHttpBinding" address="http://localhost:23456/MetaDataServer" bindingConfiguration="BasicHttpBinding_IMetaDataService">
+    <endpoint name="BasicHttpBinding_IMetaDataService" contract="MetaDataService.IMetaDataService" bindingType="basicHttpBinding" address="http://localhost:23456/MetaDataServer/" bindingConfiguration="BasicHttpBinding_IMetaDataService">
       <properties>
         <property path="/address" isComplexType="false" isExplicitlyDefined="true" clrType="System.Uri, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-          <serializedValue>http://localhost:23456/MetaDataServer</serializedValue>
+          <serializedValue>http://localhost:23456/MetaDataServer/</serializedValue>
         </property>
         <property path="/behaviorConfiguration" isComplexType="false" isExplicitlyDefined="false" clrType="System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
           <serializedValue />

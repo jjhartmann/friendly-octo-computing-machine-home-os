@@ -49,6 +49,11 @@ namespace HomeOS.Hub.Common
             return Constants.AddInRoot + "\\AddIns\\" + moduleName + "\\" + moduleName + ".dll.config";
         }
 
+        public static string GetScoutConfigFilepath(string scoutName)
+        {
+            return Constants.ScoutRoot + "\\" + scoutName + "\\" + scoutName + ".dll.config";
+        }
+
         public static Collection<AddInToken> GetAddInTokens(string addInRoot, string moduleName)
         {
             // rebuild the cache files of the pipeline segments and add-ins.
@@ -63,24 +68,20 @@ namespace HomeOS.Hub.Common
             return tokens;
         }
 
-
-        public const string UnknownHomeOSUpdateVersionValue = "0.0.0.0";
-        public const string ConfigAppSettingKeyHomeOSUpdateVersion = "HomeOSUpdateVersion";
-
         public static string GetHomeOSUpdateVersion(string configFile)
         {
             return GetHomeOSUpdateVersion(configFile, null);
         }
 
-        public static string GetHomeOSUpdateVersion(string configFile, Logger logger)
+        public static string GetHomeOSUpdateVersion(string configFile, VLogger logger)
         {
-            string homeosUpdateVersion = UnknownHomeOSUpdateVersionValue;
+            string homeosUpdateVersion = Constants.UnknownHomeOSUpdateVersionValue;
             try
             {
                 XElement xmlTree = XElement.Load(configFile);
                 IEnumerable<XElement> das =
                     from el in xmlTree.DescendantsAndSelf()
-                    where el.Name == "add" && el.Parent.Name == "appSettings" && el.Attribute("key").Value == ConfigAppSettingKeyHomeOSUpdateVersion
+                    where el.Name == "add" && el.Parent.Name == "appSettings" && el.Attribute("key").Value == Constants.ConfigAppSettingKeyHomeOSUpdateVersion
                     select el;
                 if (das.Count() > 0)
                 {
@@ -91,11 +92,39 @@ namespace HomeOS.Hub.Common
             {
                 if (null != logger)
                 {
-                    logger.Log(String.Format("Failed to parse {0}, exception: {1}", configFile, e.ToString()));
+                    logger.Log(String.Format("GetHomeOSUpdateVersion call failed: Cannot parse {0}. {1}", configFile, "The vervsion is not returned"));
                 }
             }
             return homeosUpdateVersion;
         }
+
+        //public static string GetHomeOSUpdateVersion(string configFileUri, VLogger logger)
+        //{
+        //    string homeosUpdateVersion = UnknownHomeOSUpdateVersionValue;
+        //    try
+        //    {
+        //        System.Net.WebRequest req = System.Net.WebRequest.Create(configFileUri);
+        //        System.Net.WebResponse resp = req.GetResponse();
+
+        //        XElement xmlTree = XElement.Load(resp.GetResponseStream());
+        //        IEnumerable<XElement> das =
+        //            from el in xmlTree.DescendantsAndSelf()
+        //            where el.Name == "add" && el.Parent.Name == "appSettings" && el.Attribute("key").Value == ConfigAppSettingKeyHomeOSUpdateVersion
+        //            select el;
+        //        if (das.Count() > 0)
+        //        {
+        //            homeosUpdateVersion = das.First().Attribute("value").Value;
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        if (null != logger)
+        //        {
+        //            logger.Log(String.Format("Failed to parse {0}, exception: {1}", configFileUri, e.ToString()));
+        //        }
+        //    }
+        //    return homeosUpdateVersion;
+        //}
 
         /// <summary>
         /// Returns a valid mac address for the fastest interface

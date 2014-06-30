@@ -37,8 +37,8 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
 
         protected Logger logger;
 
-        private AzureBlobType azureBlobType; 
-        private Mapping mapping;
+        //private AzureBlobType azureBlobType; 
+        //private Mapping mapping;
         private RemoteInfo remoteInfo;
         private CompressionType chunkCompressionType;
         private EncryptionType chunkEncryptionType;
@@ -55,8 +55,8 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         public AzureHelper(string accountName, string accountKey, string containerName, CompressionType chunkCompression, EncryptionType chunkEncryption , byte[] encryptionKey , byte[] initializationVector, Logger log, int ChunkSize, int ThreadPoolSize)
         {
             this.logger = log;
-            this.azureBlobType = AzureBlobType.BlockBlob;
-            this.mapping = Mapping.FileToBlob;
+            //this.azureBlobType = AzureBlobType.BlockBlob;
+            //this.mapping = Mapping.FileToBlob;
             this.remoteInfo = new RemoteInfo(accountName, accountKey);
             this.containerName = containerName;
             this.chunkCompressionType = chunkCompression;
@@ -136,7 +136,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                 if (logger != null) logger.Log("Start Synchronizer ChunkList Upload");
                 string json = JsonConvert.SerializeObject(new FileMD(StaticChunkSize, chunkList_local, SyncFactory.GetCompressionTypeAsString(this.chunkCompressionType), SyncFactory.GetEncryptionTypeAsString(this.chunkEncryptionType)), new KeyValuePairConverter());
     
-                if (chunkList_toUpload.Count > 0) //upload new chunk list only if we uploaded some new chunks
+                if (chunkList_toUpload.Count > 0 || chunkList_local.Count==0) //upload new chunk list only if we uploaded some new chunks, or if this is a new stream, with no data in stream.dat
                     chunkMDblockBlob.UploadText(json);
 
                 SHA1 sha1 = new SHA1CryptoServiceProvider();
@@ -310,7 +310,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                 CloudBlobContainer container = blobClient.GetContainerReference(containerName);
 
                 if (createContainerIfNotExists)
-                    container.CreateIfNotExist();
+                    container.CreateIfNotExist(GetBlobRequestOptions());
 
                 CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
                 return blockBlob;
@@ -318,7 +318,8 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             catch (Exception e)
             {
                 structuredLog("E", "Exception in Getting BlockBlobReference: " + e.Message);
-                return null;
+                throw e;
+                //return null;
             }
         }
 
@@ -326,8 +327,10 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         {
             BlobRequestOptions options = new BlobRequestOptions()
             {
-                RetryPolicy = RetryPolicies.RetryExponential(RetryPolicies.DefaultClientRetryCount, RetryPolicies.DefaultMaxBackoff),
-                Timeout = TimeSpan.FromSeconds(AzureHelper.Timeout)
+                // Changing for immediate return in case of disconnection
+                //RetryPolicy = RetryPolicies.RetryExponential(RetryPolicies.DefaultClientRetryCount, RetryPolicies.DefaultMaxBackoff),
+                RetryPolicy = RetryPolicies.Retry(0, TimeSpan.FromSeconds(0)),// i.e. do not retry 
+                Timeout = TimeSpan.FromSeconds(AzureHelper.Timeout) // i.e. timeout in a second
             };
             return options;
         }
@@ -336,7 +339,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         {
             try
             {
-                blob.FetchAttributes();
+                blob.FetchAttributes(GetBlobRequestOptions());
                 return true;
             }
             catch (StorageClientException e)
@@ -359,12 +362,14 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             try
             {
                 CloudBlockBlob blockBlob = GetBlockBlobReference(blobName);
+                GC.Collect();
                 blockBlob.DownloadToFile(filePath, GetBlobRequestOptions());
+                GC.Collect();
                 return true;
             }
             catch (Exception e)
             {
-                structuredLog("E", " Exception in DownloadBlockBlobToFile: blobName: " + blobName + " filePath: " + filePath + " " + e.Message);
+                structuredLog("E", "Exception in DownloadBlockBlobToFile: blobName: " + blobName + " filePath: " + filePath + " " + e.Message);
                 return false;
             }
 
@@ -391,8 +396,8 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         {
             CloudBlockBlob chunkMDblockBlob = GetBlockBlobReference(ChunkMetadataBlobPrefix + blobName);
             bool blobExists = BlockBlobExists(chunkMDblockBlob);
-            List<ChunkInfo> retVal = null;
-            byte[]hash = null;
+            List<ChunkInfo> retVal;
+            byte[]hash ;
 
             if (blobExists)
             {
@@ -401,6 +406,14 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                 SHA1 sha1 = new SHA1CryptoServiceProvider();
                 hash = sha1.ComputeHash(Encoding.ASCII.GetBytes(chunkMD_JSON));
                 retVal = fileMD.ChunkList;
+            }
+            else
+            {
+                retVal = null;
+                hash = null;
+
+                if (!blobName.Equals("stream_md.dat"))
+                    Console.WriteLine("Now: blob exists false for  "+chunkMDblockBlob);
             }
             
 
@@ -454,13 +467,28 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
              Console.WriteLine(DateTime.Now +" : "+ s.ToString());
         }
 
-        public static List<string> ListFiles(string directory)
+        public static List<string> ListFiles(string directory, string indexFileName, string dataFileName)
         {
             List<string> retVal = new List<string>();
+            string datafilepath=String.Empty, indexfilepath=String.Empty; 
             try
             {
                 foreach (string f in Directory.GetFiles(directory))
-                    retVal.Add(Path.GetFullPath(f));
+                {
+                    retVal.Add(f);
+                    if (Path.GetFileName(f).Equals(indexFileName))
+                        indexfilepath = f;
+                    if (Path.GetFileName(f).Equals(dataFileName))
+                        datafilepath = f;
+                }
+
+                if (!indexfilepath.Equals(String.Empty) && !datafilepath.Equals(String.Empty))
+                {
+                    retVal.Remove(indexfilepath);
+                    retVal.Remove(datafilepath);
+                    retVal.Add(datafilepath);
+                    retVal.Add(indexfilepath);
+                }
             }
             catch (Exception e)
             {
@@ -854,7 +882,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             this.blobName = blobName;
         }
 
-        public string ToString()
+        public override string ToString()
         {
             return "ChunkIndex: " + chunkIndex + " sha1:" + sha1 + " size: " + rsize + " offset: " + roffset;
         }

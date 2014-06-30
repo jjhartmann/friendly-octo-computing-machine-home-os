@@ -195,15 +195,31 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             }
             if (logger != null) logger.Log("End ValueDataStream Init DataStructures");
 
-            
             // Fetch data
+            FetchAndFillIndex(ii, alreadyExists);
+
+            // Reset sync to upload
+            if (op == StreamFactory.StreamOp.Write)
+            {
+                CreateSync(SynchronizeDirection.Upload);
+            }
+
+            isClosed = false;
+            if (logger != null) logger.Log("Start ValueDataStream ReadFromDisk Open");
+            OpenStream();
+            if (logger != null) logger.Log("End ValueDataStream ReadFromDisk Open");
+            disposed = false;
+        }
+
+        protected void FetchAndFillIndex(IndexInfo ii, bool alreadyExists = true)
+        {
             if (alreadyExists == true)
             {
                 if (logger != null) logger.Log("Start ValueDataStream Fetch Data At Open");
                 CreateSync(SynchronizeDirection.Download);
                 Sync();
                 if (logger != null) logger.Log("End ValueDataStream Fetch Data At Open");
-                
+
                 // Index related
                 t_s = ii.startTime;
                 t_e = ii.endTime;
@@ -216,32 +232,27 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                         throw new InvalidDataException("Couldn't fill index for stream");
                 }
                 else
-                    BuildIndexHeader();
-                if (logger != null) logger.Log("End ValueDataStream Build Index");
-            }
-
-            // Reset sync to upload
-            if (op == StreamFactory.StreamOp.Write)
-            {
-                CreateSync(SynchronizeDirection.Upload);
-            }
-
-            if(streamtype == StreamFactory.StreamSecurityType.Secure)
-            {
-                // Verify intergrity
-                if (logger != null) logger.Log("Start ValueDataStream Verify Integrity");
-                if (alreadyExists && (VerifyIndex(ii.indexHash) == false || VerifyChunkListHash(ii.chunkListHash) == false) )
                 {
-                    throw new InvalidDataException("Couldn't verify metadata integrity/freshness for segment");
+                    BuildIndexHeader();
                 }
-                if (logger != null) logger.Log("End ValueDataStream Verify Integrity");
-            }
+                if (logger != null) logger.Log("End ValueDataStream Build Index");
 
-            isClosed = false;
-            disposed = false;
-            if (logger != null) logger.Log("Start ValueDataStream ReadFromDisk Open");
-            OpenStream();
-            if (logger != null) logger.Log("End ValueDataStream ReadFromDisk Open");
+                if (streamtype == StreamFactory.StreamSecurityType.Secure)
+                {
+                    VerifyIntegrity(ii, alreadyExists);
+                }
+            }
+        }
+
+        protected void VerifyIntegrity(IndexInfo ii, bool alreadyExists)
+        {
+            // Verify intergrity
+            if (logger != null) logger.Log("Start ValueDataStream Verify Integrity");
+            if ((VerifyIndex(ii.indexHash) == false) || (VerifyChunkListHash(ii.chunkListHash) == false))
+            {
+                throw new InvalidDataException("Couldn't verify metadata integrity/freshness for segment");
+            }
+            if (logger != null) logger.Log("End ValueDataStream Verify Integrity");
         }
         
         protected SynchronizerType GetST(string location)
@@ -278,7 +289,9 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         {
             try
             {
+                
                 string IndexFQN = targetDir + "/" + IndexFileName;
+                //Console.WriteLine("***************** filling index : "+ IndexFQN);
                 if (File.Exists(IndexFQN))
                 {
                     FileStream iout = new FileStream(IndexFQN, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -316,20 +329,26 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                             }
                             index[ikey] = offsets;
                             IncrementIndexSize(offsets.Count);
-                        };
+                        }
+
                     }
-                    catch (EndOfStreamException)
+                    catch (Exception)
                     {
                         // done
-                    }
-                    finally
-                    {
+
+                //    }
+                //    finally
+              //      {
                         if (streamtype == StreamFactory.StreamSecurityType.Secure)
                         {
                             iout.Position = 0;
                             IndexHash = hasher.ComputeHash(iout);
                         }
+
+                       // Console.WriteLine("********************* closed " + IndexFQN);
                         index_br.Close();
+                        iout.Close();
+                        GC.Collect();
                     }
                 }
                 else
@@ -345,7 +364,8 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             return true;
         }
 
-        protected bool OpenStream()
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        internal bool OpenStream()
         {
             try
             {
@@ -355,7 +375,6 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                     fs_bw = null;
                     fs_br = null;
                 }
-
                 else
                 {
                     // create the FileStream
@@ -365,7 +384,8 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                     fin = new FileStream(targetDir + "/" + DataLogFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                     fs_br = new BinaryReader(fin);
                 }
-                
+
+                isClosed = false;
                 return true;
             }
             catch (Exception exp)
@@ -376,19 +396,21 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             }
         }
 
-        internal void Sync()
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        internal void Sync() 
         {
             if (logger != null) logger.Log("Start ValueDataStream Sync");
             if (null != synchronizer)
             {
-                synchronizer.Sync();
-                this.chunkListHash = synchronizer.GetChunkListHash();
+                if (synchronizer.Sync())
+                    this.chunkListHash = synchronizer.GetChunkListHash();
             }
             if (logger != null) logger.Log("End ValueDataStream Sync");
         }
 
-       
-        
+
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
         internal DataBlock<KeyType, ValType> ReadDataBlock(long offset, bool ignoreIntegrity = false)
         {
             if (logger != null) logger.Log("Start ValueDataStream GetDB");
@@ -522,7 +544,8 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             List<DataBlockInfo> offsets = null;
             if (isSealed)
                 offsets = GetOffsetListFromHeader(key);
-            else if (GetHelper(key) && streamtype == StreamFactory.StreamSecurityType.Secure)
+            //else if (GetHelper(key) && streamtype == StreamFactory.StreamSecurityType.Secure)
+            else if (GetHelper(key))
                 offsets = index[key];
             else
                 return null;
@@ -678,6 +701,22 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                 }
             }
             return latest_kv;
+        }
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public Tuple<IValue, long> GetLatest(IKey tag)
+        {
+            Tuple<IValue, long> latest_tuple = null;
+            if (tag != null)
+            {
+                IValue value = Get(tag);
+                if (value != null)
+                {
+                    DataBlockInfo dbi = GetDBI(tag);
+                    latest_tuple = new Tuple<IValue, long>(value, dbi.ts);
+                }
+            }
+            return latest_tuple;
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
@@ -856,74 +895,83 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public void Flush()
+        public void Flush(bool retainIndex)
         {
             if (logger != null) logger.Log("Start ValueDataStream Flush");
-            FlushIndex();
+            FlushIndex(retainIndex);
             if (logger != null) logger.Log("End ValueDataStream Flush");
         }
+
 
         [MethodImpl(MethodImplOptions.Synchronized)]
         public void Seal(bool noop)
         {
-            t_e = StreamFactory.NowUtc();
-            Close();
-            isSealed = true;
-            OpenStream();
+            if (!isSealed && !isClosed && (streamop == StreamFactory.StreamOp.Write))
+            {
+                Close();
+                isSealed = true;
+                OpenStream();
+            }
         }
 
         // writes index to file: read by FillIndex() and GetOffsetListFromHeader().
         [MethodImpl(MethodImplOptions.Synchronized)]
-        protected void FlushIndex()
+        protected void FlushIndex(bool retainIndex = false)
         {
-            FileStream iout = new FileStream(targetDir + "/" + IndexFileName, FileMode.Create,
-                                             FileAccess.ReadWrite, FileShare.ReadWrite);
-            iout.Seek(0, SeekOrigin.End);
-
-            BinaryWriter index_bw = new BinaryWriter(iout);
-            indexHeader = new Dictionary<IKey, long>();
-
-            foreach (KeyValuePair<IKey, List<DataBlockInfo>> IndexEntry in index)
+            if (!isSealed && !isClosed && (streamop == StreamFactory.StreamOp.Write))
             {
-                indexHeader[IndexEntry.Key] = index_bw.BaseStream.Position;
+                FileStream iout = new FileStream(targetDir + "/" + IndexFileName, FileMode.Create,
+                                                 FileAccess.ReadWrite, FileShare.ReadWrite);
+                iout.Seek(0, SeekOrigin.End);
 
-                index_bw.Write(IndexEntry.Key.SerializeToJsonStream());
-                index_bw.Write((Int32)IndexEntry.Value.Count);
-                foreach (DataBlockInfo tso in IndexEntry.Value)
+                BinaryWriter index_bw = new BinaryWriter(iout);
+                indexHeader = new Dictionary<IKey, long>();
+
+                foreach (KeyValuePair<IKey, List<DataBlockInfo>> IndexEntry in index)
                 {
-                    index_bw.Write((Int64)tso.ts);
-                    index_bw.Write((Int64)tso.offset);
-                    
-                    if (streamtype == StreamFactory.StreamSecurityType.Secure)
+                    indexHeader[IndexEntry.Key] = index_bw.BaseStream.Position;
+
+                    index_bw.Write(IndexEntry.Key.SerializeToJsonStream());
+                    index_bw.Write((Int32)IndexEntry.Value.Count);
+                    foreach (DataBlockInfo tso in IndexEntry.Value)
                     {
-                        if (tso.hashValue != null)// not null for secure dir streams
+                        index_bw.Write((Int64)tso.ts);
+                        index_bw.Write((Int64)tso.offset);
+
+                        if (streamtype == StreamFactory.StreamSecurityType.Secure)
                         {
-                            index_bw.Write((Int32)tso.hashValue.Length);
-                            index_bw.Write(tso.hashValue);
+                            if (tso.hashValue != null)// not null for secure dir streams
+                            {
+                                index_bw.Write((Int32)tso.hashValue.Length);
+                                index_bw.Write(tso.hashValue);
+                            }
+                            else
+                                index_bw.Write((Int32)0);
                         }
-                        else
-                            index_bw.Write((Int32)0);
                     }
                 }
-            }
 
-            if (streamtype == StreamFactory.StreamSecurityType.Secure)
-            {
-                iout.Position = 0;
-                IndexHash = hasher.ComputeHash(iout);
-            }
+                if (streamtype == StreamFactory.StreamSecurityType.Secure)
+                {
+                    iout.Position = 0;
+                    IndexHash = hasher.ComputeHash(iout);
+                }
 
-            iout.Flush(true);
-            index_bw.Close();
-            
+                iout.Flush(true);
+                index_bw.Close();
+                iout.Close();
+            }
             //***
-            index.Clear(); 
-            index = null;
-            indexSize = 0;
+            if (!retainIndex)
+            {
+                index.Clear();
+                index = null;
+                indexSize = 0;
+            }
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public bool Close()
+        public bool Close(bool retainIndex = false)
         {
             if (logger != null) logger.Log("Start ValueDataStream Close");
             if (logger != null) logger.Log("Start ValueDataStream File Close");
@@ -942,10 +990,18 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             }
             if (logger != null) logger.Log("End ValueDataStream File Close");
 
-            if (!isSealed && !isClosed && (streamop == StreamFactory.StreamOp.Write) )
+            if (!isClosed)
             {
-                Flush();
-                Sync();
+                if (!isSealed && (streamop == StreamFactory.StreamOp.Write))
+                {
+                    t_e = StreamFactory.NowUtc();
+                    Flush(retainIndex);
+                    Sync();
+                }
+                else if (streamop == StreamFactory.StreamOp.Read)
+                {
+                    Flush(retainIndex);
+                }
             }
 
             isClosed = true;
@@ -1004,17 +1060,24 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposed)
+            try
             {
-                if (disposing)
+                if (!disposed)
                 {
-                    // Call Dispose() on other objects owned by this instance.
-                    // You can reference other finalizable objects here.
-                }
+                    if (disposing)
+                    {
+                        // Call Dispose() on other objects owned by this instance.
+                        // You can reference other finalizable objects here.
+                    }
 
-                // Release unmanaged resources owned by (just) this object.
-                Close();
-                disposed = true;
+                    // Release unmanaged resources owned by (just) this object.
+                    Close();
+                    disposed = true;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in Dispose: " + e.StackTrace);
             }
         }
 
@@ -1030,10 +1093,14 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             BinaryReader index_br;
             indexHeader = new Dictionary<IKey, long>();
 
+
+
             string IndexFilePath = targetDir + "/" + IndexFileName;
+            
+
             if (!File.Exists(IndexFilePath))
                 return;
-
+            //Console.WriteLine(DateTime.Now+" ******** filling indexheader " + IndexFilePath);
             iout = new FileStream(IndexFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             index_br = new BinaryReader(iout);
 
@@ -1060,22 +1127,26 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                     }
                 }
             }
-            catch (EndOfStreamException)
+            catch (Exception)
             {
                 // done
-            }
-            catch(Exception e)
-            {
-                Console.Write("Exception in buildindexheader: "+e);
-            }
-            finally
-            {
+        //    }
+       //     catch(Exception e)
+        //    {
+        //        Console.Write("Exception in buildindexheader: "+e);
+       //     }
+       //     finally
+       //     {
                 if (streamtype == StreamFactory.StreamSecurityType.Secure)
                 {
                     iout.Position = 0;
                     IndexHash = hasher.ComputeHash(iout);
                 }
-                index_br.Close();    
+                GC.Collect();
+                index_br.Close();
+                iout.Close();
+                //Console.WriteLine(DateTime.Now+" ******** closed indexheader " + IndexFilePath);
+                GC.Collect();
             }
         }
 

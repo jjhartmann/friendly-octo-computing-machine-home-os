@@ -14,31 +14,34 @@ namespace HomeOS.Hub.Common.MDServer
         bool RegisterPubKey(Principal prin, string key);
         [OperationContract]
         string GetPubKey(Principal prin);
-        
+
         [OperationContract]
         bool UpdateReaderKey(Principal caller, FQStreamID FQName, ACLEntry entry);
         [OperationContract]
         ACLEntry GetReaderKey(FQStreamID FQName, Principal prin);
-        
+
         [OperationContract]
         bool AddAccount(FQStreamID FQName, AccountInfo accinfo);
+
         [OperationContract]
         Dictionary<int, AccountInfo> GetAllAccounts(FQStreamID FQName);
-        
-        [OperationContract]
-        bool AddMdAccount(FQStreamID FQName, AccountInfo accinfo);
+
         [OperationContract]
         AccountInfo GetMdAccount(FQStreamID FQName);
-        
+
+        [OperationContract]
+        bool AddMdAccount(FQStreamID FQName, AccountInfo accinfo);
+
         [OperationContract]
         List<Principal> GetAllReaders(FQStreamID FQName);
-        
+
         [OperationContract]
         void RemoveAllInfo(FQStreamID FQName);
     }
-   
+
+    [Serializable]
     [DataContract]
-    public class Principal 
+    public class Principal
     {
         private string _HomeId;
         private string _AppId;
@@ -50,16 +53,16 @@ namespace HomeOS.Hub.Common.MDServer
             get { return _HomeId; }
             set { _HomeId = value; }
         }
-        
+
         [DataMember]
-        public Byte[] Auth 
+        public Byte[] Auth
         {
             get { return _Auth; }
             set { _Auth = value; }
         }
 
         [DataMember]
-        public string AppId 
+        public string AppId
         {
             get { return _AppId; }
             set { _AppId = value; }
@@ -78,6 +81,7 @@ namespace HomeOS.Hub.Common.MDServer
 
     }
 
+    [Serializable]
     [DataContract]
     public class FQStreamID
     {
@@ -93,14 +97,14 @@ namespace HomeOS.Hub.Common.MDServer
         }
 
         [DataMember]
-        public string AppId 
+        public string AppId
         {
             get { return _AppId; }
             set { _AppId = value; }
         }
-        
+
         [DataMember]
-        public string StreamId 
+        public string StreamId
         {
             get { return _StreamId; }
             set { _StreamId = value; }
@@ -119,6 +123,7 @@ namespace HomeOS.Hub.Common.MDServer
         }
     }
 
+    [Serializable]
     [DataContract]
     public class AccountInfo
     {
@@ -127,37 +132,37 @@ namespace HomeOS.Hub.Common.MDServer
         private string _accountKey;
         private string _location;
         private uint _keyVersion;
-        
+
         [DataMember]
-        public int num 
+        public int num
         {
             get { return _num; }
             set { _num = value; }
         }
-        
+
         [DataMember]
-        public uint keyVersion 
+        public uint keyVersion
         {
             get { return _keyVersion; }
             set { _keyVersion = value; }
         }
-        
+
         [DataMember]
-        public string accountName 
+        public string accountName
         {
             get { return _accountName; }
             set { _accountName = value; }
         }
-        
+
         [DataMember]
         public string accountKey
         {
             get { return _accountKey; }
             set { _accountKey = value; }
         }
-        
+
         [DataMember]
-        public string location 
+        public string location
         {
             get { return _location; }
             set { _location = value; }
@@ -171,38 +176,39 @@ namespace HomeOS.Hub.Common.MDServer
             _keyVersion = kversion;
         }
     }
-    
+
+    [Serializable]
     [DataContract]
-    public class ACLEntry 
+    public class ACLEntry
     {
         private Principal _readerName;
-        private byte[]_encKey;
+        private byte[] _encKey;
         private byte[] _IV;
         private uint _keyVersion;
-        
+
         [DataMember]
-        public byte[] encKey 
+        public byte[] encKey
         {
             get { return _encKey; }
             set { _encKey = value; }
         }
-        
+
         [DataMember]
-        public byte[] IV 
+        public byte[] IV
         {
             get { return _IV; }
             set { _IV = value; }
         }
-        
+
         [DataMember]
-        public uint keyVersion 
+        public uint keyVersion
         {
             get { return _keyVersion; }
             set { _keyVersion = value; }
         }
-        
+
         [DataMember]
-        public Principal readerName 
+        public Principal readerName
         {
             get { return _readerName; }
             set { _readerName = value; }
@@ -222,17 +228,21 @@ namespace HomeOS.Hub.Common.MDServer
         }
     }
 
+    [Serializable]
     [DataContract]
-    public class StreamInfo 
+    public class StreamInfo
     {
+
         [DataMember]
         private FQStreamID stream;
+
+
         [DataMember]
         private Principal owner;
 
         [DataMember]
         private Dictionary<int, AccountInfo> accounts;
-        
+
         [DataMember]
         private AccountInfo md_account;
 
@@ -258,7 +268,7 @@ namespace HomeOS.Hub.Common.MDServer
             readers[entry.GetPrincipal().ToString()] = entry;
             return true;
         }
-        
+
         public ACLEntry GetReader(Principal prin)
         {
             if (readers.ContainsKey(prin.ToString()))
@@ -267,12 +277,13 @@ namespace HomeOS.Hub.Common.MDServer
             }
             return null;
         }
-        
+
         public bool AddAccount(AccountInfo account)
         {
             accounts[account.num] = account;
             return true;
         }
+
         
         public bool AddMdAccount(AccountInfo account)
         {
@@ -284,7 +295,7 @@ namespace HomeOS.Hub.Common.MDServer
         {
             return accounts;
         }
-        
+
         public AccountInfo GetMdAccount()
         {
             return md_account;

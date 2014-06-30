@@ -98,7 +98,8 @@ namespace HomeOS.Hub.Apps.SmartCam
         {
             lock (this)
             {
-                serviceHost.Close();
+                if (serviceHost != null)
+                    serviceHost.Close();
 
                 //close all windows
                 foreach (VPort cameraPort in registeredCameras.Keys)
@@ -106,8 +107,11 @@ namespace HomeOS.Hub.Apps.SmartCam
                     StopRecording(cameraPort, true /* force */);
                 }
 
-                appServer.Dispose();
-                recordingServer.Dispose();
+                if (appServer != null)
+                    appServer.Dispose();
+
+                if (recordingServer != null)
+                    recordingServer.Dispose();
             }
         }
 

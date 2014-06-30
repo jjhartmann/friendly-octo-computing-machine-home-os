@@ -77,11 +77,14 @@ namespace HomeOS.Hub.Tools.UpdateManager
             if (!SecureFtpRepoUpdate.GetZipFromUrl(new Uri(uri), localZipFile, remoteUsername, remoteUserPassword, true /* enableSSL */))
             {
                 logger.Error("Failed to download the latest platform zip");
+                outputBox.Text += "Failed to download the latest platform zip\r\n";
                 goto Exit;
             }
             if (!PackagerHelper.PackagerHelper.ExtractZipToFolder(localZipFile, tmpFolder))
             {
-                logger.Error("Failed to extract platform zip file {0} to folder location: {1}", localZipFile, tmpFolder);
+                string s1 = string.Format("Failed to extract platform zip file {0} to folder location: {1}", localZipFile, tmpFolder);
+                logger.Error(s1);
+                outputBox.Text += s1;           
                 goto Exit;
             }
 
@@ -94,14 +97,17 @@ namespace HomeOS.Hub.Tools.UpdateManager
 
         private void OnShowingPlatformTab()
         {
+            outputBox.Text += "Getting Platform Version information \r\n";
             GetLatestDeployedPlatformVersion(false);
             GetMyPlatformVersion(false);
 
             LoadPlatformTabComponents();
+            outputBox.Text += "Platform tab loaded \r\n";
         }
 
         private void LoadPlatformTabComponents()
         {
+            outputBox.Text += "Loading Platform tab components \r\n";
             int currentRow = 0;
 
             // remove existing tab contents
@@ -240,7 +246,9 @@ namespace HomeOS.Hub.Tools.UpdateManager
 
         void buttonPlatRefresh_Click(object sender, EventArgs e)
         {
+            buttonPlatRefresh.Enabled = false;
             OnShowingPlatformTab();
+            buttonPlatRefresh.Enabled = true;
         }
 
        
@@ -248,6 +256,7 @@ namespace HomeOS.Hub.Tools.UpdateManager
         {
             try
             {
+                
                 TableLayoutControlCollection tableLayoutCtrlColl = this.tableLayoutPanelPlatform.Controls;
                 System.Windows.Forms.Control labelDepVer = tableLayoutCtrlColl[this.labelPlatDeployedVer.Name];
                 System.Windows.Forms.Control labelCurVer = tableLayoutCtrlColl[this.labelPlatYourVer.Name];
@@ -342,6 +351,7 @@ namespace HomeOS.Hub.Tools.UpdateManager
             catch (Exception exception)
             {
                 this.logger.ErrorException("Exception while trying to update platform on the ftp server", exception);
+                outputBox.Text += "Exception while trying to update platform on the ftp server" + exception + "\r\n";
             }
         }
 

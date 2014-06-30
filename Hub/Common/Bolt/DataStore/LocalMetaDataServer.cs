@@ -404,6 +404,18 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             return null;
         }
 
+        public bool AddMdAccount(FQStreamID stream, AccountInfo accinfo)
+        {
+            if (logger != null) logger.Log("Adding md account info for stream "
+                + stream.ToString());
+            if (!mdtable.ContainsKey(stream.ToString()))
+            {
+                mdtable[stream.ToString()] = new StreamInfo(stream);
+            }
+            return mdtable[stream.ToString()].AddMdAccount(accinfo);
+        }
+
+
         public bool AddAccount(FQStreamID stream, AccountInfo accinfo)
         {
             if (logger != null) logger.Log("Adding account info for stream "
@@ -424,17 +436,6 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                 return mdtable[stream.ToString()].GetAllAccounts();
             }
             return null;
-        }
-
-        public bool AddMdAccount(FQStreamID stream, AccountInfo accinfo)
-        {
-            if (logger != null) logger.Log("Adding md account info for stream "
-                + stream.ToString());
-            if (!mdtable.ContainsKey(stream.ToString()))
-            {
-                mdtable[stream.ToString()] = new StreamInfo(stream);
-            }
-            return mdtable[stream.ToString()].AddMdAccount(accinfo);
         }
 
         public AccountInfo GetMdAccount(FQStreamID stream)

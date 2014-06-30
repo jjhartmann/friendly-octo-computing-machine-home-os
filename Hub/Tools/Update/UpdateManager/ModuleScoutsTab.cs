@@ -9,6 +9,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 
 namespace HomeOS.Hub.Tools.UpdateManager
 {
@@ -36,11 +37,15 @@ namespace HomeOS.Hub.Tools.UpdateManager
 
         private void OnShowingModuleScoutTab()
         {
+            outputBox.Text += "Loading the Module tab components \r\n";
             LoadModuleScoutTabComponents();
+            outputBox.Text += "Finished loading Module tab\r\n";
         }
 
+ 
         private void LoadModuleScoutTabComponents()
         {
+          
             int currentRow = 0;
             int binaryCount = 0;
 
@@ -271,7 +276,9 @@ namespace HomeOS.Hub.Tools.UpdateManager
             this.tableLayoutPanelModuleScout.ResumeLayout(false);
             this.tableLayoutPanelModuleScout.PerformLayout();
         }
-
+        
+        
+        
         private string GetLatestVersionInRep(
                             string binType,
                             string binaryName,
@@ -282,34 +289,16 @@ namespace HomeOS.Hub.Tools.UpdateManager
                             )
         {
             string homeOSBinaryVersion = PackagerHelper.BinaryPackagerHelper.UnknownHomeOSUpdateVersionValue;
-            string uri = remoteHost + ":" + remotePort + "/" + binaryName.Replace(".", "/") + "/Latest/" + binaryName + ".zip";
+            string uri = remoteHost.Replace("ftp","https") + ":" + "/" + binaryName.Replace(".", "/") + "/Latest/" + binaryName + ".dll.config";
             string localZipFile = ".\\" + binaryName + ".zip";
             string tmpFolder = ".\\" + binaryName + ".tmp";
 
-            if (File.Exists(localZipFile))
-            {
-                File.Delete(localZipFile);
-            }
+            homeOSBinaryVersion = Utils.GetHomeOSUpdateVersion(uri);
 
-            if (Directory.Exists(tmpFolder))
-            {
-                PackagerHelper.PackagerHelper.DeleteFolder(tmpFolder, true);
-            }
+     
+            
 
-            if (!SecureFtpRepoUpdate.GetZipFromUrl(new Uri(uri), localZipFile, remoteUsername, remoteUserPassword, true /* enableSSL */))
-            {
-                logger.Error("Failed to download the latest {0} {1} zip", binType, binaryName);
-                goto Exit;
-            }
-            if (!PackagerHelper.PackagerHelper.ExtractZipToFolder(localZipFile, tmpFolder))
-            {
-                logger.Error("Failed to extract {0} {1} zip file {2} to folder location: {3}", binType, binaryName, localZipFile, tmpFolder);
-                goto Exit;
-            }
-
-            homeOSBinaryVersion = Utils.GetHomeOSUpdateVersion(tmpFolder + "\\" + binaryName + ".dll.config");
-
-        Exit:
+        
             return homeOSBinaryVersion;
         }
 
@@ -459,7 +448,9 @@ namespace HomeOS.Hub.Tools.UpdateManager
 
         private void buttonModuleScoutRefresh_Click(object sender, EventArgs e)
         {
+            buttonModuleScoutRefresh.Enabled = false;
             OnShowingModuleScoutTab();
+            buttonModuleScoutRefresh.Enabled = true;
         }
 
     }

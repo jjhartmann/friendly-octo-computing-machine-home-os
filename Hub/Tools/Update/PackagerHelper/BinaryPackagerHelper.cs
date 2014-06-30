@@ -16,8 +16,8 @@ namespace HomeOS.Hub.Tools.PackagerHelper
     /// </summary>
     public class BinaryPackagerHelper
     {
-        public const string UnknownHomeOSUpdateVersionValue = Utils.UnknownHomeOSUpdateVersionValue;
-        public const string ConfigAppSettingKeyHomeOSUpdateVersion = Utils.ConfigAppSettingKeyHomeOSUpdateVersion;
+        public const string UnknownHomeOSUpdateVersionValue = Constants.UnknownHomeOSUpdateVersionValue;
+        public const string ConfigAppSettingKeyHomeOSUpdateVersion = Constants.ConfigAppSettingKeyHomeOSUpdateVersion;
 
         #region spew
         private static void DisplayError(string error, NLog.Logger logger = null)

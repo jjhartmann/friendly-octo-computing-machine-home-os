@@ -23,7 +23,7 @@ namespace HomeOS.Hub.Common
                 {
                     //string message = "HomeOS SafeThread named: " + name + ", raised exception: " + exception.GetType();
                     string message = "HomeOS SafeThread named: " + name + ", raised exception: " + exception.ToString();
-                    logger.Log(message);
+                    if (logger != null) logger.Log(message);
 
                     //lets print these messages to stderr as well
                     Console.Error.WriteLine(message);
@@ -47,7 +47,7 @@ namespace HomeOS.Hub.Common
             }
             catch (Exception exception)
             {
-                logger.Log("HomeOS SafeThread exception in start(): " + exception.GetType());
+                if (logger != null) logger.Log("HomeOS SafeThread exception in start(): " + exception.GetType());
             }
         }
 
@@ -59,7 +59,7 @@ namespace HomeOS.Hub.Common
             }
             catch (Exception exception)
             {
-                logger.Log("HomeOS SafeThread exception in abort(): " + exception.GetType());
+                if (logger != null) logger.Log("HomeOS SafeThread exception in abort(): " + exception.GetType());
             }
         }
 
@@ -71,7 +71,7 @@ namespace HomeOS.Hub.Common
             }
             catch (Exception exception)
             {
-                logger.Log("HomeOS SafeThread exception in setapartmentstate() : " + exception.GetType());
+                if (logger != null) logger.Log("HomeOS SafeThread exception in setapartmentstate() : " + exception.GetType());
             }
         }
 
@@ -83,7 +83,7 @@ namespace HomeOS.Hub.Common
             }
             catch (Exception exception)
             {
-                logger.Log("HomeOS SafeThread:"+thread.Name+" exception in join(timeout): " + exception.GetType());
+                if (logger != null) logger.Log("HomeOS SafeThread:" + thread.Name + " exception in join(timeout): " + exception.GetType());
             }
         }
 
@@ -95,7 +95,7 @@ namespace HomeOS.Hub.Common
             }
             catch (Exception exception)
             {
-                logger.Log("HomeOS SafeThread exception in join(): " + exception.GetType());
+                if (logger != null) logger.Log("HomeOS SafeThread exception in join(): " + exception.GetType());
             }
         }
 
@@ -108,7 +108,7 @@ namespace HomeOS.Hub.Common
             }
             catch (Exception exception)
             {
-                logger.Log("HomeOS SafeThread exception in isalive(): " + exception.GetType());
+                if (logger != null) logger.Log("HomeOS SafeThread exception in isalive(): " + exception.GetType());
             }
             return false;
         }

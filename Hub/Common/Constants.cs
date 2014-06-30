@@ -21,6 +21,10 @@ namespace HomeOS.Hub.Common
         public const string PlatformDiscoveryQueryStr = "Are you HomeOS platform?";
         public const string PlatformDiscoveryResponseStr = "Yes, I am HomeOS platform.";
 
+        //constants used in version management
+        public const string UnknownHomeOSUpdateVersionValue = "0.0.0.0";
+        public const string ConfigAppSettingKeyHomeOSUpdateVersion = "HomeOSUpdateVersion";
+
         // ..... where to find various resources
         public static string AddInRoot = System.IO.Path.GetFullPath(PlatformBinaryDir + "\\..\\Pipeline");
         public static string ScoutRoot = System.IO.Path.GetFullPath(PlatformBinaryDir + "\\..\\Scouts");

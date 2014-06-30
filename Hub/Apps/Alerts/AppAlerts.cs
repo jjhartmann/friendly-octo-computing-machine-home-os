@@ -124,6 +124,9 @@ namespace HomeOS.Hub.Apps.Alerts
                 logger.Log("{0}: error parsing arguments: {1}", exception.ToString(), String.Join(" ", moduleInfo.Args()));
             }
 
+            picStream = base.CreateFileDataStream<StrKey, ByteValue>("H2OAlertsPics", true, 0);
+            textStream = base.CreateValueDataStream<StrKey, StrValue>("H2OAlertsText", true, 0);
+
             DoorNotifierSvc service = new DoorNotifierSvc(logger, this);
 
             //serviceHost = DoorNotifierSvc.CreateServiceHost(
@@ -324,10 +327,8 @@ namespace HomeOS.Hub.Apps.Alerts
             {
                 lock (textStreamLock)
                 {
-                    textStream = base.CreateValueDataStream<StrKey, StrValue>("H2OAlertsText", true);
                     textStream.Append(strKey, strVal);
                     logger.Log("WaterAlert message has been written to {0}.", textStream.Get(strKey).ToString());
-                    textStream.Close();
                 }
             }
             catch (Exception e)
@@ -344,10 +345,7 @@ namespace HomeOS.Hub.Apps.Alerts
             {
                 lock (picStreamLock)
                 {
-                    picStream = base.CreateFileDataStream<StrKey, ByteValue>("H2OAlertsPics", true);
                     picStream.Append(strKey, byteVal);
-                    //logger.Log("WaterAlert picture has been written to {0}.", picStream.Get(strKey).ToString());
-                    picStream.Close();
                 }
             }
             catch (Exception e)
@@ -393,8 +391,17 @@ namespace HomeOS.Hub.Apps.Alerts
              
         public override void Stop()
         {
-            serviceHost.Abort();
+            if (serviceHost != null)
+                serviceHost.Abort();
 
+            try
+            {
+                textStream.Close();
+                picStream.Close();
+            }
+            catch (Exception e) {
+                logger.Log("{0}: error: {1}", e.ToString());
+            }
         }
 
         public void WindowClosed()

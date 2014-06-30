@@ -89,6 +89,20 @@ namespace HomeOS.Hub.Platform
             ReadScoutsList();
         }
 
+        //we use this method to save xmlDoc to minimize the chances that bad configs will be left on disk
+        private void SaferSave(XmlDocument xmlDoc, string fileName)
+        {
+            string tmpFile = fileName + ".tmp";
+
+            xmlDoc.Save(tmpFile);
+
+            if (System.IO.File.Exists(fileName))
+                System.IO.File.Delete(fileName);
+
+            System.IO.File.Move(tmpFile, fileName);
+        }
+
+
         #region read and write device list
         private void ReadDeviceList()
         {
@@ -194,7 +208,7 @@ namespace HomeOS.Hub.Platform
                 root.AppendChild(xmlDevice);
             }
 
-            xmlDoc.Save(DevicesFile);
+            SaferSave(xmlDoc, DevicesFile);
         }
         #endregion
 
@@ -225,6 +239,8 @@ namespace HomeOS.Hub.Platform
 
                 if (!String.IsNullOrEmpty(version))
                     sInfo.SetVersion(version);
+                else
+                    sInfo.SetVersion(Constants.UnknownHomeOSUpdateVersionValue);
 
                 allScouts.Add(scoutName, sInfo);
             }
@@ -252,7 +268,7 @@ namespace HomeOS.Hub.Platform
                 root.AppendChild(xmlScout);
             }
 
-            xmlDoc.Save(ScoutsFile);
+            SaferSave(xmlDoc, ScoutsFile);
         }
 
         public bool AddScout(ScoutInfo sInfo, bool writeToDisk = true)
@@ -399,7 +415,9 @@ namespace HomeOS.Hub.Platform
             {
                 try
                 {
-                    xmlDoc.Save(fileName);
+                    //xmlDoc.Save(fileName);
+
+                    SaferSave(xmlDoc, fileName);
 
                     //we succeeded, so return now
                     return;
@@ -517,7 +535,7 @@ namespace HomeOS.Hub.Platform
 
             WriteUserSubTree(rootXml, rootGroup, xmlDoc);
 
-            xmlDoc.Save(this.UsersFile);
+            SaferSave(xmlDoc, this.UsersFile);
 
         }
 
@@ -732,7 +750,7 @@ namespace HomeOS.Hub.Platform
 
             WriteLocationSubTree(root, RootLocation, xmlDoc);
 
-            xmlDoc.Save(LocationsFile);
+            SaferSave(xmlDoc, LocationsFile);
         }
 
 
@@ -848,7 +866,7 @@ namespace HomeOS.Hub.Platform
 
                 // now lets set the version. if the version is  missing in the xml file set it as UnknownHomeOSUpdateVersionValue(0.0.0.0)
                 if(version.Equals(""))
-                    moduleInfo.SetVersion(Utils.UnknownHomeOSUpdateVersionValue);
+                    moduleInfo.SetVersion(Constants.UnknownHomeOSUpdateVersionValue);
                 else
                     moduleInfo.SetVersion(version);
                    
@@ -1016,7 +1034,7 @@ namespace HomeOS.Hub.Platform
                 root.AppendChild(xmlModule);
             }
 
-            xmlDoc.Save(fileName);
+            SaferSave(xmlDoc, fileName);
         }
         #endregion
 
@@ -1156,7 +1174,7 @@ namespace HomeOS.Hub.Platform
                 root.AppendChild(xmlService);
             }
 
-            xmlDoc.Save(fileName);
+            SaferSave(xmlDoc, fileName);
         }
 #endregion
 
@@ -1438,8 +1456,8 @@ namespace HomeOS.Hub.Platform
                 }
 
             }
-     
-            xmlDoc.Save(this.RulesFile);
+
+            SaferSave(xmlDoc, this.RulesFile);
         }
         #endregion
 

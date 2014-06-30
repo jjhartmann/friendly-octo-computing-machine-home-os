@@ -171,7 +171,7 @@ Swap with other colors in the palette by replacing 'background: #3ECFF9' with an
             margin-left: 0;
             margin-right: 5px;
             margin-bottom: 20px;
-            background-color: #C0C0C0;
+            background-color: steelblue;
             color: white;
             font-size: 110%;
         }
@@ -322,7 +322,7 @@ Swap with other colors in the palette by replacing 'background: #3ECFF9' with an
             width: 100px;
             padding: 5px;
             margin-bottom: 20px;
-            background-color: #C0C0C0;
+            background-color: steelblue;
             color: white;
             font-size: 105%;
         }
@@ -499,7 +499,7 @@ Swap with other colors in the palette by replacing 'background: #3ECFF9' with an
             margin-left: 0;
             margin-right: 5px;
             margin-bottom: 20px;
-            background-color: #C0C0C0;
+            background-color: steelblue;
             color: white;
             font-size: 80%;
         }

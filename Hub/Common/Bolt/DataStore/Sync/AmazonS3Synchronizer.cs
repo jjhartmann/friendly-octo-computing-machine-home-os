@@ -28,13 +28,6 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         /// <summary>
         /// We-use the remote info as: accountName = awsAccessKeyId and accountKey = awsSecretAccessKey
         /// </summary>
-        /// <param name="remoteInfo"></param>
-        /// <param name="bucket"></param>
-        /// <param name="syncDirection"></param>
-        /// <param name="compressionType"></param>
-        /// <param name="encryptionType"></param>
-        /// <param name="encryptionKey"></param>
-        /// <param name="initializationVector"></param>
         public AmazonS3Synchronizer(RemoteInfo remoteInfo, string bucket, SynchronizeDirection syncDirection, CompressionType compressionType, EncryptionType encryptionType, byte[] encryptionKey, byte[] initializationVector, Logger log, int ChunkSize,  int ThreadPoolSize = 1 )
         {
             this.logger = log;
@@ -69,18 +62,14 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
 
         public bool Sync()
         {
-            bool status = false;
-
             if (syncDirection == SynchronizeDirection.Upload)
             {
                 if (logger != null) logger.Log("Start Synchronizer Enlisting Files");
-                List<string> fileList = AzureHelper.ListFiles(localSource);
+                List<string> fileList = AzureHelper.ListFiles(localSource, this.indexFileName, this.dataFileName);
                 List<string> fileListToUpload = new List<string>(fileList);
                 if (logger != null) logger.Log("End Synchronizer Enlisting Files");
                 // todo filter list, to exclude archival stream files.
                 bool retVal = true;
-                bool syncSucceeded = true;
-
 
                 foreach (string file in fileList)
                 {
@@ -330,18 +319,20 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             {
                 if (logger != null) logger.Log("End ReadFromCache Open");
                 if (logger != null) logger.Log("End ReadFromCache ReadAllBytes");
+                Console.WriteLine("exception in reading chunk cache: " + e);
                 return null;
             }
             catch (FileNotFoundException e)
             {
                 if (logger != null) logger.Log("End ReadFromCache Open");
                 if (logger != null) logger.Log("End ReadFromCache ReadAllBytes");
+                Console.WriteLine("exception in reading chunk cache: " + e);
                 return null;
             }
             catch (Exception e)
             {
                 if (logger != null) logger.Log("End ReadFromCache ReadAllBytes");
-                // Console.WriteLine("exception in reading chunk cache: " + e);
+                Console.WriteLine("exception in reading chunk cache: " + e);
                 return null;
             }
             return ret;

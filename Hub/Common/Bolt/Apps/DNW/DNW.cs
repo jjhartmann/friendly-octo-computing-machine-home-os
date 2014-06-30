@@ -36,7 +36,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.DNW
             {
                 FqStreamID fq_sid = new FqStreamID(fqprefix + "-"+window + "-" + i + "/" + numberOfStreams + "-" + chunkSize, "A", "TestBS");
                 streamFactory.deleteStream(fq_sid, ci);
-                dataStreams.Add(streamFactory.openValueDataStream<StrKey, ByteValue>(fq_sid, ci, li, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write, mdServer , chunkSize, 1, new Logger()));
+                dataStreams.Add(streamFactory.openValueDataStream<StrKey, ByteValue>(fq_sid, ci, li, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write, mdserveraddress: mdServer, ChunkSizeForUpload: chunkSize, ThreadPoolSize: 1, log: new Logger()));
             }
 
         }
@@ -98,7 +98,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.DNW
             {
                 CallerInfo ci = new CallerInfo(null, "A", "A", 1);
                 FqStreamID fq_sid = new FqStreamID(fqprefix +"-"+ window + "-" + i + "/" + numberOfStreams + "-" + chunkSize, "A", "TestBS");
-                IStream dfs_byte_val = sf.openValueDataStream<StrKey, ByteValue>(fq_sid, ci, li, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Read, mdServer , chunkSize, 1,new Logger());
+                IStream dfs_byte_val = sf.openValueDataStream<StrKey, ByteValue>(fq_sid, ci, li, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Read, mdserveraddress: mdServer, ChunkSizeForUpload: chunkSize, ThreadPoolSize: 1, log: new Logger());
                 dataStreams.Add(dfs_byte_val);
             }
             long start = DateTime.Now.Ticks;

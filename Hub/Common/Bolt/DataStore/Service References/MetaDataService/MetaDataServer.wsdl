@@ -2,10 +2,10 @@
 <wsdl:definitions xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="http://tempuri.org/" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="MetaDataServer" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
   <wsdl:types>
     <xsd:schema targetNamespace="http://tempuri.org/Imports">
-      <xsd:import schemaLocation="http://localhost:23456/MetaDataServer?xsd=xsd0" namespace="http://tempuri.org/" />
-      <xsd:import schemaLocation="http://localhost:23456/MetaDataServer?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
-      <xsd:import schemaLocation="http://localhost:23456/MetaDataServer?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/HomeOS.Hub.Common.MDServer" />
-      <xsd:import schemaLocation="http://localhost:23456/MetaDataServer?xsd=xsd3" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+      <xsd:import schemaLocation="http://localhost:23456/MetaDataServer/?xsd=xsd0" namespace="http://tempuri.org/" />
+      <xsd:import schemaLocation="http://localhost:23456/MetaDataServer/?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+      <xsd:import schemaLocation="http://localhost:23456/MetaDataServer/?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/HomeOS.Hub.Common.MDServer" />
+      <xsd:import schemaLocation="http://localhost:23456/MetaDataServer/?xsd=xsd3" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
     </xsd:schema>
   </wsdl:types>
   <wsdl:message name="IMetaDataService_RegisterPubKey_InputMessage">
@@ -44,17 +44,17 @@
   <wsdl:message name="IMetaDataService_GetAllAccounts_OutputMessage">
     <wsdl:part name="parameters" element="tns:GetAllAccountsResponse" />
   </wsdl:message>
-  <wsdl:message name="IMetaDataService_AddMdAccount_InputMessage">
-    <wsdl:part name="parameters" element="tns:AddMdAccount" />
-  </wsdl:message>
-  <wsdl:message name="IMetaDataService_AddMdAccount_OutputMessage">
-    <wsdl:part name="parameters" element="tns:AddMdAccountResponse" />
-  </wsdl:message>
   <wsdl:message name="IMetaDataService_GetMdAccount_InputMessage">
     <wsdl:part name="parameters" element="tns:GetMdAccount" />
   </wsdl:message>
   <wsdl:message name="IMetaDataService_GetMdAccount_OutputMessage">
     <wsdl:part name="parameters" element="tns:GetMdAccountResponse" />
+  </wsdl:message>
+  <wsdl:message name="IMetaDataService_AddMdAccount_InputMessage">
+    <wsdl:part name="parameters" element="tns:AddMdAccount" />
+  </wsdl:message>
+  <wsdl:message name="IMetaDataService_AddMdAccount_OutputMessage">
+    <wsdl:part name="parameters" element="tns:AddMdAccountResponse" />
   </wsdl:message>
   <wsdl:message name="IMetaDataService_GetAllReaders_InputMessage">
     <wsdl:part name="parameters" element="tns:GetAllReaders" />
@@ -93,13 +93,13 @@
       <wsdl:input wsaw:Action="http://tempuri.org/IMetaDataService/GetAllAccounts" message="tns:IMetaDataService_GetAllAccounts_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/IMetaDataService/GetAllAccountsResponse" message="tns:IMetaDataService_GetAllAccounts_OutputMessage" />
     </wsdl:operation>
-    <wsdl:operation name="AddMdAccount">
-      <wsdl:input wsaw:Action="http://tempuri.org/IMetaDataService/AddMdAccount" message="tns:IMetaDataService_AddMdAccount_InputMessage" />
-      <wsdl:output wsaw:Action="http://tempuri.org/IMetaDataService/AddMdAccountResponse" message="tns:IMetaDataService_AddMdAccount_OutputMessage" />
-    </wsdl:operation>
     <wsdl:operation name="GetMdAccount">
       <wsdl:input wsaw:Action="http://tempuri.org/IMetaDataService/GetMdAccount" message="tns:IMetaDataService_GetMdAccount_InputMessage" />
       <wsdl:output wsaw:Action="http://tempuri.org/IMetaDataService/GetMdAccountResponse" message="tns:IMetaDataService_GetMdAccount_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="AddMdAccount">
+      <wsdl:input wsaw:Action="http://tempuri.org/IMetaDataService/AddMdAccount" message="tns:IMetaDataService_AddMdAccount_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IMetaDataService/AddMdAccountResponse" message="tns:IMetaDataService_AddMdAccount_OutputMessage" />
     </wsdl:operation>
     <wsdl:operation name="GetAllReaders">
       <wsdl:input wsaw:Action="http://tempuri.org/IMetaDataService/GetAllReaders" message="tns:IMetaDataService_GetAllReaders_InputMessage" />
@@ -166,8 +166,8 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="AddMdAccount">
-      <soap:operation soapAction="http://tempuri.org/IMetaDataService/AddMdAccount" style="document" />
+    <wsdl:operation name="GetMdAccount">
+      <soap:operation soapAction="http://tempuri.org/IMetaDataService/GetMdAccount" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
@@ -175,8 +175,8 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="GetMdAccount">
-      <soap:operation soapAction="http://tempuri.org/IMetaDataService/GetMdAccount" style="document" />
+    <wsdl:operation name="AddMdAccount">
+      <soap:operation soapAction="http://tempuri.org/IMetaDataService/AddMdAccount" style="document" />
       <wsdl:input>
         <soap:body use="literal" />
       </wsdl:input>
@@ -205,7 +205,7 @@
   </wsdl:binding>
   <wsdl:service name="MetaDataServer">
     <wsdl:port name="BasicHttpBinding_IMetaDataService" binding="tns:BasicHttpBinding_IMetaDataService">
-      <soap:address location="http://localhost:23456/MetaDataServer" />
+      <soap:address location="http://localhost:23456/MetaDataServer/" />
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>

@@ -85,7 +85,6 @@
   <ItemGroup>
     <Compile Include="DummyService.cs" />
     <Compile Include="Dummy.cs" />
-    <Compile Include="IDummyContract.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

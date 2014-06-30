@@ -196,6 +196,10 @@ namespace HomeOS.Hub.Tools.UpdateManager
                             {
                                 // assume this is the version number of the type x.x.x.x
                                 latestVersion = new Version(subdir);
+                                
+                                //fix the bug that causes incorrect path to be formed for Latest dir for x/Gadgeteer/MicrosoftResearch/X  
+                                binaryDirPath = subDirPath.Substring(0, subDirPath.LastIndexOf("/")); 
+
                             }
                             Uri uriDir = new Uri(this.ftpHost + ":" + this.ftpPort + subDirPath);
                             if (!MainForm.IsFtpRemoteDirectoryPresent(uriDir, this.ftpUser, this.ftpPassword))
@@ -208,8 +212,11 @@ namespace HomeOS.Hub.Tools.UpdateManager
                     }
                 }
                 // update the latest folder for the binary, if this is highest version or if there is no latest folder at all
+                
+ 
                 Uri uriBinaryDir = new Uri(this.ftpHost + ":" + this.ftpPort + binaryDirPath);
                 string binaryLatestDir = this.ftpHost + ":" + this.ftpPort + binaryDirPath + "/Latest";
+
                 Uri uriBinaryLatestDir = new Uri(binaryLatestDir);
                 if (!MainForm.IsFtpRemoteDirectoryPresent(uriBinaryLatestDir, this.ftpUser, this.ftpPassword) ||
                     MainForm.GetFtpHighestVersionFromDir(uriBinaryDir, this.ftpUser, this.ftpPassword, this.logger) == latestVersion)
@@ -225,6 +232,21 @@ namespace HomeOS.Hub.Tools.UpdateManager
 
                         SecureFtpRepoUpdate.UploadFile(uriFile, filePaths[i], this.ftpUser, this.ftpPassword, true);
                     }
+
+                    
+                    //Here we will upload the [binary].dll.config file, which contains the homeosupdate version of the binary, to the Latest dir on the repository   
+                     
+                    string versionfile = filePaths[0].Substring(filePaths[0].LastIndexOf('\\') + 1).Replace("zip", "dll.config");
+                    string binaryname = versionfile.Replace(".dll.config", "");
+                    string versionfilepath = this.binaryRootDir + "\\" + binaryname + "\\" + versionfile;
+                    
+                    Uri uriversionfile = new Uri(binaryLatestDir + "/" + versionfile);
+
+                    SecureFtpRepoUpdate.UploadFile(uriversionfile, versionfilepath, this.ftpUser, this.ftpPassword, true);
+
+
+
+
                 }
             }
             catch (Exception exception)

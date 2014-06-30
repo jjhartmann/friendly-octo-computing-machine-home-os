@@ -27,7 +27,7 @@ namespace HomeOS.Hub.Platform
         /// <summary>
         /// Version of the platform currently running
         /// </summary>
-        string platformVersion = Utils.UnknownHomeOSUpdateVersionValue;
+        string platformVersion = Constants.UnknownHomeOSUpdateVersionValue;
 
         /// <summary>
         /// Modules that are currently running
@@ -330,7 +330,9 @@ namespace HomeOS.Hub.Platform
                     if (!CompareModuleVersions(currentScoutVersion, sInfo.Version))
                     {
                         logger.Log("WARNING: starting an inexact version of {0}", sInfo.Name);
-                        sInfo.SetVersion(currentScoutVersion);
+                        
+                        //don't force a version
+                        //sInfo.SetVersion(currentScoutVersion);
                     }
 
                 }
@@ -450,7 +452,7 @@ namespace HomeOS.Hub.Platform
                 ConfigUpdater configLookup = null;
                 LoadConfig loadNewConfig = this.LoadConfigFromDir;
 
-                configLookup = new ConfigUpdater(null, logger, Settings.ConfigLookupFrequency, loadNewConfig);
+                configLookup = new ConfigUpdater(null, logger, Settings.ConfigLookupFrequency, loadNewConfig, this);
                 this.configLookup = configLookup;
                 if (this.configLookup != null)
                 {
@@ -1149,9 +1151,21 @@ namespace HomeOS.Hub.Platform
             {
                 logger.Log("No exact-match-version token found for Module: Binary name: " + moduleInfo.BinaryName() + ", App Name: " + moduleInfo.AppName() + ", Version: " + moduleInfo.GetVersion());
 
-                //try to get an exact match from the homestore
-                GetAddInFromRep(moduleInfo);
+              
+                Version versionRep = new Version(GetVersionFromRep(Settings.RepositoryURIs, moduleInfo.BinaryName()));
+                Version versionLocal = new Version(Utils.GetHomeOSUpdateVersion((Utils.GetAddInConfigFilepath(moduleInfo.BinaryName())), logger));
 
+                logger.Log("The latest version for {0} on the repository: {1}", moduleInfo.BinaryName(), versionRep.ToString());
+                logger.Log("The version for {0} in the local AddIn dir: {1}", moduleInfo.BinaryName(), versionLocal.ToString()); 
+
+                if (versionRep.CompareTo(versionLocal) > 0)
+                {
+                    logger.Log("The latest version on the repository ({0}) > local version ({1}) in AddIn for {2} - the latest from the rep will be downloaded!", versionRep.ToString(), versionLocal.ToString(), moduleInfo.BinaryName());
+
+                    //try to get an exact match from the homestore
+                    GetAddInFromRep(moduleInfo);
+
+                }
                 //maybe, we got the right version, maybe we didn't; in any case, lets now run what we can find, without being strict about version numbers
                 return StartModule(moduleInfo, false);
             }
@@ -1162,9 +1176,48 @@ namespace HomeOS.Hub.Platform
             }
         }
 
+        public string GetVersionFromRep(string uriRoot, string binaryName)
+        {
+            string ret = "0.0.0.0";
+            string zipUrl = uriRoot;
+
+            string[] path = binaryName.Split('.');
+
+            foreach (string pathElement in path)
+                zipUrl += "/" + pathElement;
+            
+            zipUrl += "/Latest/" + binaryName+ ".dll.config";
+
+            //string tempPath = Environment.CurrentDirectory + "\\temp_checkversion\\";
+
+            //tempPath += binaryName + "\\";
+
+            ////create a temp directory to store the zip file and its contents from the Latest dir on the rep  
+            //if (!System.IO.Directory.Exists(tempPath))
+            //    System.IO.Directory.CreateDirectory(tempPath);
+
+            ////download the latest config file to the temp dir.
+            //DownloadFile(zipUrl, tempPath, binaryName + ".dll.config");
+
+            ////look for the HomeOSUpdateVersion from the config file 
+            //ret = Utils.GetHomeOSUpdateVersion(tempPath + binaryName + ".dll.config", logger);
+
+            ret = Utils.GetHomeOSUpdateVersion(zipUrl, logger);
+
+            ////delete the temp dir
+            //System.IO.DirectoryInfo dir = new DirectoryInfo(tempPath);   
+            //if (dir.Exists)  
+            //dir.Delete(true);
+
+            return ret;
+        }
+
+
+
+
         /// <summary>
         /// Starts a module given its token
-        /// Has the side effect of updating the moduleInfo object's version to what was exactly ran
+        ///    We don't do this anymore: Has the side effect of updating the moduleInfo object's version to what was exactly ran
         /// </summary>
         /// <param name="moduleInfo"></param>
         /// <param name="token"></param>
@@ -1177,7 +1230,9 @@ namespace HomeOS.Hub.Platform
             if (!CompareModuleVersions(moduleInfo.GetVersion(), moduleVersion))
             {
                 logger.Log("WARNING: Starting an inexact match for {0}", moduleInfo.FriendlyName());
-                moduleInfo.SetVersion(moduleVersion);
+                
+                // we no longer update the version number in moduleInfo, as a way to remember which version we wanted to runrrun
+                //moduleInfo.SetVersion(moduleVersion);
             }
 
             switch (Constants.ModuleIsolationLevel)
@@ -1683,13 +1738,13 @@ namespace HomeOS.Hub.Platform
             return true;
         }
 
-        public List<VModuleInfo> GetRunningModules()
+        public List<ModuleInfo> GetRunningModuleInfos()
         {
-            List<VModuleInfo> retList;
+            List<ModuleInfo> retList;
 
             lock (this)
             {
-                retList = System.Linq.Enumerable.ToList<VModuleInfo>(runningModules.Values);
+                retList = System.Linq.Enumerable.ToList<ModuleInfo>(runningModules.Values);
             }
 
             return retList;
@@ -1721,12 +1776,12 @@ namespace HomeOS.Hub.Platform
                         case "quit":
                         case "exit":
                             Console.WriteLine("Auf Wiedersehen!\nLive Long and Prosper. ");
-                            this.Shutdown();
-                            System.Environment.Exit(0);
+                            //this.Shutdown();
+                            //System.Environment.Exit(0);
+                            ForceShutdown();
                             break;
                         case "restart":
-                            Console.WriteLine("Restarting platform with config from {0}", Settings.ConfigDir);
-                            this.LoadConfigFromDir(Settings.ConfigDir);
+                            this.Restart();
                             break;
                         case "help":
                         case "?":
@@ -2209,6 +2264,19 @@ namespace HomeOS.Hub.Platform
             return siList;
         }
 
+        public List<ScoutInfo> GetRunningScoutInfos()
+        {
+            List<ScoutInfo> siList = new List<ScoutInfo>();
+            lock (this)
+            {
+                foreach (var Scout in runningScouts.Values)
+                {
+                    siList.Add(Scout.Item1);
+                }
+            }
+            return siList;
+        }
+
         /// <summary>
         /// prints a usage message on the console
         /// </summary>
@@ -2658,7 +2726,10 @@ namespace HomeOS.Hub.Platform
             foreach (AddInToken token in tokens)
             {
                 string version = GetVersionFromBinaryName(addInRoot + "\\AddIns", token.Name);
-                moduleDict.Add(token.Name, version);
+                if (!(moduleDict.ContainsKey(token.Name)))
+                {
+                    moduleDict.Add(token.Name, version);
+                }
             }
 
             return moduleDict;
@@ -2666,7 +2737,7 @@ namespace HomeOS.Hub.Platform
 
         private static string GetVersionFromBinaryName(string binaryRoot, string binaryName)
         {
-            string version = Utils.UnknownHomeOSUpdateVersionValue;
+            string version = Constants.UnknownHomeOSUpdateVersionValue;
             string baseDir = binaryRoot + "\\" + binaryName;
             string dllPath = baseDir + "\\" + binaryName + ".dll";
 
@@ -2694,6 +2765,25 @@ namespace HomeOS.Hub.Platform
             return scoutDict;
         }
 #endregion 
+
+        public void Restart()
+        {
+            logger.Log("Restarting platform with config from {0}", Settings.ConfigDir);
+            this.LoadConfigFromDir(Settings.ConfigDir);
+        }
+
+        public void ForceShutdown()
+        {
+            logger.Log("Forcing Platform Shutdown", Settings.ConfigDir);
+
+            SafeThread shutdownThread = new SafeThread(delegate { Shutdown(); }, "shutdown thread", logger);
+            shutdownThread.Start();
+
+            //wait for 2 minutes
+            shutdownThread.Join(new TimeSpan(0, 2, 0));
+
+            System.Environment.Exit(0);
+        }
 
         private void Shutdown()
         {
@@ -2998,9 +3088,12 @@ namespace HomeOS.Hub.Platform
             Dictionary<string,bool> repAvailability = AvailableOnRep(moduleInfo) ; 
             if (!repAvailability.ContainsValue(true))
             {
-                logger.Log("Can't find "+moduleInfo.BinaryName() + " v"+moduleInfo.GetVersion()+" on any rep.");
+                logger.Log("Can't find "+moduleInfo.BinaryName() + " v "+ moduleInfo.GetVersion()+" on any rep.");
                 return false;
             }
+
+            
+            
 
             // on fetching the binaries of a module existing older versions shall be overwritten
             // making sure older version module is not running.
@@ -3026,7 +3119,7 @@ namespace HomeOS.Hub.Platform
             try
             {
                 CreateAddInDirectory(Constants.AddInRoot + "\\AddIns\\", moduleInfo.BinaryName());
-                GetAddInZip(repAvailability.FirstOrDefault(x => x.Value == true).Key, Constants.AddInRoot + "\\AddIns\\" + moduleInfo.BinaryName(), moduleInfo.BinaryName() + ".zip");
+                DownloadFile(repAvailability.FirstOrDefault(x => x.Value == true).Key, Constants.AddInRoot + "\\AddIns\\" + moduleInfo.BinaryName(), moduleInfo.BinaryName() + ".zip");
                 UnpackZip(Constants.AddInRoot + "\\AddIns\\" + moduleInfo.BinaryName() + "\\" + moduleInfo.BinaryName() + ".zip", Constants.AddInRoot + "\\AddIns\\" + moduleInfo.BinaryName());
                 if(rebuild)
                     rebuildAddInTokens();
@@ -3064,7 +3157,7 @@ namespace HomeOS.Hub.Platform
                 string baseDir = Constants.ScoutRoot + "\\" + scoutInfo.Name;
 
                 CreateAddInDirectory(Constants.ScoutRoot, scoutInfo.Name);
-                GetAddInZip(repAvailability.FirstOrDefault(x => x.Value == true).Key, baseDir , scoutInfo.DllName + ".zip");
+                DownloadFile(repAvailability.FirstOrDefault(x => x.Value == true).Key, baseDir , scoutInfo.DllName + ".zip");
                 UnpackZip(baseDir + "\\" + scoutInfo.DllName + ".zip", baseDir );
                 
                 File.Delete(baseDir + "\\" + scoutInfo.DllName + ".zip");
@@ -3237,7 +3330,7 @@ namespace HomeOS.Hub.Platform
        
         }
 
-        private void GetAddInZip(String url, String dir, String zipname)
+        private void DownloadFile(String url, String dir, String zipname)
         {
             try
             {
@@ -3270,8 +3363,7 @@ namespace HomeOS.Hub.Platform
                         if (Directory.Exists(completePath))
                             Directory.Delete(completePath, true);
 
-                        Directory.CreateDirectory(completePath);
-                        DirectoryInfo info = new DirectoryInfo(completePath);
+                        DirectoryInfo info = Directory.CreateDirectory(completePath);
                         System.Security.AccessControl.DirectorySecurity security = info.GetAccessControl();
                         security.AddAccessRule(new System.Security.AccessControl.FileSystemAccessRule(Environment.UserName, System.Security.AccessControl.FileSystemRights.FullControl, System.Security.AccessControl.InheritanceFlags.ContainerInherit, System.Security.AccessControl.PropagationFlags.None, System.Security.AccessControl.AccessControlType.Allow));
                         security.AddAccessRule(new System.Security.AccessControl.FileSystemAccessRule(Environment.UserName, System.Security.AccessControl.FileSystemRights.FullControl, System.Security.AccessControl.InheritanceFlags.ContainerInherit, System.Security.AccessControl.PropagationFlags.None, System.Security.AccessControl.AccessControlType.Allow));
@@ -3280,7 +3372,12 @@ namespace HomeOS.Hub.Platform
                     //this exception occurs when Windows is still holding a lock on the relevant dll
                     catch (System.UnauthorizedAccessException e)
                     {
-                        logger.Log("Could not create directory {0}. Will try again in 10 seconds. NumTries left = {1}", addinsDir, numTries.ToString());
+                        logger.Log("Got unauthorized exception while creating  directory {0}. Will try again in 10 seconds. NumTries left = {1}", addinsDir, numTries.ToString());
+                        Thread.Sleep(10 * 1000);
+                    }
+                    catch (System.IO.DirectoryNotFoundException e)
+                    {
+                        logger.Log("Got directorynotfound exception while creating directory {0}. Will try again in 10 seconds. NumTries left = {1}", addinsDir, numTries.ToString());
                         Thread.Sleep(10 * 1000);
                     }
 

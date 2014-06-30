@@ -46,7 +46,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.EDA
 
                 StreamFactory sf = StreamFactory.Instance;
                 sf.deleteStream(fq_sid, ci);
-                IStream dfs_byte_val = sf.openValueDataStream<DoubleKey, ByteValue>(fq_sid, ci, li,  StreamFactory.StreamSecurityType.Plain, CompressionType.None,StreamFactory.StreamOp.Write, mdServer, 4*1024*1024, 1, new Logger());
+                IStream dfs_byte_val = sf.openValueDataStream<DoubleKey, ByteValue>(fq_sid, ci, li, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write, mdserveraddress: mdServer, ChunkSizeForUpload: 4 * 1024 * 1024, ThreadPoolSize: 1, log: new Logger());
 
                 
                 while ((line = file.ReadLine()) != null)

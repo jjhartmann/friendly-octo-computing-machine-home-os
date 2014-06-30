@@ -62,11 +62,11 @@
   </Module>-->
 
 
-  <!--<Module AppName="AppDummy" BinaryName="HomeOS.Hub.Apps.Dummy" Description="Example basic application" Rating="5">
+  <Module AppName="AppDummy" BinaryName="HomeOS.Hub.Apps.Dummy" Description="Example basic application" Rating="5">
     <RoleList>
       <Role Name=":dummy:"/>
     </RoleList>
-  </Module>-->
+  </Module>
 
   <!--<Module AppName="ThermoAlerts" BinaryName="HomeOS.Hub.Apps.Thermometer" Description="Sample application for Gadgeteer guide" Rating="5">
     <RoleList>
@@ -78,6 +78,20 @@
     <RoleList>
       <Role Name=":sensor:"/>
       <Role Name=":sensormultilevel:"/>
+    </RoleList>
+  </Module>
+
+  <Module AppName="ConFurniture" BinaryName="HomeOS.Hub.Apps.ConnectedFurniture" Description="Connected Furniture" Rating="5" IconUrl="icon.png">
+    <RoleList>
+      <Role Name=":sensor:"/>
+      <Role Name=":sensormultilevel:"/>
+      <Role Name=":dummy:"/>
+    </RoleList>
+  </Module>
+
+  <Module AppName="Weather" BinaryName="HomeOS.Hub.Apps.Weather" Description="Shows current weather" Rating="5" IconUrl="icon.png">
+    <RoleList>
+      <Role Name=":weather:"/>
     </RoleList>
   </Module>
 

@@ -41,6 +41,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             }
             catch (Exception e)
             {
+                Console.WriteLine("exception: "+ e);
             }
         }
     }

@@ -101,6 +101,13 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
+        public new Tuple<IValue, long> GetLatest(IKey tag)
+        {
+            Tuple<IValue, long> latest = base.GetLatest(tag);
+            return new Tuple<IValue, long>(ReadData(latest.Item1, base.GetDBI(tag)), latest.Item2);
+        }
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public new void Append(IKey key, IValue value, long timestamp)
         {
             if (logger != null) logger.Log("Start FileDataStream Append");
@@ -150,13 +157,6 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             UpdateHelper(key, value, false);
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        public new void Update(IKey key, string valueFilePath)
-        {
-            //IValue value = n
-            //UpdateHelper(key, value, false);
-        }
-        
         [MethodImpl(MethodImplOptions.Synchronized)]
         protected Tuple<Byte[], StrValue> UpdateHelper(IKey key, IValue value, bool IsAppend, long timestamp = -1)
         {
@@ -232,6 +232,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             
         }
 
+        /*
         [MethodImpl(MethodImplOptions.Synchronized)]
         public new void Flush()
         {
@@ -244,6 +245,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         {
             base.Close();
         }
+        */
 
         /*
         [MethodImpl(MethodImplOptions.Synchronized)]
@@ -261,17 +263,24 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
 
         protected new virtual void Dispose(bool disposing)
         {
-            if (!disposed)
+            try
             {
-                if (disposing)
+                if (!disposed)
                 {
-                    // Call Dispose() on other objects owned by this instance.
-                    // You can reference other finalizable objects here.
-                }
+                    if (disposing)
+                    {
+                        // Call Dispose() on other objects owned by this instance.
+                        // You can reference other finalizable objects here.
+                    }
 
-                // Release unmanaged resources owned by (just) this object.
-                Close();
-                disposed = true;
+                    // Release unmanaged resources owned by (just) this object.
+                    Close();
+                    disposed = true;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in Dispose: " + e.StackTrace);
             }
         }
 

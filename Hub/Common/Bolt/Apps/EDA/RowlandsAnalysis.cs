@@ -34,8 +34,7 @@ namespace HomeOS.Hub.Common.Bolt.Apps.EDA
             FqStreamID fq_sid = new FqStreamID("RowlandsAnalysis"+ width, "A", "TestBS");
             CallerInfo ci = new CallerInfo(null, "A", "A", 1);
             streamFactory.deleteStream(fq_sid, ci);
-            dataStream = streamFactory.openValueDataStream<DoubleKey, ByteValue>(fq_sid, ci, null, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write, null, 4*1024*1024, 1, new Logger());
-
+            dataStream = streamFactory.openValueDataStream<DoubleKey, ByteValue>(fq_sid, ci, null, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write, mdserveraddress: null, ChunkSizeForUpload: 4 * 1024 * 1024, ThreadPoolSize: 1, log: new Logger());
             string line;
             System.IO.StreamReader file = new System.IO.StreamReader(dataFilePath);
             while ((line = file.ReadLine()) != null)

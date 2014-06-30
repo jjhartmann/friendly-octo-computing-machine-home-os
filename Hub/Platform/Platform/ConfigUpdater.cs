@@ -31,8 +31,9 @@ namespace HomeOS.Hub.Platform
 
 
 
-        private int frequency; // in milliseconds
+        private int frequency;            // in milliseconds
         private Delegate methodToInvoke; // method in platform that is to be invoked if hash matches
+        private Platform platform;       // a back pointer to the platform object
         private TimerCallback tcb;
         private Timer timer;
         private static string temporaryZipLocation = Environment.CurrentDirectory + "\\temp"; // temporary location where zip is stored
@@ -54,12 +55,14 @@ namespace HomeOS.Hub.Platform
 
         private Configuration config;
 
-        public ConfigUpdater(Configuration config, VLogger log, int frequency, Delegate method)
+        public ConfigUpdater(Configuration config, VLogger log, int frequency, Delegate method, Platform platform)
         {
             this.config = config;
             this.logger = log;
             this.frequency = frequency;
             this.methodToInvoke = method;
+            this.platform = platform;
+
             tcb = ConfigSync;
             timer = new Timer(tcb, null, 500, frequency);
 
@@ -126,6 +129,8 @@ namespace HomeOS.Hub.Platform
 
             string downloadedConfigZipPath = temporaryZipLocation + "\\" + DownloadedConfigZipName;
 
+            bool configReloadedThisRound = false;
+
             if (DownloadConfig_Azure(downloadedConfigZipPath, AzureAccountName, AzureAccountKey))
             {
 
@@ -148,6 +153,8 @@ namespace HomeOS.Hub.Platform
                     methodToInvoke.DynamicInvoke(Settings.ConfigDir);
                     Utils.structuredLog(logger, "I", "config reloading");
 
+                    configReloadedThisRound = true;
+
                     // update status
 
                 }
@@ -159,6 +166,75 @@ namespace HomeOS.Hub.Platform
             }
             else
                 Utils.structuredLog(logger, "ConfigDownload", "failed");
+
+
+            //if config reload was not needed in this round, check that we have the latest version of all modules running
+            //              .... this step is not needed otherwise, as config reload will ensure that we are running the latest version
+            if (!configReloadedThisRound)
+            {
+
+                //1. get the list of running modules from platform
+                //2. for each module check the running and repository version
+                //3. if a module is found for which the repository version is newer, do reload
+
+                var runningModules = platform.GetRunningModuleInfos();
+
+                foreach (ModuleInfo moduleInfo in runningModules)
+                {
+                    //this process is needed only for modules that don't have a specific desired version number
+                    if (moduleInfo.GetVersion() != Constants.UnknownHomeOSUpdateVersionValue)
+                        continue;
+
+                    Version versionRep = new Version(platform.GetVersionFromRep(Settings.RepositoryURIs, moduleInfo.BinaryName()));
+                    Version versionLocal = new Version(Utils.GetHomeOSUpdateVersion((Utils.GetAddInConfigFilepath(moduleInfo.BinaryName())), logger));
+
+                    if (versionRep.CompareTo(versionLocal) > 0)
+                    {
+                        Utils.structuredLog(logger, "I", String.Format("ConfigUpdater found a newer version on the repository ({0} > local version {1}) for {2}", versionRep.ToString(), versionLocal.ToString(), moduleInfo.BinaryName()));
+
+                        methodToInvoke.DynamicInvoke(Settings.ConfigDir);
+                        Utils.structuredLog(logger, "I", "config reloading");
+
+                        configReloadedThisRound = true;
+
+                        //config re-load will ensure that other moduels if newer will also be updated
+                        break;
+                    }
+                }
+            }
+
+            // finally, do the same for scouts
+            if (!configReloadedThisRound)
+            {
+                //1. get the list of running scouts from platform
+                //2. for each scout check the running and repository version
+                //3. if a module is found for which the repository version is newer, do reload
+
+                var runningScouts = platform.GetRunningScoutInfos();
+
+                foreach (DeviceScout.ScoutInfo scoutInfo in runningScouts)
+                {
+                    //this process is needed only for scouts that don't have a specific desired version number
+                    if (scoutInfo.Version != Constants.UnknownHomeOSUpdateVersionValue)
+                        continue;
+
+                    Version versionRep = new Version(platform.GetVersionFromRep(Settings.RepositoryURIs, scoutInfo.DllName));
+                    Version versionLocal = new Version(Utils.GetHomeOSUpdateVersion((Utils.GetScoutConfigFilepath(scoutInfo.DllName)), logger));
+
+                    if (versionRep.CompareTo(versionLocal) > 0)
+                    {
+                        Utils.structuredLog(logger, "I", String.Format("ConfigUpdater found a newer version on the repository ({0} > local version {1}) for {2}", versionRep.ToString(), versionLocal.ToString(), scoutInfo.DllName));
+
+                        methodToInvoke.DynamicInvoke(Settings.ConfigDir);
+                        Utils.structuredLog(logger, "I", "config reloading");
+
+                        configReloadedThisRound = true;
+
+                        //config re-load will ensure that other moduels if newer will also be updated
+                        break;
+                    }
+                }
+            }
         }
 
         private Tuple<string, string> PrepareCurrentConfig()

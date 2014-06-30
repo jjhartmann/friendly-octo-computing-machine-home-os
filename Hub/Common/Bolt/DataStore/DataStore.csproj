@@ -137,15 +137,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Service References\MetaDataService\HDS.MetaDataService.AccountInfo.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\MetaDataService\HDS.MetaDataService.ACLEntry.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\MetaDataService\HDS.MetaDataService.Principal.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
+    <None Include="Properties\DataSources\HomeOS.Hub.Common.MDServer.AccountInfo.datasource" />
+    <None Include="Properties\DataSources\HomeOS.Hub.Common.MDServer.ACLEntry.datasource" />
+    <None Include="Properties\DataSources\HomeOS.Hub.Common.MDServer.Principal.datasource" />
     <None Include="Service References\MetaDataService\HomeOS.Hub.Common.Bolt.DataStore.MetaDataService.AccountInfo.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
@@ -155,33 +149,33 @@
     <None Include="Service References\MetaDataService\HomeOS.Hub.Common.Bolt.DataStore.MetaDataService.Principal.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
+    <None Include="Service References\MetaDataService\item.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\MetaDataService\item1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\MetaDataService\item2.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\MetaDataService\item3.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Service References\MetaDataService\MetaDataServer.wsdl" />
-    <None Include="Service References\MetaDataService\MetaDataServer.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\MetaDataService\MetaDataServer1.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\MetaDataService\MetaDataServer2.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\MetaDataService\MetaDataServer3.xsd">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadataStorage Include="Service References\MetaDataService\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AWSSDK\AWSSDK.dll" />
     <Content Include="AWSSDK\readme.txt" />
-    <None Include="Service References\MetaDataService\MetaDataServer.disco" />
-    <None Include="Service References\MetaDataService\configuration91.svcinfo" />
-    <None Include="Service References\MetaDataService\configuration.svcinfo" />
     <None Include="Service References\MetaDataService\Reference.svcmap">
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
+    <None Include="Service References\MetaDataService\configuration.svcinfo" />
+    <None Include="Service References\MetaDataService\configuration91.svcinfo" />
+    <None Include="Service References\MetaDataService\item.disco" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadataStorage Include="Service References\MetaDataService\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

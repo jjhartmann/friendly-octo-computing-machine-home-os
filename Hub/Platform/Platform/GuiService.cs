@@ -957,7 +957,11 @@ namespace HomeOS.Hub.Platform
                 //by default, we make the app auto start
                 ModuleInfo moduleInfo = new ModuleInfo(app.AppName, app.AppName, app.BinaryName, null, true);
                 moduleInfo.SetManifest(app.Manifest);
-                moduleInfo.SetVersion(app.Version);
+
+                if (!String.IsNullOrWhiteSpace(app.Version))
+                    moduleInfo.SetVersion(Common.Constants.UnknownHomeOSUpdateVersionValue);
+                else
+                    moduleInfo.SetVersion(app.Version);
 
                 AccessRule accessRule = new AccessRule();
                 accessRule.ModuleName = moduleInfo.FriendlyName();
@@ -982,7 +986,10 @@ namespace HomeOS.Hub.Platform
                 }
                 else
                 {
-                    return new List<string>() { "Could not start module. Perhaps because we didn't find the binaries (with the right version)" };
+                    //remove the rule we just added, since we are not starting the module
+                    platform.RemoveAccessRulesForModule(moduleInfo.FriendlyName());
+
+                    return new List<string>() { "Could not start module. Perhaps because we didn't find the right binaries" };
                 }
             }
             catch (Exception e)
@@ -2038,6 +2045,42 @@ namespace HomeOS.Hub.Platform
             }
         }
 
+        public List<string> RestartWeb()
+        {
+            try
+            {
+                logger.Log("UICalled: RestartWeb");
+
+                platform.Restart();
+
+                return new List<string>() { "" };
+
+            }
+            catch (Exception exception)
+            {
+                logger.Log("Exception in RebootWeb: " + exception.ToString());
+                return new List<string>() { exception.Message };
+            }
+        }
+
+        public List<string> ShutdownWeb()
+        {
+            try
+            {
+                logger.Log("UICalled: ShutdownWeb");
+
+                platform.ForceShutdown();
+
+                return new List<string>() { "" };
+
+            }
+            catch (Exception exception)
+            {
+                logger.Log("Exception in ShutdownWeb: " + exception.ToString());
+                return new List<string>() { exception.Message };
+            }
+        }
+
     }
 
     [ServiceContract]
@@ -2234,6 +2277,14 @@ namespace HomeOS.Hub.Platform
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
         List<string> SetScouts(string[] scouts);
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        List<string> RestartWeb();
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        List<string> ShutdownWeb();
     }
 
     [ServiceContract]

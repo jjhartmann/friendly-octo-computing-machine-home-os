@@ -68,8 +68,15 @@ namespace HomeOS.Hub.Apps.Dummy
             logger.Log("AppDummy clean up");
             if (worker != null)
                 worker.Abort();
+            
             if (datastream != null)
                 datastream.Close();
+
+            if (serviceHost != null)
+                serviceHost.Close();
+
+            if (appServer != null)
+                appServer.Dispose();
         }
 
         /// <summary>

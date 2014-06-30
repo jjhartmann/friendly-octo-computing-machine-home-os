@@ -11,6 +11,7 @@ using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.StorageClient;
 using HomeOS.Hub.Common.Bolt.DataStore;
 using Amib.Threading;
+using System.Security.Cryptography;
 
 namespace HomeOS.Hub.Common.Bolt.DataStore
 {
@@ -69,68 +70,83 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
 
         public bool Sync()
         {
-            
-            bool status = false;
+            bool retVal = true;
 
-            if (syncDirection == SynchronizeDirection.Upload)
+
+            try
             {
-                if (logger != null) logger.Log("Start Synchronizer Enlisting Files");
-                List<string> fileList = AzureHelper.ListFiles(FqDirName);
-                List<string> fileListToUpload = new List<string>(fileList);
-                if (logger != null) logger.Log("End Synchronizer Enlisting Files");
-                // todo filter list, to exclude archival stream files.
-                bool retVal=true;
-                bool syncSucceeded = true;
-
-                
-                foreach (string file in fileList)
+                if (syncDirection == SynchronizeDirection.Upload)
                 {
-                    if (Path.GetFileName(file).Equals(this.indexFileName))
-                    {
-                        if (logger != null) logger.Log("Start Synchronizer Upload FileSimple");
-                        retVal = azureHelper.UploadFileToBlockBlob(indexFileName, file);
-                        if (logger != null) logger.Log("End Synchronizer Upload FileSimple");
-                        fileListToUpload.Remove(file);
-                    }
-                    else if (Path.GetFileName(file).Equals(this.dataFileName))
-                    {
-                        if (logger != null) logger.Log("Start Synchronizer Upload FileAsChunks");
-                        chunkListHash = azureHelper.UploadFileAsChunks(file);
-                        if (logger != null) logger.Log("End Synchronizer Upload FileAsChunks");
-                        retVal = (chunkListHash == null) ? false : true;
-                        fileListToUpload.Remove(file);
-                    }
+                    if (logger != null) logger.Log("Start Synchronizer Enlisting Files");
+                    List<string> fileList = AzureHelper.ListFiles(FqDirName, this.indexFileName, this.dataFileName); //what if this returns empty list
+                    List<string> fileListToUpload = new List<string>(fileList);
+                    if (logger != null) logger.Log("End Synchronizer Enlisting Files");
+                    // todo filter list, to exclude archival stream files.
 
-                    if (SyncFactory.FilesExcludedFromSync.Contains(Path.GetFileName(file)) || SyncFactory.FilesExcludedFromSync.Contains(Path.GetExtension(file)) )
+                    IWorkItemResult[] workItemResults = new IWorkItemResult[this.ThreadPoolSize];
+                    int i = 0;
+
+                    foreach (string file in fileList)
                     {
-                        // AzureHelper.structuredLog("I", "Ignoring sync for file {0}" , file);
-                        // do nothing. just ignore the file
-                        fileListToUpload.Remove(file);
+                        if (Path.GetFileName(file).Equals(this.indexFileName))
+                        {
+                            if (logger != null) logger.Log("Start Synchronizer Upload FileSimple");
+                            retVal = (azureHelper.UploadFileToBlockBlob(indexFileName, file)) && retVal;
+                            if (logger != null) logger.Log("End Synchronizer Upload FileSimple");
+                            fileListToUpload.Remove(file);
+                        }
+                        else if (Path.GetFileName(file).Equals(this.dataFileName))
+                        {
+                            if (logger != null) logger.Log("Start Synchronizer Upload FileAsChunks");
+                            chunkListHash = azureHelper.UploadFileAsChunks(file);
+                            if (logger != null) logger.Log("End Synchronizer Upload FileAsChunks");
+                            retVal = ((chunkListHash == null) ? false : true) && retVal;
+                            fileListToUpload.Remove(file);
+                        }
+
+                        if (SyncFactory.FilesExcludedFromSync.Contains(Path.GetFileName(file)) || SyncFactory.FilesExcludedFromSync.Contains(Path.GetExtension(file)))
+                        {
+                            // AzureHelper.structuredLog("I", "Ignoring sync for file {0}" , file);
+                            // do nothing. just ignore the file
+                            fileListToUpload.Remove(file);
+                        }
+                    } //we've taken care of the index, data, and files to ignore. whatever is left are datablock files for file data streams (?)
+
+
+                    if (logger != null) logger.Log("Start Synchronizer Upload FDSFiles");
+                    SmartThreadPool threadPool = new SmartThreadPool();
+                    threadPool.MaxThreads = this.ThreadPoolSize;
+
+                    foreach (string file in fileListToUpload)
+                    {
+                        workItemResults[i++] = threadPool.QueueWorkItem(new WorkItemCallback(this.UploadFileToBlockBlob_worker), file);
                     }
-                } //we've taken care of the index, data, and files to ignore. whatever is left are datablock files for file data streams (?)
+                    threadPool.Start();
+                    threadPool.WaitForIdle();
+                    for (int j = 0; j < i; j++)
+                    {
+                        retVal = retVal && ((bool)workItemResults[j].Result);
+                    }
+                    threadPool.Shutdown();
 
-
-                if (logger != null) logger.Log("Start Synchronizer Upload FDSFiles");
-                SmartThreadPool threadPool = new SmartThreadPool();
-                threadPool.MaxThreads = this.ThreadPoolSize;
-                foreach (string file in fileListToUpload)
-                {
-                    IWorkItemResult wir1 = threadPool.QueueWorkItem(new WorkItemCallback(this.UploadFileToBlockBlob_worker), file);
+                    if (logger != null) logger.Log("End Synchronizer Upload FDSFiles");
                 }
-                threadPool.Start();
-                threadPool.WaitForIdle();
-                threadPool.Shutdown();
-                if (logger != null) logger.Log("End Synchronizer Upload FDSFiles");
-            }
 
-            if (syncDirection == SynchronizeDirection.Download)
+                if (syncDirection == SynchronizeDirection.Download)
+                {
+                    this.GetDataFileMetadata();// get chunkMD and populate chunkList Hash
+                    retVal = azureHelper.DownloadBlockBlobToFile(indexFileName, FqDirName + "/" + indexFileName);// download index 
+                }
+            }
+            catch(Exception e)
             {
-                this.GetDataFileMetadata();// get chunkMD and populate chunkList Hash
-                return azureHelper.DownloadBlockBlobToFile(indexFileName, FqDirName + "/" + indexFileName);// download index 
+                if (logger != null) logger.Log("Exception in Sync(): " + e.GetType() + ", " + e.Message);
+                retVal = false;
             }
 
-            return true;//TODO fix this to return correct value for upload cases
+            return retVal;
         }
+
 
         private object UploadFileToBlockBlob_worker(object state)
         {
@@ -253,10 +269,6 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             Byte[] ret = null;
             try
             {
-                //if (!Directory.Exists(DataChunkCacheDir))
-                  //  return null;
-                // if (File.Exists(DataChunkFileName))
-                // {
                 if (logger != null) logger.Log("Start ReadFromCache ReadAllBytes");
                 if (logger != null) logger.Log("Start ReadFromCache Open");
                 FileStream fout = new FileStream(DataChunkFileName,
@@ -264,31 +276,54 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                                             FileAccess.Read,
                                             FileShare.ReadWrite);
                 if (logger != null) logger.Log("End ReadFromCache Open");
-                fout.Seek(offsetInChunk, SeekOrigin.Begin);
-                //read file to MemoryStream
-                int minToRead = Math.Min((int)(fout.Length - offsetInChunk) + 1, (int)bytesToRead);
-                byte[] bytes = new byte[minToRead];
-                fout.Read(bytes, 0, minToRead);
+                
+                // Check if the chunkHash matches the one in the most recent chunkMD (dataFileMetadata)
+                int expected_size = dataFileMetadata[chunkIndex].csize;
+                byte[] buffer = new byte[expected_size];
+                bool cache_hit = false;
+                if (fout.Length == dataFileMetadata[chunkIndex].csize)
+                {
+                    // TODO: Cache this result somewhere instead of taking a hash every time!
+                    int bytesRead = fout.Read(buffer, 0, buffer.Length);
+                    SHA1 sha1 = new SHA1CryptoServiceProvider();
+                    string sha1_hash = Convert.ToBase64String(sha1.ComputeHash(buffer, 0 , bytesRead));
+                    if (sha1_hash == dataFileMetadata[chunkIndex].sha1)
+                    {
+                        cache_hit = true;
+                    }
+                }
+
+                if (cache_hit)
+                {
+                    fout.Seek(offsetInChunk, SeekOrigin.Begin);
+                    //read file to MemoryStream
+                    int minToRead = Math.Min((int)(fout.Length - offsetInChunk) + 1, (int)bytesToRead);
+                    byte[] bytes = new byte[minToRead];
+                    fout.Read(bytes, 0, minToRead);
+                    ret = bytes; //File.ReadAllBytes(DataChunkFileName);
+                }
                 fout.Close();
-                ret = bytes; //File.ReadAllBytes(DataChunkFileName);
                 if (logger != null) logger.Log("End ReadFromCache ReadAllBytes");
             }
             catch (DirectoryNotFoundException e)
             {
                 if (logger != null) logger.Log("End ReadFromCache Open");
                 if (logger != null) logger.Log("End ReadFromCache ReadAllBytes");
+                //Console.WriteLine("exception in reading chunk cache: " + e);
                 return null;
             }
             catch (FileNotFoundException e)
             {
                 if (logger != null) logger.Log("End ReadFromCache Open");
                 if (logger != null) logger.Log("End ReadFromCache ReadAllBytes");
+                Console.WriteLine("exception in reading chunk cache: " + e);
                 return null;
             }
             catch (Exception e)
             {
                 if (logger != null) logger.Log("End ReadFromCache ReadAllBytes");
-                // Console.WriteLine("exception in reading chunk cache: "+ e);
+                Console.WriteLine("exception in reading chunk cache: "+ e);
+                ret = null;
             }
             return ret;
         }

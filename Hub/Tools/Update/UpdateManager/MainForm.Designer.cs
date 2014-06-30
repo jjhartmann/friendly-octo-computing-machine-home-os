@@ -34,6 +34,8 @@
             this.tabConfigs = new System.Windows.Forms.TabPage();
             this.tabModuleScouts = new System.Windows.Forms.TabPage();
             this.tabPlatform = new System.Windows.Forms.TabPage();
+            this.label1 = new System.Windows.Forms.Label();
+            this.outputBox = new System.Windows.Forms.TextBox();
             this.controlMainFormTab.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -42,7 +44,7 @@
             this.controlMainFormTab.Appearance = System.Windows.Forms.TabAppearance.FlatButtons;
             this.controlMainFormTab.Controls.Add(this.tabSetup);
             this.controlMainFormTab.Controls.Add(this.tabConfigs);
-            this.controlMainFormTab.Controls.Add(this.tabModuleScouts); 
+            this.controlMainFormTab.Controls.Add(this.tabModuleScouts);
             this.controlMainFormTab.Controls.Add(this.tabPlatform);
             this.controlMainFormTab.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.controlMainFormTab.HotTrack = true;
@@ -81,7 +83,6 @@
             this.tabModuleScouts.TabIndex = 1;
             this.tabModuleScouts.Text = "Modules/Scouts";
             this.tabModuleScouts.UseVisualStyleBackColor = true;
-
             // 
             // tabPlatform
             // 
@@ -93,20 +94,42 @@
             this.tabPlatform.Text = "Platform";
             this.tabPlatform.UseVisualStyleBackColor = true;
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(1, 429);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(354, 13);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "Output (please be patient with loading, see log.txt file for additional details)";
+            // 
+            // outputBox
+            // 
+            this.outputBox.Location = new System.Drawing.Point(4, 456);
+            this.outputBox.Multiline = true;
+            this.outputBox.Name = "outputBox";
+            this.outputBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.outputBox.Size = new System.Drawing.Size(639, 188);
+            this.outputBox.TabIndex = 2;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(644, 427);
+            this.AutoSize = true;
+            this.ClientSize = new System.Drawing.Size(654, 656);
+            this.Controls.Add(this.outputBox);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.controlMainFormTab);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "MainForm";
-            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
+            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
             this.Text = "LoT Update Manager";
             this.controlMainFormTab.ResumeLayout(false);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -118,5 +141,7 @@
         private System.Windows.Forms.TabPage tabConfigs;
         private System.Windows.Forms.TabPage tabModuleScouts;
         private System.Windows.Forms.TabPage tabPlatform;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox outputBox;
     }
 }

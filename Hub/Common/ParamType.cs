@@ -30,6 +30,8 @@ namespace HomeOS.Hub.Common
 
         public ParamType(double value) : this(SimpleType.numdouble, value) { }
 
+        public ParamType(string value) : this(SimpleType.text, value) { }
+
         public int Maintype()
         {
             return (int)maintype;

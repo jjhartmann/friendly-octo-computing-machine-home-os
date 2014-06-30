@@ -8,6 +8,8 @@ var APPS_USER_PERMITS = []; //for the already installed apps the user permits to
 var MAX_ATTEMPTS = 5; //maximum times to call to see if device is ready
 var CURR_ATTEMPT = 1;
 var LOCATION_OPTION_HIDDEN = true;
+var APPS_TO_INSTALL = []; //the apps that should be installed
+var APPS_TO_INSTALL_COUNTER = 0;  //we are going to walk backwards through array of apps to install at -1 we get to call configure
 
 //This file deals with final setup for a device
 //-          1. call StartDriver()  
@@ -236,20 +238,52 @@ function parseReturnedAppList(result, divName) {
 }
 
 //Called to Install applications user has selected.
-function InstallApp(aName) {
-    var url2 = "webapp/InstallAppWeb";
-    var data2 = '{"appName": "' + aName + '"}';
-    new PlatformServiceHelper().MakeServiceCall(url2, data2, InstallAppCallback);
+function InstallApps() {
+
+    //go through array of apps to install from back to front, ensuring that each install succeeds or showing warning
+    //if counter > 0 we have apps to try to install  else call configure device
+    if (APPS_TO_INSTALL_COUNTER > 0) {
+        APPS_TO_INSTALL_COUNTER--;
+        //call the install app web
+        var url2 = "webapp/InstallAppWeb";
+        var data2 = '{"appName": "' + APPS_TO_INSTALL[APPS_TO_INSTALL_COUNTER] + '"}';
+        new PlatformServiceHelper().MakeServiceCall(url2, data2, InstallAppCallback);
+    }
+    else {
+        //any new apps were succesfully are installed and APPS_USER_PERMITS has the list of permitted apps
+        //Record the name and location of the device, callback notifies platform it is done
+        ConfigureDevice();
+    }
 }
 
 function InstallAppCallback(context, result) {
+
+    var dataAsObject = JSON.parse(context.Data);
+    var appName = dataAsObject.appName;  //figure out what app was being installed
+    var idString = '#' + appName;
+
     if (result[0] != "") {
-        UpdateDebugInfo(this, "Problem installing apps:" + result[0]);
+       // UpdateDebugInfo(this, "Problem installing apps:" + result[0]);
+        $("#status").show();
+        $("#status").html(appName + ":" + result[0]);
+
+        //refresh UI in case stuff was installed
+        CallDeviceRelatedFunctions("GetCompatibleAppsNotInstalledWeb", GetCompatiableAppsNotInstalledWebCallback);
+
+    }
+    else {
+        //add since install succeeds 
+        APPS_USER_PERMITS[APPS_USER_PERMITS.length] = appName;
+     
+        //Call install apps again in case there are more apps to install
+        InstallApps();
     }
 }
 
 //Called to configure the device with friendly names 
 function ConfigureDevice() {
+
+
     //Setup to call ConfigureDeviceWeb(string uniqueDeviceId, string friendlyName, bool highSecurity, string location, string[] apps);
     var url2 = "webapp/ConfigureDeviceWeb";
     //get the friendly name and location
@@ -269,11 +303,12 @@ function ConfigureDevice() {
 }
 function ConfigureDeviceCallback(context, result) {
     if (result[0] == "") {
-      
-            //May be able to share function for this with other files: stubbed out at goToDashboardWebMainPage() but relative path is a problem;
-            //Go to main page http://localhost:51430/GuiWeb/index.html
-            var url = "../../../GuiWeb/index.html";
-            window.location.href = encodeURI(url); //reroute
+
+
+        //May be able to share function for this with other files: stubbed out at goToDashboardWebMainPage() but relative path is a problem;
+        //Go to main page http://localhost:51430/GuiWeb/index.html
+        var url = "../../../GuiWeb/index.html";
+        window.location.href = encodeURI(url); //reroute
         
     }
     else {
@@ -283,19 +318,28 @@ function ConfigureDeviceCallback(context, result) {
 
 function DoneButtonClicked() {
     UpdateDebugInfo(this, "Done button clicked");
+    $("#status").hide();
+    APPS_TO_INSTALL = [];
+    APPS_TO_INSTALL_COUNTER = 0;
 
     //No devices named empty string
-    if ($('#friendlyName').val() == "")
+    if ($('#friendlyName').val() == "") {
+        $("#status").html("Please name the device")
+        $("#status").show();
         return;
+    }
+
 
     //Install any new apps
     $('#divNIApps').children('input').each(function () {
-        if (this.checked == true) {
-            InstallApp(this.id);
+        if (this.checked == true) {   
             UpdateDebugInfo(this, this.id + " app to install");
-           APPS_USER_PERMITS[APPS_USER_PERMITS.length] = this.id;
+            //add to the candidate list of apps to install
+            APPS_TO_INSTALL[APPS_TO_INSTALL.length] = this.id;
+            APPS_TO_INSTALL_COUNTER++;
         }
     });
+
 
     //create array of which already installed apps are permitted to use this device
     $('#divIApps').children('input').each(function () {
@@ -305,9 +349,8 @@ function DoneButtonClicked() {
         }
     });
 
-    //Record the name and location of the device call configure web, callback notifies platform it is done
-    ConfigureDevice();
-
+    //Try to install all the new applications -> will either success and call configure device in callback or fail and show debugging.
+    InstallApps();
 }
 
 

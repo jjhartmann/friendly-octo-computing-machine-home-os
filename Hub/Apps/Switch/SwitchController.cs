@@ -177,9 +177,11 @@ namespace HomeOS.Hub.Apps.Switch
         {
             lock (this)
             {
-                serviceHost.Close();
+                if (serviceHost != null)
+                    serviceHost.Close();
 
-                appServer.Dispose();
+                if (appServer != null)
+                    appServer.Dispose();
             }
         }
 

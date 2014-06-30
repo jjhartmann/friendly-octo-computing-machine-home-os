@@ -522,7 +522,12 @@ namespace HomeOS.Hub.Common
             get { return defaultPortCapabilities[ControlPort]; }
         }
 
-        protected IStream CreateValueDataStream<KeyType, ValType>(string streamId, bool remoteSync)
+        /* syncIntervalSec:
+         *   -ve ==> don't sync on writes;  only sync on close.
+         *   0   ==> sync on every write
+         *   +ve ==> sync every x seconds
+        */
+        protected IStream CreateValueDataStream<KeyType, ValType>(string streamId, bool remoteSync, int syncIntervalSec = -1)
             where KeyType : IKey, new()
             where ValType : IValue, new()
         {
@@ -532,16 +537,16 @@ namespace HomeOS.Hub.Common
             {
                 LocationInfo li = new LocationInfo(GetConfSetting("DataStoreAccountName"), GetConfSetting("DataStoreAccountKey"), SynchronizerType.Azure);
                 return this.streamFactory.openValueDataStream<KeyType, ValType>
-                    (fq_sid, ci, li, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write);
+                    (fq_sid, ci, li, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write, syncIntervalSec: syncIntervalSec);
             }
             else
             {
                 return this.streamFactory.openValueDataStream<KeyType, ValType>
-                    (fq_sid, ci, null, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write);
+                    (fq_sid, ci, null, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write, syncIntervalSec: syncIntervalSec);
             }
         }
 
-        protected IStream CreateFileDataStream<KeyType, ValType>(string streamId, bool remoteSync)
+        protected IStream CreateFileDataStream<KeyType, ValType>(string streamId, bool remoteSync, int syncIntervalSec = -1)
             where KeyType : IKey, new()
         {
             CallerInfo ci = new CallerInfo(this.moduleInfo.WorkingDir(), this.moduleInfo.FriendlyName(), this.moduleInfo.AppName(), this.Secret());
@@ -550,12 +555,12 @@ namespace HomeOS.Hub.Common
             {
                 LocationInfo Li = new LocationInfo(GetConfSetting("DataStoreAccountName"), GetConfSetting("DataStoreAccountKey"), SynchronizerType.Azure);
                 return this.streamFactory.openFileDataStream<KeyType>(
-                    fq_sid, ci, Li, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write);
+                    fq_sid, ci, Li, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write, syncIntervalSec: syncIntervalSec);
             }
             else
             {
                 return this.streamFactory.openFileDataStream<KeyType>(
-                    fq_sid, ci, null, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write);
+                    fq_sid, ci, null, StreamFactory.StreamSecurityType.Plain, CompressionType.None, StreamFactory.StreamOp.Write, syncIntervalSec: syncIntervalSec);
             }
         }
 

@@ -162,6 +162,9 @@
     <None Include="stopwatchdog.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="uninstallwatchdog.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="libs\Ionic.Zip.dll" />

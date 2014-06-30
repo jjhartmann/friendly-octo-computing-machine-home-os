@@ -7,6 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 
 namespace HomeOS.Hub.Tools.UpdateManager
 {
@@ -102,7 +103,6 @@ namespace HomeOS.Hub.Tools.UpdateManager
             this.configDataCache = new AzureHubConfigDataLocalCache(this.formAzureAccount.AzureAccountName, this.formAzureAccount.AzureAccountKey, logger);
             this.configDataCache.BuildCache();
 
-
             if (this.configDataCache.GetOrgIdList().Count > 0)
             {
                 string orgId = this.configDataCache.GetOrgIdList()[0];
@@ -115,7 +115,9 @@ namespace HomeOS.Hub.Tools.UpdateManager
         }
         private void OnShowingConfigsTab()
         {
+            outputBox.Text += "Loading configuration components\r\n";
             BuildCacheAndLoadConfigComponents(0, 0);
+            outputBox.Text += "Finished loading configuraiton components \r\n";
         }
 
         private void LoadConfigsTabComponents(int selectedOrgIndex, int selectedStudyIndex)
@@ -385,11 +387,15 @@ namespace HomeOS.Hub.Tools.UpdateManager
 
         private new void Refresh()
         {
+            btnConfigsRefresh.Enabled = false;
+            outputBox.Text += "Refreshing Config information\r\n";
             int currentOrgIndex = this.comboBoxConfigsOrgID.SelectedIndex;
             int currentStudyIndex = GetIndexOfStudyId((string)this.comboBoxConfigsOrgID.SelectedItem, (string)this.comboBoxConfigsStudyID.SelectedItem);
             this.currentOrgItem = (string)this.comboBoxConfigsOrgID.SelectedItem;
             this.currentStudyItem = (string)this.comboBoxConfigsStudyID.SelectedItem;
             BuildCacheAndLoadConfigComponents(currentOrgIndex, currentStudyIndex);
+            outputBox.Text += "Done refreshing Config information\r\n";
+            btnConfigsRefresh.Enabled = true;
         }
 
         void buttonConfigsRefresh_Click(object sender, EventArgs e)
@@ -572,17 +578,23 @@ namespace HomeOS.Hub.Tools.UpdateManager
                     string parentVersionFilename = zipPath_desired + "\\" + PackagerHelper.ConfigPackagerHelper.ParentVersionFileName;
                     if (File.Exists(currentVersionFilename))
                     {
-                        logger.Info(string.Format("Copying {0} to {1} ", currentVersionFilename, parentVersionFilename), 1);
+                        string s = string.Format("Copying {0} to {1} ", currentVersionFilename, parentVersionFilename);
+                        logger.Info(s, 1);
+                        outputBox.Text += s + "\n";
                         PackagerHelper.PackagerHelper.CopyFile(currentVersionFilename, parentVersionFilename);
                     }
                     else
                     {
-                        logger.Info(string.Format("Writing version of config in {0} to {1} ", zipPath_actual, parentVersionFilename), 1);
+                        string s1 = string.Format("Writing version of config in {0} to {1} ", zipPath_actual, parentVersionFilename);
+                        logger.Info(s1, 1);
+                        outputBox.Text += s1 + "\n";
                         PackagerHelper.ConfigPackagerHelper.UpdateVersionFile(PackagerHelper.ConfigPackagerHelper.GetConfigVersion(zipPath_actual), parentVersionFilename);
                     }
 
                     string currentVersionFilenameDesired = zipPath_desired + "\\" + PackagerHelper.ConfigPackagerHelper.CurrentVersionFileName;
-                    logger.Info(string.Format("Writing version of config in {0} to {1} ", zipPath_desired, currentVersionFilenameDesired), 1);
+                    string s3 = string.Format("Writing version of config in {0} to {1} ", zipPath_desired, currentVersionFilenameDesired);
+                    logger.Info(s3, 1);
+                    outputBox.Text += s3 + "\n";
                     Dictionary<string, string> currentVersion_desired = PackagerHelper.ConfigPackagerHelper.GetConfigVersion(zipPath_desired);
                     PackagerHelper.ConfigPackagerHelper.UpdateVersionFile(currentVersion_desired, currentVersionFilenameDesired);
 
@@ -590,7 +602,10 @@ namespace HomeOS.Hub.Tools.UpdateManager
                     File.Delete(zipFilePathDesiredLocal);
                     PackagerHelper.PackagerHelper.PackZip(zipPath_desired, zipFilePathDesiredLocal);
 
-                    logger.Info(string.Format("Uploading desired config for homeID {0} ", panelRowItem.hubId), 1);
+                    string s4 = string.Format("Uploading desired config for homeID {0} ", panelRowItem.hubId);
+                    logger.Info(s4, 1);
+                    outputBox.Text += s4 + "\n";
+
                     if (!AzureBlobConfigUpdate.UploadConfig(
                             zipFilePathDesiredLocal,
                             this.formAzureAccount.AzureAccountName,
@@ -601,7 +616,10 @@ namespace HomeOS.Hub.Tools.UpdateManager
                             PackagerHelper.ConfigPackagerHelper.desiredConfigFileName,
                             logger))
                     {
-                        logger.Warn(string.Format("WARNING! unable to upload config for homeID: " + panelRowItem.hubId));
+                        string s5 = string.Format("WARNING! unable to upload config for homeID: " + panelRowItem.hubId);
+                        logger.Warn(s5);
+                        outputBox.Text += s5 + "\n";
+
 
                     }
                 }
@@ -617,6 +635,7 @@ namespace HomeOS.Hub.Tools.UpdateManager
                 if (!RunValidation(false))
                 {
                     this.logger.Error("Validation Failed!");
+                    outputBox.Text += "Validation Failed!\n";
                     return;
                 }
             }

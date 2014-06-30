@@ -73,7 +73,7 @@ namespace HomeOS.Hub.Common
                 if (null != emailRequestInfo)
                 {
                     string jsonString = emailRequestInfo.SerializeToJsonStream();
-                    logger.Log("Sending cloud email : {0}", jsonString);
+                    logger.Log("Sending cloud email : {0}", emailRequestInfo.ToString());
                     WebClient webClient = new WebClient();
                     webClient.Headers["Content-type"] = "application/json";
                     webClient.Encoding = Encoding.UTF8;
@@ -82,11 +82,10 @@ namespace HomeOS.Hub.Common
                     EmailStatus emailStatus = SerializerHelper<EmailStatus>.DeserializeFromJsonStream(jsonEmailStatus);
                     return new Tuple<bool, string>(emailStatus.SendStatus == EmailSendStatus.SentSuccessfully, emailStatus.SendFailureMessage);
                 }
-
             }
             catch (Exception exception)
             {
-                error = string.Format("Exception while sending message: {0}", exception.ToString());
+                error = string.Format("Exception while sending cloud email: {0}", exception.ToString());
                 base.logger.Log(error);
                 return new Tuple<bool, string>(false, error);
             }
