@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataStore", "Common\Bolt\DataStore\DataStore.csproj", "{540D10B0-39FE-47E7-86AB-AFF845791DAF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{7ED475E8-A68E-43D7-AB54-624B6A4A0EAE} = {7ED475E8-A68E-43D7-AB54-624B6A4A0EAE}
@@ -36,9 +34,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReadSyncTester", "Common\Bo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WriteSyncTester", "Common\Bolt\Apps\WriteStreamSyncTester\WriteSyncTester.csproj", "{086EAC54-BC4D-45CD-98FC-62FF04D8C546}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataStoreCommon", "Common\Bolt\DataStoreCommon\DataStoreCommon.csproj", "{6494BCCD-3FE4-493F-8C5E-01BD3F91DADB}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 13
+		SccNumberOfProjects = 14
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
 		SccProjectUniqueName0 = Common\\Bolt\\DataStore\\DataStore.csproj
@@ -116,6 +116,11 @@ Global
 		SccAuxPath12 = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
 		SccLocalPath12 = Common\\Bolt\\Apps\\WriteStreamSyncTester
 		SccProvider12 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccProjectUniqueName13 = Common\\Bolt\\DataStoreCommon\\DataStoreCommon.csproj
+		SccProjectName13 = Common/Bolt/DataStoreCommon
+		SccAuxPath13 = https://vstf-us-wa-09.partners.extranet.microsoft.com:8443/tfs/ext_09_consol_tpc1
+		SccLocalPath13 = Common\\Bolt\\DataStoreCommon
+		SccProvider13 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -174,6 +179,10 @@ Global
 		{086EAC54-BC4D-45CD-98FC-62FF04D8C546}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{086EAC54-BC4D-45CD-98FC-62FF04D8C546}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{086EAC54-BC4D-45CD-98FC-62FF04D8C546}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6494BCCD-3FE4-493F-8C5E-01BD3F91DADB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6494BCCD-3FE4-493F-8C5E-01BD3F91DADB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6494BCCD-3FE4-493F-8C5E-01BD3F91DADB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6494BCCD-3FE4-493F-8C5E-01BD3F91DADB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

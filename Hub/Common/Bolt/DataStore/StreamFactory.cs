@@ -9,6 +9,9 @@ using System.IO;
 using System.ServiceModel;
 using System.Configuration;
 
+using HomeOS.Hub.Common.Bolt.DataStoreCommon;
+
+
 namespace HomeOS.Hub.Common.Bolt.DataStore
 {
     public sealed class StreamFactory
@@ -197,13 +200,13 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                 LocalMetaDataServer localMdServer = new LocalMetaDataServer(targetDir + "/" + MetaStream<StrKey, StrValue>.StreamMDFileName, log);
                 localMdServer.LoadMetaDataServer();
 
-                Dictionary<int, HomeOS.Hub.Common.MDServer.AccountInfo> tmp = localMdServer.GetAllAccounts(new HomeOS.Hub.Common.MDServer.FQStreamID(streamId.HomeId, streamId.AppId, streamId.StreamId));
+                Dictionary<int, AccountInfo> tmp = localMdServer.GetAllAccounts(new FQStreamID(streamId.HomeId, streamId.AppId, streamId.StreamId));
 
                 if (tmp != null)
                 {
                     MetaDataService.AccountInfo ai=null;
                     MetaDataService.AccountInfo segment0Ai =null;
-                    foreach (HomeOS.Hub.Common.MDServer.AccountInfo account in tmp.Values)
+                    foreach (AccountInfo account in tmp.Values)
                     {
                         Boom(targetDir + "/" + account.num);
                         containerName = streamId.ToString().Replace('/', '-').ToLower() + "-" + account.num;

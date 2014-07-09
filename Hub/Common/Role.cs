@@ -650,6 +650,7 @@ namespace HomeOS.Hub.Common
     {
         public const string RoleName = ":microphone:";
         public const string OpRecAudioName = RoleName + "->" + "recaudio";
+        public const string OpRecBytesName = RoleName + "->" + "recbytes";
 
         private static RoleMicrophone _instance;
 
@@ -678,6 +679,17 @@ namespace HomeOS.Hub.Common
 
                 AddOperation(new Operation(RoleMicrophone.OpRecAudioName, args, retVals));
             }
+
+            {
+                List<HomeOS.Hub.Platform.Views.VParamType> args = new List<HomeOS.Hub.Platform.Views.VParamType>();
+                args.Add(new ParamType(0.0));
+
+                List<HomeOS.Hub.Platform.Views.VParamType> retVals = new List<HomeOS.Hub.Platform.Views.VParamType>();
+                retVals.Add(new ParamType(ParamType.SimpleType.text, "recbytes", null));
+
+                AddOperation(new Operation(RoleMicrophone.OpRecBytesName, args, retVals, true));
+            }
+
         }
     }
 

@@ -11,6 +11,8 @@ using System.ServiceModel.Description;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
+using HomeOS.Hub.Common.Bolt.DataStoreCommon;
+
 namespace HomeOS.Hub.Common.MDServer
 {
     public class program
@@ -61,7 +63,7 @@ namespace HomeOS.Hub.Common.MDServer
         static private Dictionary<string, string> keytable;
         [DataMember]
         static private Dictionary<string, StreamInfo> mdtable;
-        static private Logger logger = new Logger();
+        static private HomeOS.Hub.Common.MDServer.Logger logger = new HomeOS.Hub.Common.MDServer.Logger();
 
         private static string KEYTABLEFILE = "keytable.dat";
         private static string MDTABLEFILE = "mdtable.dat";

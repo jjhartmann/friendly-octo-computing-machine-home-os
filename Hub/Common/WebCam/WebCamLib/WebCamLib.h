@@ -90,6 +90,12 @@ namespace WebCamLib
 		}
 
 		/// <summary>
+		/// Initialize information about webcams installed on machine
+		/// </summary>
+		void RefreshCameraList();
+
+
+		/// <summary>
 		/// IDisposable
 		/// </summary>
 		~CameraMethods();
@@ -106,11 +112,6 @@ namespace WebCamLib
 		/// Keeps the delegate instance in one spot
 		/// </summary>
 		GCHandle ppCaptureCallback;
-
-		/// <summary>
-		/// Initialize information about webcams installed on machine
-		/// </summary>
-		void RefreshCameraList();
 
 		/// <summary>
 		/// Has dispose already happened?

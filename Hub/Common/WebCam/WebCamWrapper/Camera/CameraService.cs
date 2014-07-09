@@ -35,10 +35,11 @@ namespace HomeOS.Hub.Common.WebCam.WebCamWrapper.Camera
         {
             get
             {
-                if (_availableCameras == null)
-                {
+                //lets no cache the list
+                //if (_availableCameras == null)
+                //{
                     _availableCameras = BuildCameraList().ToList();
-                }
+                //}
 
                 return _availableCameras;
             }
@@ -46,6 +47,9 @@ namespace HomeOS.Hub.Common.WebCam.WebCamWrapper.Camera
 
         private static IEnumerable<Camera> BuildCameraList()
         {
+            //lets first rebuild the list
+            CameraMethods.RefreshCameraList();
+
             for (int i = 0; i < CameraMethods.Count; i++)
             {
                 WebCamLib.CameraInfo cameraInfo = CameraMethods.GetCameraInfo(i);

@@ -10,7 +10,8 @@ using System.Collections;
 using System.ServiceModel;
 using System.Configuration;
 
-using HomeOS.Hub.Common.MDServer;
+//using HomeOS.Hub.Common.MDServer;
+using HomeOS.Hub.Common.Bolt.DataStoreCommon;
 using System.Threading;
 
 namespace HomeOS.Hub.Common.Bolt.DataStore

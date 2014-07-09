@@ -20,14 +20,21 @@ namespace DriverWebCam
     [AddIn("HomeOS.Hub.Drivers.WebCam")]
     public class DriverWebCam : ModuleBase
     {
+        //how frequently to look for the camera
+        static TimeSpan SearchPeriod = new TimeSpan(0, 1, 0);
+
+        string cameraStr;
         CameraFrameSource _frameSource;
+
         Bitmap _latestFrame;
         byte[] _latestImageBytes = new byte[0];
+        DateTime _latestFrameTime = DateTime.MinValue;
 
-        Port cameraPort;
-        SafeThread worker = null;
+        Port cameraPort = null;
 
         private WebFileServer imageServer;
+
+        Timer cameraSearchTimer;
 
         public override void Start()
         {
@@ -37,50 +44,57 @@ namespace DriverWebCam
                 return;
             }
 
-            string cameraStr = moduleInfo.Args()[0];
+            cameraStr = moduleInfo.Args()[0];
 
-            foreach (Camera camera in CameraService.AvailableCameras)
+            _frameSource = FindConnectedCamera(cameraStr);
+
+            if (_frameSource != null)
             {
-                //if (camera.ToString().ToLower().Contains(cameraStr))
-                //{
-                //    _frameSource = new CameraFrameSource(camera);
-                //    break;
-                //}
-
-                if (cameraStr.ToLower().Contains(camera.ToString().ToLower()))
-                {
-                    _frameSource = new CameraFrameSource(camera);
-                    break;
-                }
+                InitCamera(_frameSource);
             }
-
-            if (_frameSource == null)
+            else 
             {
                 logger.Log("Camera matching {0} not found", cameraStr);
                 ListAvailableCameras();
-                return;
+                logger.Log("Will keep looking");
             }
 
-            logger.Log("Will use camera {0}", _frameSource.Camera.ToString());
-
-
-            //add the camera service port
-            VPortInfo pInfo = GetPortInfoFromPlatform("webcam - " + cameraStr);
-
-            List<VRole> roles = new List<VRole>() {RoleCamera.Instance};
-            
-            cameraPort = InitPort(pInfo);
-            BindRoles(cameraPort, roles, OnOperationInvoke);
-
-            RegisterPortWithPlatform(cameraPort);
-            worker = new SafeThread(delegate()
-            {
-                GetVideo();
-            }, "DriverWebCam-GetVideo", logger);
-            worker.Start();
+            cameraSearchTimer = new Timer(PeriodicCameraSearch, null, (int) SearchPeriod.TotalMilliseconds, (int) SearchPeriod.TotalMilliseconds);
 
             imageServer = new WebFileServer(moduleInfo.BinaryDir(), moduleInfo.BaseURL(), logger);
+        }
 
+        private CameraFrameSource FindConnectedCamera(string cameraStr) 
+        {
+            foreach (Camera camera in CameraService.AvailableCameras)
+            {
+                if (camera.ToString().ToLower().Contains(cameraStr.ToLower()))
+                {
+                    return new CameraFrameSource(camera);
+                }
+            }
+            return null;
+        }
+
+        private void InitCamera(CameraFrameSource frameSource)
+        {
+            logger.Log("Init-ing camera {0}", _frameSource.Camera.ToString());
+
+            //add the camera service port if we haven't done that already
+            if (cameraPort == null)
+            {
+                VPortInfo pInfo = GetPortInfoFromPlatform("webcam - " + cameraStr);
+
+                List<VRole> roles = new List<VRole>() { RoleCamera.Instance };
+
+                cameraPort = InitPort(pInfo);
+                BindRoles(cameraPort, roles, OnOperationInvoke);
+
+                RegisterPortWithPlatform(cameraPort);
+            }
+
+            SafeThread worker = new SafeThread(delegate() { GetVideo(); }, "DriverWebCam-GetVideo", logger);
+            worker.Start();
         }
 
         private void ListAvailableCameras()
@@ -96,12 +110,57 @@ namespace DriverWebCam
             logger.Log(str);
         }
 
+        private void ForgetCamera()
+        {
+            DeregisterPortWithPlatform(cameraPort);
+            cameraPort = null;
+
+            if (_frameSource != null && _frameSource.Camera != null)
+                _frameSource.Camera.Dispose();
+
+            _frameSource = null;
+        }
+
+        private void PeriodicCameraSearch(object state)
+        {
+            try
+            {
+                //search only if we haven't received a frame in a while
+                if (DateTime.Now - _latestFrameTime > SearchPeriod)
+                {
+                    if (cameraPort != null)
+                    {
+                        ForgetCamera();
+                    }
+                        
+                    _frameSource = FindConnectedCamera(cameraStr);
+
+                    if (_frameSource != null)
+                    {
+                        InitCamera(_frameSource);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                logger.Log("Exception during camera search: " + e.ToString());
+            }
+        }
+
+
         public override void Stop()
         {
-            _frameSource.Camera.Dispose();
-            if (worker != null)
-                worker.Abort();
-            imageServer.Dispose();
+            if (_frameSource != null && _frameSource.Camera != null)
+                _frameSource.Camera.Dispose();
+
+            //if (worker != null)
+            //    worker.Abort();
+
+            if (imageServer != null)
+                imageServer.Dispose();
+
+            if (cameraSearchTimer != null)
+                cameraSearchTimer.Dispose();
         }
 
         /// <summary>
@@ -114,14 +173,6 @@ namespace DriverWebCam
 
             switch (opName.ToLower())
             {
-                //case RoleCamera.OpDownName:
-                //case RoleCamera.OpUpName:
-                //case RoleCamera.OpLeftName:
-                //case RoleCamera.OpRightName:
-                //case RoleCamera.OpZoomInName:
-                //case RoleCamera.OpZommOutName:
-                //    //nothing to be done here: web cameras do not support navigation
-                //    break;
                 case RoleCamera.OpGetImageName:
                     lock (this)
                     {
@@ -173,6 +224,7 @@ namespace DriverWebCam
             lock (this)
             {
                 _latestFrame = frame.Image;
+                _latestFrameTime = DateTime.Now;
 
                 var newImageBytes = ImageToByteArray(frame.Image);
 

@@ -90,9 +90,15 @@ namespace HomeOS.Hub.Common
             }
             catch (Exception e)
             {
-                if (null != logger)
+                if (e is DirectoryNotFoundException || e is FileNotFoundException)
                 {
-                    logger.Log(String.Format("GetHomeOSUpdateVersion call failed: Cannot parse {0}. {1}", configFile, "The vervsion is not returned"));
+                    if (logger != null)
+                        logger.Log("Warning: File not found: " + configFile);
+                }
+                else
+                {
+                    if (logger != null)
+                        logger.Log(String.Format("GetHomeOSUpdateVersion call failed: Cannot parse {0}. {1}", configFile, "The vervsion is not returned"));
                 }
             }
             return homeosUpdateVersion;
