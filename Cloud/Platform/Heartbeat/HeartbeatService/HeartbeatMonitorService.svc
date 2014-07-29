@@ -1,1 +1,0 @@
-﻿<%@ ServiceHost Language="C#" Debug="true" Factory="HomeOS.Cloud.Platform.Heartbeat.HeartbeatMonitorServiceFactory" Service="HomeOS.Cloud.Platform.Heartbeat.HeartbeatMonitorService" CodeBehind="HeartbeatMonitorService.svc.cs" %>

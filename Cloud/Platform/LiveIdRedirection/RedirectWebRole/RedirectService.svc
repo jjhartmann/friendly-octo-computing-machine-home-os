@@ -1,1 +1,0 @@
-﻿<%@ ServiceHost Language="C#" Debug="true" Service="HomeOS.Cloud.Platform.RedirectWebRole.RedirectService" CodeBehind="RedirectService.svc.cs" %>
