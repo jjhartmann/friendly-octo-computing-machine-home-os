@@ -87,8 +87,15 @@ namespace HomeOS.Hub.Scouts.Arduino
                         if (!serialPorts.ContainsKey(portName))  {
                            
                            serPort = new SerialPort(portName, 9600);
+                            serPort.DtrEnable = true;  //all this needed for arduino micro
                             serPort.WriteTimeout = 500;
-                            serPort.ReadTimeout = 500;  //enough time for the device to respond?
+                            serPort.ReadTimeout = 1000;  //enough time for the device to respond?
+                            serPort.StopBits = StopBits.One;
+                            serPort.Parity = Parity.None;
+                            serPort.Handshake = Handshake.None;
+                            serPort.DataBits = 8;
+                            serPort.RtsEnable = false;
+                            
                             serialPorts.Add(portName, serPort);
                         }
                         else {
@@ -120,6 +127,7 @@ namespace HomeOS.Hub.Scouts.Arduino
                         {
 
                             serPort.Write("[?]");
+
                             string serialString = serPort.ReadTo("]");
                             serialString = serialString.TrimStart('[');  //remove opening bracket
 
@@ -129,9 +137,10 @@ namespace HomeOS.Hub.Scouts.Arduino
                                 serialPortofArduino = portName; //remember the name of the correct port                            
                                 Device device = CreateDeviceUsb(serialString);
                                 currentDeviceList.InsertDevice(device);
-
                             }
-                            
+
+
+
                             serPort.Close();
                         }
                     }
@@ -139,10 +148,10 @@ namespace HomeOS.Hub.Scouts.Arduino
                     {
                         logger.Log("Timed out while trying to read " + portName);
                     }
-                    catch (Exception /*e*/)
+                    catch (Exception e)
                     {
                         // let us not print this 
-                        // logger.Log("Serial port exception for {0}: {1}", portName, e.ToString());
+                        //logger.Log("Serial port exception for {0}: {1}", portName, e.ToString());
                     }
                 }
             }
@@ -217,11 +226,7 @@ namespace HomeOS.Hub.Scouts.Arduino
 
         public List<Device> GetDevices()
         {
-           // Device device = new Device("arduinodevice", "arduinodevice", "", DateTime.Now, "HomeOS.Hub.Drivers.Arduino", false);
-
-            //intialize the parameters for this device
-           // device.Details.DriverParams = new List<string>() { device.UniqueName };
-
+           
             ScanNow(null, null);
 
             return currentDeviceList.GetClonedList();
