@@ -161,6 +161,9 @@ namespace HomeOS.Hub.Common
         }
     }
 
+ 
+
+
 
     public class RoleDoorjamb : Role
     {
@@ -957,6 +960,44 @@ namespace HomeOS.Hub.Common
                 List<VParamType> eArgs = new List<VParamType>() { new ParamType(0) };
                 List<VParamType> eRetVals = new List<VParamType>() { new ParamType(0) };
                 AddOperation(new Operation(OpSetEmotion, eArgs, eRetVals));
+            }
+        }
+    }
+
+    public class RoleMSRChair : Role
+    {
+        public const string RoleName = ":chair:";
+        public const string OpSendString = RoleName + "->" + "sendstring";
+        public const string OpReceiveString = RoleName + "->" + "receivestring";
+
+        private static RoleMSRChair _instance;
+
+        protected RoleMSRChair()
+        {
+            SetName(RoleName);
+            _instance = this;
+
+            {
+                List<VParamType> args = new List<VParamType>() { new ParamType("text") };
+                List<VParamType> retVals = new List<VParamType>() { new ParamType("text") };
+                AddOperation(new Operation(OpSendString, args, retVals));
+            }
+
+            {
+                List<VParamType> args = new List<VParamType>() { new ParamType("text") };
+                List<VParamType> retVals = new List<VParamType>() { new ParamType("text") };
+                AddOperation(new Operation(OpReceiveString, args, retVals, true));
+            }
+
+        }
+
+        public static RoleMSRChair Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    new RoleMSRChair();
+                return _instance;
             }
         }
     }
