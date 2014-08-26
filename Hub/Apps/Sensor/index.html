@@ -34,7 +34,7 @@
          function GetReceivedMessagesCallback(context, result) {
             $("#SensorList").html('');
             for (i = 0; i < result.length; i++) {
-                $("#SensorList").append(result[i] + "<br />");
+                $("#SensorList").append(result[i] + "&#13;&#10");  //replace <br /> with &#13;&#10 because it works across more browsers
             }
          }
 

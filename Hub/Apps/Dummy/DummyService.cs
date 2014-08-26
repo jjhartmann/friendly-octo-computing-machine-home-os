@@ -38,30 +38,15 @@ namespace HomeOS.Hub.Apps.Dummy
             return retVal;
         }
 
-        public List<string> GetReceivedMessages_get()
-        {
-            List<string> retVal = new List<string>();
-            try
-            {
-                retVal = Dummy.GetReceivedMessages();
-            }
-            catch (Exception e)
-            {
-                logger.Log("Got exception in GetReceivedMessages: " + e);
-            }
-            return retVal;
-        }
     }
 
      [ServiceContract]
     public interface IDummyContract
     {
         [OperationContract]
-        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json)]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
         List<string> GetReceivedMessages();
-        [OperationContract]
-        [WebInvoke(Method = "GET", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json, UriTemplate = "/get")]
-        List<string> GetReceivedMessages_get();
+
 
     }
 }
