@@ -44,7 +44,7 @@ namespace HomeOS.Hub.Drivers.Arduino.MicrosoftResearch.Dummy
             dummyPort = InitPort(portInfo);
 
             // ..... initialize the list of roles we are going to export and bind to the role
-            List<VRole> listRole = new List<VRole>() { RoleDummy.Instance };
+            List<VRole> listRole = new List<VRole>() { RoleDummy.Instance};
             BindRoles(dummyPort, listRole);
 
             //.................register the port after the binding is complete
@@ -63,7 +63,13 @@ namespace HomeOS.Hub.Drivers.Arduino.MicrosoftResearch.Dummy
 
             serPort = new SerialPort(serialPortNameforArudino, 9600);
             serPort.WriteTimeout = 500;
-            serPort.ReadTimeout = 500;  
+            serPort.ReadTimeout = 500;
+            serPort.DtrEnable = true;  //all stuff needed for arduino micro
+            serPort.StopBits = StopBits.One;
+            serPort.Parity = Parity.None;
+            serPort.Handshake = Handshake.None;
+            serPort.DataBits = 8;
+            serPort.RtsEnable = false;
                             
             int maxAttemptsToOpen = 2;
 
@@ -122,7 +128,7 @@ namespace HomeOS.Hub.Drivers.Arduino.MicrosoftResearch.Dummy
                 if (serialPortOpen)
                 {
                     //Ping the Arduino HomeOS Microsoft Research Dummy device and pass the value back.
-                    //right now keeping the serial port open and closing when driver stops- not sure if we should close each time.
+                    //right now keeping the serial port open and closing when driver stops
 
                     try
                     {
@@ -138,12 +144,14 @@ namespace HomeOS.Hub.Drivers.Arduino.MicrosoftResearch.Dummy
                             logger.Log("ArduinoDummyDriver: Value received from device is not a sequence of digits.");
                         }
 
+                        //notify applications intersted in role dummy and so example works with DummyApplication and others
                         Notify(dummyPort, RoleDummy.Instance, RoleDummy.OpEchoSubName, new ParamType(numVal));
+                       
                     }
                     catch (Exception e)
                     {
 
-                        logger.Log("ArduinoDummYDriver: Problem in SerPort Write/Read");
+                        logger.Log("ArduinoDummyDriver: Problem in SerPort Write/Read");
                     }
                 }
           
@@ -160,7 +168,7 @@ namespace HomeOS.Hub.Drivers.Arduino.MicrosoftResearch.Dummy
         public override IList<VParamType> OnInvoke(string roleName, String opName, IList<VParamType> args)
         {
 
-            if (!roleName.Equals(RoleDummy.RoleName))
+            if (!(roleName.Equals(RoleDummy.RoleName)))
             {
                 logger.Log("Invalid role {0} in OnInvoke", roleName);
                 return null;
@@ -170,9 +178,12 @@ namespace HomeOS.Hub.Drivers.Arduino.MicrosoftResearch.Dummy
             {
                 case RoleDummy.OpEchoName:
                     int payload = (int)args[0].Value();
+                    
                     logger.Log("{0} Got EchoRequest {1}", this.ToString(), payload.ToString());
 
                     return new List<VParamType>() {new ParamType(-1 * payload)};
+
+                //TODO Show example of sending message to Arduino
 
                 default:
                     logger.Log("Invalid operation: {0}", opName);
