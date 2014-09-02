@@ -20,7 +20,7 @@
         <TextBox Name = "homeID" HorizontalAlignment="Left" Height="25" Margin="110,101,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="253"/>
         <TextBox Name ="appID" HorizontalAlignment="Left" Height="25" Margin="110,135,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="253"/>
         <TextBox Name = "streamID" HorizontalAlignment="Left" Height="25" Margin="110,167,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="253"/>
-        <ListBox Name ="keyList" ItemsSource = "{Binding}" ItemTemplate="{StaticResource KeyItemTemplate}"  HorizontalAlignment="Left" Height="155" Margin="10,278,0,0" VerticalAlignment="Top" Width="353"/>
+        <ListBox Name ="keyList" ItemsSource = "{Binding}" ItemTemplate="{StaticResource KeyItemTemplate}"  VirtualizingPanel.IsVirtualizing="False" HorizontalAlignment="Left" Height="155" Margin="10,278,0,0" VerticalAlignment="Top" Width="353"/>
         <Label Content="Start Day:" HorizontalAlignment="Left" Margin="404,39,0,0" VerticalAlignment="Top" Width="77"/>
         <Label Content="End Day:" HorizontalAlignment="Left" Height="30" Margin="404,72,0,0" VerticalAlignment="Top" Width="66"/>
         <DatePicker Name= "startDay" HorizontalAlignment="Left" Margin="468,41,0,0" VerticalAlignment="Top" Width="161"/>

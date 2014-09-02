@@ -87,19 +87,23 @@ namespace HomeOS.Hub.Common.Bolt.Tools.LotDataExport
             HashSet<IKey> selectedKeys = new HashSet<IKey>();
 
            //this is the items rather than their checked state - do super wacky stuff to get the Checkbox for the item
-            for (int i = 0; i < keyList.Items.Count; i++)
+          for (int i = 0; i < keyList.Items.Count; i++)
             {
                 //From: http://msdn.microsoft.com/en-us/library/bb613579(v=vs.110).aspx
                 ListBoxItem myListBoxItem =
                 (ListBoxItem)(keyList.ItemContainerGenerator.ContainerFromItem(keyList.Items[i]));
-                ContentPresenter myContentPresenter = FindVisualChild<ContentPresenter>(myListBoxItem);
-                DataTemplate myDataTemplate = myContentPresenter.ContentTemplate;
-                CheckBox cBox = (CheckBox)myDataTemplate.FindName("cBox", myContentPresenter);
-
-                if (cBox.IsChecked != null && cBox.IsChecked == true)
+                if (myListBoxItem != null)
                 {
-                    selectedKeys.Add(new StrKey(cBox.Content.ToString()));
+                    ContentPresenter myContentPresenter = FindVisualChild<ContentPresenter>(myListBoxItem);
+                    DataTemplate myDataTemplate = myContentPresenter.ContentTemplate;
+                    CheckBox cBox = (CheckBox)myDataTemplate.FindName("cBox", myContentPresenter);
+
+                    if (cBox.IsChecked != null && cBox.IsChecked == true)
+                    {
+                        selectedKeys.Add(new StrKey(cBox.Content.ToString()));
+                    }
                 }
+            
             }       
             await uiE.GetData(selectedKeys, startDate, stopDate, outputFileName.Text);
             infoText.Content = "Finished";
