@@ -278,10 +278,10 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
                 if (logger != null) logger.Log("End ReadFromCache Open");
                 
                 // Check if the chunkHash matches the one in the most recent chunkMD (dataFileMetadata)
-                int expected_size = dataFileMetadata[chunkIndex].csize;
+                int expected_size = dataFileMetadata[chunkIndex].rsize;
                 byte[] buffer = new byte[expected_size];
                 bool cache_hit = false;
-                if (fout.Length == dataFileMetadata[chunkIndex].csize)
+                if (fout.Length == dataFileMetadata[chunkIndex].rsize)
                 {
                     /*
                     // TODO: Cache this result somewhere instead of taking a hash every time!
@@ -320,7 +320,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             {
                 if (logger != null) logger.Log("End ReadFromCache Open");
                 if (logger != null) logger.Log("End ReadFromCache ReadAllBytes");
-                Console.WriteLine("exception in reading chunk cache: " + e);
+                //Console.WriteLine("exception in reading chunk cache: " + e);
                 return null;
             }
             catch (Exception e)

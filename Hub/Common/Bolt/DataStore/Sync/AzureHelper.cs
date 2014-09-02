@@ -470,7 +470,7 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
         public static List<string> ListFiles(string directory, string indexFileName, string dataFileName)
         {
             List<string> retVal = new List<string>();
-            string datafilepath=String.Empty, indexfilepath=String.Empty; 
+            string datafilepath = String.Empty, indexfilepath = String.Empty;
             try
             {
                 foreach (string f in Directory.GetFiles(directory))
@@ -492,11 +492,11 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             }
             catch (Exception e)
             {
-                structuredLog("E", "Exception " + e.Message + ". ListFiles, directory: " + directory); 
+                structuredLog("E", "Exception " + e.Message + ". ListFiles, directory: " + directory);
             }
             return retVal;
         }
-
+        
         #endregion
 
         #region reading chunks from blob 
@@ -564,11 +564,19 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             {
                 if (chunk.chunkIndex == chunkIndex)
                 {
-                    size = chunk.csize;
+                    if (chunkCompressionType == CompressionType.None)
+                        size = chunk.rsize;
+                    else
+                        size = chunk.csize;
                     break;
                 }
                 else
-                    offset += chunk.csize;
+                {
+                    if (chunkCompressionType == CompressionType.None)
+                        offset += chunk.rsize;
+                    else
+                        offset += chunk.csize;
+                }
             }
 
 

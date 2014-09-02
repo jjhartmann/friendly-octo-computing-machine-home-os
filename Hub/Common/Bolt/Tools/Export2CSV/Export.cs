@@ -56,8 +56,15 @@ namespace HomeOS.Hub.Common.Bolt.Tools.Export2CSV
                 IEnumerable<IDataItem> dataItemEnum = datastream.GetAll(key);
                 foreach (IDataItem di in dataItemEnum)
                 {
-                    DateTime ts = new DateTime(di.GetTimestamp());
-                    Console.WriteLine(key + ", " + ts + ", " + di.GetVal().ToString());
+                    try
+                    {
+                        DateTime ts = new DateTime(di.GetTimestamp());
+                        Console.WriteLine(key + ", " + ts + ", " + di.GetVal().ToString());
+                    }
+                    catch (Exception e)
+                    {
+                        Console.Error.Write(e.StackTrace);
+                    }
                 }
             }
 
