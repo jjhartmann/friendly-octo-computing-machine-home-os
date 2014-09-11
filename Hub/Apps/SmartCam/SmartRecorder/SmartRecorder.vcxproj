@@ -68,8 +68,8 @@
       </AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(windir)\system32\msvcr110d.dll" "$(OutDir)"
-copy "$(windir)\system32\msvcp110d.dll" "$(OutDir)"</Command>
+      <Command>copy "$(ProjectDir)\lib\msvcr110d.dll" "$(OutDir)"
+copy "$(ProjectDir)\lib\msvcp110d.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy C-Runtime Dlls to Output Directory...</Message>
