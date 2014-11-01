@@ -898,7 +898,7 @@ namespace HomeOS.Hub.Platform
         }
 
         /// <summary>
-        /// Returns all installed modules that are foreground, as 3-tuples [appname,description,iconurl]
+        /// Returns all installed modules that are foreground, as 3-tuples [friendlyname,description,iconurl]
         /// </summary>
         /// <returns></returns>
         public List<string> GetInstalledAppsWeb()
@@ -912,7 +912,7 @@ namespace HomeOS.Hub.Platform
 
                 foreach (var mInfo in mInfoList)
                 {
-                    mNameList.Add(mInfo.AppName());
+                    mNameList.Add(mInfo.FriendlyName());
 
                     HomeStoreApp app = homeStoreInfo.GetHomeStoreAppByName(mInfo.AppName());
 
@@ -958,7 +958,7 @@ namespace HomeOS.Hub.Platform
                 ModuleInfo moduleInfo = new ModuleInfo(app.AppName, app.AppName, app.BinaryName, null, true);
                 moduleInfo.SetManifest(app.Manifest);
 
-                if (!String.IsNullOrWhiteSpace(app.Version))
+                if (String.IsNullOrWhiteSpace(app.Version))
                     moduleInfo.SetVersion(Common.Constants.UnknownHomeOSUpdateVersionValue);
                 else
                     moduleInfo.SetVersion(app.Version);
