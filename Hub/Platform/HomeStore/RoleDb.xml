@@ -21,4 +21,5 @@
   <Role Name=":sensormultilevel:"/>
   <Role Name=":speechreco:"/>
   <Role Name=":weather:"/>
+  <Role Name=":arduino:"/>
 </Roles>

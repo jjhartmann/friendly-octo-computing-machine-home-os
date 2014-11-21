@@ -959,9 +959,9 @@ namespace HomeOS.Hub.Platform
                 moduleInfo.SetManifest(app.Manifest);
 
                 if (String.IsNullOrWhiteSpace(app.Version))
-                    moduleInfo.SetVersion(Common.Constants.UnknownHomeOSUpdateVersionValue);
+                    moduleInfo.SetRunningVersion(Common.Constants.UnknownHomeOSUpdateVersionValue);
                 else
-                    moduleInfo.SetVersion(app.Version);
+                    moduleInfo.SetRunningVersion(app.Version);
 
                 AccessRule accessRule = new AccessRule();
                 accessRule.ModuleName = moduleInfo.FriendlyName();

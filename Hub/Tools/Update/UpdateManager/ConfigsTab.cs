@@ -435,11 +435,11 @@ namespace HomeOS.Hub.Tools.UpdateManager
             {
                 if (modules[moduleName].BinaryName().ToLower().Contains(AppName))
                 {
-                    configStatusList[AppName].Add(new Tuple<string, object, bool>(moduleName, modules[moduleName], NeedsRepoUpdate(AppName, modules[moduleName].BinaryName(), modules[moduleName].GetVersion())));
+                    configStatusList[AppName].Add(new Tuple<string, object, bool>(moduleName, modules[moduleName], NeedsRepoUpdate(AppName, modules[moduleName].BinaryName(), modules[moduleName].GetDesiredVersion())));
                 }
                 else if (modules[moduleName].BinaryName().ToLower().Contains(DriverName))
                 {
-                    configStatusList[DriverName].Add(new Tuple<string, object, bool>(moduleName, modules[moduleName], NeedsRepoUpdate(DriverName, modules[moduleName].BinaryName(), modules[moduleName].GetVersion())));
+                    configStatusList[DriverName].Add(new Tuple<string, object, bool>(moduleName, modules[moduleName], NeedsRepoUpdate(DriverName, modules[moduleName].BinaryName(), modules[moduleName].GetDesiredVersion())));
                 }
             }
 
@@ -447,7 +447,7 @@ namespace HomeOS.Hub.Tools.UpdateManager
             configStatusList.Add(ScoutName, new List<Tuple<string, object, bool>>());
             foreach (Platform.DeviceScout.ScoutInfo scoutInfo in scouts)
             {
-                configStatusList[ScoutName].Add(new Tuple<string, object, bool>(scoutInfo.Name, scoutInfo, NeedsRepoUpdate(ScoutName, scoutInfo.DllName, scoutInfo.Version)));
+                configStatusList[ScoutName].Add(new Tuple<string, object, bool>(scoutInfo.Name, scoutInfo, NeedsRepoUpdate(ScoutName, scoutInfo.DllName, scoutInfo.DesiredVersion)));
             }
 
             return configStatusList;
@@ -486,13 +486,13 @@ namespace HomeOS.Hub.Tools.UpdateManager
                     {
                         ModuleInfo mi = tupleList[i].Item2 as ModuleInfo;
                         displayLines.Add(string.Format("{0,-10} {1,-20} {2,-40} {3,-15} {4,-15}\n",
-                            binType, tupleList[i].Item1, mi.BinaryName(), mi.GetVersion() == null ? "na" : mi.GetVersion(), tupleList[i].Item3 ? BinaryStatus_Repo_Update : BinaryStatus_OK));
+                            binType, tupleList[i].Item1, mi.BinaryName(), mi.GetDesiredVersion() == null ? "na" : mi.GetDesiredVersion(), tupleList[i].Item3 ? BinaryStatus_Repo_Update : BinaryStatus_OK));
                     }
                     else
                     {
                         Platform.DeviceScout.ScoutInfo si = tupleList[i].Item2 as Platform.DeviceScout.ScoutInfo;
                         displayLines.Add(string.Format("{0,-10} {1,-20} {2,-40} {3,-15} {4,-15}\n",
-                            binType, tupleList[i].Item1, si.DllName, si.Version == null ? "na" : si.Version, tupleList[i].Item3 ? BinaryStatus_Repo_Update : BinaryStatus_OK));
+                            binType, tupleList[i].Item1, si.DllName, si.DesiredVersion == null ? "na" : si.DesiredVersion, tupleList[i].Item3 ? BinaryStatus_Repo_Update : BinaryStatus_OK));
                     }
                 }
             }

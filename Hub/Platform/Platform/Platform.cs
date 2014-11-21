@@ -323,21 +323,15 @@ namespace HomeOS.Hub.Platform
                     // we are using file versions for the Versioning and not Assembly versions because to read that 
                     // the assembly needs to be loaded. But unloading the assembly is a pain (in case of version mismatch)
 
-                    if (!CompareModuleVersions(currentScoutVersion, sInfo.Version))
+                    if (!CompareModuleVersions(currentScoutVersion, sInfo.DesiredVersion))
                         GetScoutFromRep(sInfo);// if we didn't get the right version, lets start what we have
 
                     currentScoutVersion = Utils.GetHomeOSUpdateVersion(dllFullPath + ".config", logger);
-                    if (!CompareModuleVersions(currentScoutVersion, sInfo.Version))
+                    if (!CompareModuleVersions(currentScoutVersion, sInfo.DesiredVersion))
                     {
-                        logger.Log("WARNING: starting an inexact version of {0}", sInfo.Name);
-                        
-                        //don't force a version
-                        //sInfo.SetVersion(currentScoutVersion);
+                        logger.Log("WARNING: starting an inexact version of {0}", sInfo.Name);                       
                     }
-
                 }
-
-
 
                 logger.Log("starting scout {0} using dll {1} at url {2}", sInfo.Name, dllPath, baseUrl);
 
@@ -349,8 +343,9 @@ namespace HomeOS.Hub.Platform
 
                 var scout = (IScout)Activator.CreateInstance(myClass);
 
-
                 scout.Init(baseUrl, baseDir, this, logger);
+
+                sInfo.SetRunningVersion(Utils.GetHomeOSUpdateVersion(dllFullPath + ".config", logger));
 
                 runningScouts.Add(sInfo.Name, new Tuple<ScoutInfo, IScout>(sInfo, scout));
             }
@@ -487,7 +482,9 @@ namespace HomeOS.Hub.Platform
                 {
                     //StartModule(new ModuleInfo("axiscamdriver", "DriverAxisCamera", "DriverAxisCamera", null, false, "192.168.0.198", "root", "homeos"));
                     //StartModule(new ModuleInfo("foscamdriver1", "DriverFoscam", "HomeOS.Hub.Drivers.Foscam", null, false, "192.168.1.125", "admin", ""));
-                    //StartModule(new ModuleInfo("webcamdriver", "DriverWebCam", "HomeOS.Hub.Drivers.WebCam", null, false, @"Microsoft® LifeCam VX-7000"));
+                    
+                    StartModule(new ModuleInfo("webcamdriver", "DriverWebCam", "HomeOS.Hub.Drivers.WebCam", null, false, @"Microsoft® LifeCam VX-7000"));
+                    StartModule(new ModuleInfo("AppCam", "AppCamera", "HomeOS.Hub.Apps.SmartCam", null, false));
 
                     //string para1 = "C:\\Users\\t-chuchu\\Desktop\\homeos\\homeos\\Apps\\AppTracking\\VideoTracking\\para_camera1.txt";
                     //string para2 = "C:\\Users\\t-chuchu\\Desktop\\homeos\\homeos\\Apps\\AppTracking\\VideoTracking\\para_camera2.txt";
@@ -507,7 +504,10 @@ namespace HomeOS.Hub.Platform
                 }
                 else if (Settings.RunningMode.Equals("rayman"))
                 {
+                    ModuleInfo d = new ModuleInfo("HomeOS.Hub.Drivers.Mic", "HomeOS.Hub.Drivers.Mic", "HomeOS.Hub.Drivers.Mic", null, false,"foo", "8000", "1" );
+                    StartModule(d);
 
+                    /*
                     HomeOS.Hub.Platform.Authentication.AuthenticationService auth = new HomeOS.Hub.Platform.Authentication.AuthenticationService(logger, this);
                     System.ServiceModel.ServiceHost s = HomeOS.Hub.Platform.Authentication.AuthenticationService.CreateServiceHost(logger, this, auth);
                     s.Open();
@@ -517,7 +517,7 @@ namespace HomeOS.Hub.Platform
                     StartModule(app);
                     ModuleInfo app1 = new ModuleInfo("DriverDummy1", "DriverDummy1", "HomeOS.Hub.Drivers.Dummy", null, false, null);
                     StartModule(app1);
-                    /*
+                    
                     HomeOS.Hub.Common.TokenHandler.SafeTokenHandler t = new Common.TokenHandler.SafeTokenHandler("randomsalt");
                     string s1 = t.GenerateToken("helloworlergwergwergwergwergwegrwegewgewrgwergwregwgwgd"); 
                     logger.Log("Encryting helloworld: "+s1);
@@ -1121,7 +1121,7 @@ namespace HomeOS.Hub.Platform
             foreach (AddInToken token in allAddinTokens)
             {
                 if (token.Name.Equals(moduleInfo.BinaryName()) &&
-                    (!exactlyMatchVersions || CompareModuleVersions(moduleInfo.GetVersion(), Utils.GetHomeOSUpdateVersion(Utils.GetAddInConfigFilepath(moduleInfo.BinaryName()), logger))))
+                    (!exactlyMatchVersions || CompareModuleVersions(moduleInfo.GetDesiredVersion(), Utils.GetHomeOSUpdateVersion(Utils.GetAddInConfigFilepath(moduleInfo.BinaryName()), logger))))
                 {
                     if (startedModule != null)
                     {
@@ -1149,7 +1149,7 @@ namespace HomeOS.Hub.Platform
             //if we were doing exact match on versions, this could be because we didn't find an exact match
             if (exactlyMatchVersions)
             {
-                logger.Log("No exact-match-version token found for Module: Binary name: " + moduleInfo.BinaryName() + ", App Name: " + moduleInfo.AppName() + ", Version: " + moduleInfo.GetVersion());
+                logger.Log("No exact-match-version token found for Module: Binary name: " + moduleInfo.BinaryName() + ", App Name: " + moduleInfo.AppName() + ", Version: " + moduleInfo.GetDesiredVersion());
 
               
                 Version versionRep = new Version(GetVersionFromRep(Settings.RepositoryURIs, moduleInfo.BinaryName()));
@@ -1171,7 +1171,7 @@ namespace HomeOS.Hub.Platform
             }
             else
             {
-                logger.Log("No matching token at all found for Module: Binary name: " + moduleInfo.BinaryName() + ", App Name: " + moduleInfo.AppName() + ", Version: " + moduleInfo.GetVersion());
+                logger.Log("No matching token at all found for Module: Binary name: " + moduleInfo.BinaryName() + ", App Name: " + moduleInfo.AppName() + ", Version: " + moduleInfo.GetDesiredVersion());
                 return null;
             }
         }
@@ -1227,13 +1227,12 @@ namespace HomeOS.Hub.Platform
             VModule startedModule = null;
 
             string moduleVersion = Utils.GetHomeOSUpdateVersion(Utils.GetAddInConfigFilepath(moduleInfo.BinaryName()), logger);
-            if (!CompareModuleVersions(moduleInfo.GetVersion(), moduleVersion))
+            if (!CompareModuleVersions(moduleInfo.GetDesiredVersion(), moduleVersion))
             {
-                logger.Log("WARNING: Starting an inexact match for {0}", moduleInfo.FriendlyName());
-                
-                // we no longer update the version number in moduleInfo, as a way to remember which version we wanted to runrrun
-                //moduleInfo.SetVersion(moduleVersion);
+                logger.Log("WARNING: Starting an inexact match for {0}", moduleInfo.FriendlyName());                
             }
+
+            moduleInfo.SetRunningVersion(moduleVersion);
 
             switch (Constants.ModuleIsolationLevel)
             {
@@ -1863,7 +1862,7 @@ namespace HomeOS.Hub.Platform
                                         lock (this)
                                         {
                                             foreach (VModule module in runningModulesStates.Keys)
-                                                Console.WriteLine(module + " " + ((ModuleState.SimpleState)runningModulesStates[module].GetSimpleState()).ToString() + " " + runningModulesStates[module].GetTimestamp());
+                                                Console.WriteLine("{0} state: {1} time: {2} runningverion: {3} desiredversion: {4}", module, (ModuleState.SimpleState)runningModulesStates[module].GetSimpleState(), runningModulesStates[module].GetTimestamp(), runningModules[module].GetRunningVersion(), runningModules[module].GetDesiredVersion());
                                         }
                                         break;
                                     case "addins": 
@@ -1909,7 +1908,7 @@ namespace HomeOS.Hub.Platform
                                         lock (this)
                                         {
                                             foreach (VModule module in runningModules.Keys)
-                                                Console.WriteLine(module.Secret() + " " + runningModules[module] + " " +runningModules[module].GetVersion());
+                                                Console.WriteLine(module.Secret() + " " + runningModules[module] + " " +runningModules[module].GetRunningVersion());
                                         }
                                         break;
                                     case "resourceusage":
@@ -2222,7 +2221,7 @@ namespace HomeOS.Hub.Platform
                     var resources = module.GetResourceUsage();
                     HomeOS.Shared.ModuleMonitorInfo ami = new HomeOS.Shared.ModuleMonitorInfo();
                     ami.ModuleFriendlyName = runningModules[module].FriendlyName();
-                    ami.ModuleVersion = runningModules[module].GetVersion();
+                    ami.ModuleVersion = runningModules[module].GetRunningVersion();
                     ami.MonitoringTotalProcessorTime = resources[0];
                     ami.MonitoringTotalAllocatedMemorySize = resources[1];
                     ami.MonitoringSurvivedMemorySize = resources[2];
@@ -2257,7 +2256,7 @@ namespace HomeOS.Hub.Platform
                 {
                     HomeOS.Shared.ScoutInfo si = new HomeOS.Shared.ScoutInfo();
                     si.ScoutFriendlyName = runningScouts[Scout].Item1.Name;
-                    si.ScoutVersion = runningScouts[Scout].Item1.Version;
+                    si.ScoutVersion = runningScouts[Scout].Item1.RunningVersion;
                     siList.Add(si);
                 }
             }
@@ -2466,7 +2465,10 @@ namespace HomeOS.Hub.Platform
 
             foreach (string app in apps)
             {
-                AllowAppAcccessToDevice(app, friendlyName);
+                if (config.GetModule(app) != null)
+                    AllowAppAcccessToDevice(app, friendlyName);
+                else
+                    logger.Log("ERROR: Could not give access to device {0} to app {1} because the app does not exist", friendlyName, app);
 
                 //AccessRule rule = new AccessRule();
                 //rule.RuleName = portInfo.GetFriendlyName();
@@ -3088,19 +3090,16 @@ namespace HomeOS.Hub.Platform
             Dictionary<string,bool> repAvailability = AvailableOnRep(moduleInfo) ; 
             if (!repAvailability.ContainsValue(true))
             {
-                logger.Log("Can't find "+moduleInfo.BinaryName() + " v "+ moduleInfo.GetVersion()+" on any rep.");
+                logger.Log("Can't find "+moduleInfo.BinaryName() + " v "+ moduleInfo.GetDesiredVersion()+" on any rep.");
                 return false;
             }
-
-            
-            
-
+                      
             // on fetching the binaries of a module existing older versions shall be overwritten
             // making sure older version module is not running.
             foreach (ModuleInfo runningModuleInfo in runningModules.Values)
             {
                 if (runningModuleInfo.BinaryName().Equals(moduleInfo.BinaryName()))
-                    throw new Exception(String.Format("Attempted to fetch module, with same binary name module running. Running: ({0}, v {1}) Fetching: ({2}, v{3})", runningModuleInfo.BinaryName(), runningModuleInfo.GetVersion() , moduleInfo.BinaryName() , moduleInfo.GetVersion()));
+                    throw new Exception(String.Format("Attempted to fetch module, with same binary name module running. Running: ({0}, v {1}) Fetching: ({2}, v{3})", runningModuleInfo.BinaryName(), runningModuleInfo.GetRunningVersion() , moduleInfo.BinaryName() , moduleInfo.GetDesiredVersion()));
             }
 
             //unloading addin
@@ -3137,11 +3136,11 @@ namespace HomeOS.Hub.Platform
 
         private bool GetScoutFromRep(ScoutInfo scoutInfo)
         {
-            logger.Log("fetching scout "+scoutInfo.Name +" v "+scoutInfo.Version+" from reps");
+            logger.Log("fetching scout "+scoutInfo.Name +" v "+scoutInfo.DesiredVersion+" from reps");
             Dictionary<string, bool> repAvailability = AvailableOnRep(scoutInfo);
             if (!repAvailability.ContainsValue(true))
             {
-                logger.Log("Can't find " + scoutInfo.DllName + " v" + scoutInfo.Version + " on any rep.");
+                logger.Log("Can't find " + scoutInfo.DllName + " v" + scoutInfo.DesiredVersion + " on any rep.");
                 return false;
             }
 
@@ -3149,7 +3148,7 @@ namespace HomeOS.Hub.Platform
             {
                 if (runningScoutTuple.Item1.DllName.Equals(scoutInfo.DllName))
                     throw new Exception(String.Format("Attempted to fetch scout, with same binary name scout running. Running: ({0}, v {1}) Fetching: ({2}, v{3})",
-                               runningScoutTuple.Item1.DllName, runningScoutTuple.Item1.Version , scoutInfo.DllName, scoutInfo.Version));
+                               runningScoutTuple.Item1.DllName, runningScoutTuple.Item1.DesiredVersion , scoutInfo.DllName, scoutInfo.DesiredVersion));
             }
 
             try
@@ -3191,13 +3190,13 @@ namespace HomeOS.Hub.Platform
                 //by default platform should point to the Latest on the repository if a version of the binary isn't specified
 
                 string binaryversion = "Latest";
-                
-                if (moduleInfo.GetVersion() != "0.0.0.0")
+
+                if (moduleInfo.GetDesiredVersion() != "0.0.0.0")
                 {
-                    if (moduleInfo.GetVersion() != null) {
-                    binaryversion = moduleInfo.GetVersion();
+                    if (moduleInfo.GetDesiredVersion() != null)
+                    {
+                        binaryversion = moduleInfo.GetDesiredVersion();
                     }
-                  
                 }
 
 
@@ -3226,9 +3225,9 @@ namespace HomeOS.Hub.Platform
 
                 //by default platform should point to the Latest on the repository if a version of the binary isn't specified
                 string binaryversion = "Latest"; 
-                if (scoutInfo.Version != null )
+                if (scoutInfo.DesiredVersion != null )
                 {
-                    binaryversion = scoutInfo.Version;
+                    binaryversion = scoutInfo.DesiredVersion;
                 }
 
                 foreach (string pathElement in path)

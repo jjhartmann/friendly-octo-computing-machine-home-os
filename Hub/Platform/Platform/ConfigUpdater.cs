@@ -182,7 +182,7 @@ namespace HomeOS.Hub.Platform
                 foreach (ModuleInfo moduleInfo in runningModules)
                 {
                     //this process is needed only for modules that don't have a specific desired version number
-                    if (moduleInfo.GetVersion() != Constants.UnknownHomeOSUpdateVersionValue)
+                    if (moduleInfo.GetDesiredVersion() != Constants.UnknownHomeOSUpdateVersionValue)
                         continue;
 
                     Version versionRep = new Version(platform.GetVersionFromRep(Settings.RepositoryURIs, moduleInfo.BinaryName()));
@@ -215,7 +215,7 @@ namespace HomeOS.Hub.Platform
                 foreach (DeviceScout.ScoutInfo scoutInfo in runningScouts)
                 {
                     //this process is needed only for scouts that don't have a specific desired version number
-                    if (scoutInfo.Version != Constants.UnknownHomeOSUpdateVersionValue)
+                    if (scoutInfo.DesiredVersion != Constants.UnknownHomeOSUpdateVersionValue)
                         continue;
 
                     Version versionRep = new Version(platform.GetVersionFromRep(Settings.RepositoryURIs, scoutInfo.DllName));

@@ -238,9 +238,9 @@ namespace HomeOS.Hub.Platform
                 ScoutInfo sInfo = new ScoutInfo(scoutName, driverBinaryName);
 
                 if (!String.IsNullOrEmpty(version))
-                    sInfo.SetVersion(version);
+                    sInfo.SetDesiredVersion(version);
                 else
-                    sInfo.SetVersion(Constants.UnknownHomeOSUpdateVersionValue);
+                    sInfo.SetDesiredVersion(Constants.UnknownHomeOSUpdateVersionValue);
 
                 allScouts.Add(scoutName, sInfo);
             }
@@ -262,8 +262,8 @@ namespace HomeOS.Hub.Platform
                 xmlScout.SetAttribute("Name", scout.Name);
                 xmlScout.SetAttribute("DllName", scout.DllName);
 
-                if (!String.IsNullOrEmpty(scout.Version))  
-                    xmlScout.SetAttribute("Version", scout.Version);
+                if (!String.IsNullOrEmpty(scout.DesiredVersion))  
+                    xmlScout.SetAttribute("Version", scout.DesiredVersion);
 
                 root.AppendChild(xmlScout);
             }
@@ -865,10 +865,10 @@ namespace HomeOS.Hub.Platform
                 moduleInfo.Background = background;
 
                 // now lets set the version. if the version is  missing in the xml file set it as UnknownHomeOSUpdateVersionValue(0.0.0.0)
-                if(version.Equals(""))
-                    moduleInfo.SetVersion(Constants.UnknownHomeOSUpdateVersionValue);
+                if(string.IsNullOrWhiteSpace(version))
+                    moduleInfo.SetDesiredVersion(Constants.UnknownHomeOSUpdateVersionValue);
                 else
-                    moduleInfo.SetVersion(version);
+                    moduleInfo.SetDesiredVersion(version);
                    
                 //now let's attach the manifest
                 Manifest manifest = ReadManifest(xmlModule);
@@ -993,11 +993,13 @@ namespace HomeOS.Hub.Platform
                 xmlModule.SetAttribute("FriendlyName", moduleInfo.FriendlyName());
                 xmlModule.SetAttribute("AppName", moduleInfo.AppName());
                 xmlModule.SetAttribute("BinaryName", moduleInfo.BinaryName());
-                //xmlModule.SetAttribute("ModuleArgStr", String.Join(Globals.ModuleArgsSeparator, moduleInfo.Args()));
                 if (moduleInfo.WorkingDir() != null)
                     xmlModule.SetAttribute("WorkingDir", moduleInfo.WorkingDir());
                 xmlModule.SetAttribute("AutoStart", (moduleInfo.AutoStart) ? "1" : "0");
                 xmlModule.SetAttribute("Background", (moduleInfo.Background) ? "1" : "0");
+
+                if (!string.IsNullOrWhiteSpace(moduleInfo.GetDesiredVersion()) && !moduleInfo.GetDesiredVersion().Equals(Constants.UnknownHomeOSUpdateVersionValue))
+                    xmlModule.SetAttribute("Version", moduleInfo.GetDesiredVersion());
 
                 int argCount = moduleInfo.Args().Length;
 

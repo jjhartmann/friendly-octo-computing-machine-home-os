@@ -11,25 +11,31 @@ namespace HomeOS.Hub.Platform.DeviceScout
     {
         public string Name { get; private set; }
         public string DllName { get; private set; }
-        public string Version { get; private set; }
-
+        public string DesiredVersion { get; private set; }
+        public string RunningVersion { get; private set; }
 
         public ScoutInfo(string name, string dllName)
         {
             Name = name;
             DllName = dllName;
-            Version = null;
+            DesiredVersion = null;
+            RunningVersion = null;
         }
 
         public ScoutInfo(HomeStoreScout hsScout) : this(hsScout.Name, hsScout.DllName)
         {
             if (!string.IsNullOrEmpty(hsScout.Version))
-                SetVersion(hsScout.Version);
+                SetDesiredVersion(hsScout.Version);
         }
 
-        public void SetVersion(string Version)
+        public void SetDesiredVersion(string Version)
         {
-            this.Version = Version;
+            this.DesiredVersion = Version;
+        }
+
+        public void SetRunningVersion(string Version)
+        {
+            this.RunningVersion = Version;
         }
     }
 

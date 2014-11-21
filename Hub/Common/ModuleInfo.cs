@@ -52,9 +52,14 @@ namespace HomeOS.Hub.Common
         Manifest manifest;
 
         /// <summary>
-        ///  the version of this module
+        ///  the version of this module that is actually running
         /// </summary>
-        string version;
+        string runningVersion;
+
+        /// <summary>
+        ///  the version of this module that is desired as per the configuration
+        /// </summary>
+        string desiredVersion;
 
         /// <summary>
         ///  the base URL of this module
@@ -77,7 +82,7 @@ namespace HomeOS.Hub.Common
                 this.args = args;
 
             Background = false;
-            this.version = Constants.UnknownHomeOSUpdateVersionValue;
+            this.desiredVersion = Constants.UnknownHomeOSUpdateVersionValue;
         }
 
         public override string[] Args()
@@ -132,14 +137,24 @@ namespace HomeOS.Hub.Common
             this.manifest = manifest;
         }
 
-        public string GetVersion()
+        public string GetDesiredVersion()
         {
-            return this.version; 
+            return this.desiredVersion;
         }
 
-        public void SetVersion(string v)
+        public string GetRunningVersion()
         {
-            this.version = v; 
+            return this.runningVersion; 
+        }
+
+        public void SetDesiredVersion(string v)
+        {
+            this.desiredVersion = v;
+        }
+
+        public void SetRunningVersion(string v)
+        {
+            this.runningVersion = v; 
         }
 
         public override string BaseURL()
