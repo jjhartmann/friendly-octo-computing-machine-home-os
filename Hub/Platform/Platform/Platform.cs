@@ -303,7 +303,7 @@ namespace HomeOS.Hub.Platform
             {
             if (runningScouts.ContainsKey(sInfo.Name))
             {
-                logger.Log("Error: Scout {0} is already running; cannot start again");
+                logger.Log("Error: Scout {0} is already running; cannot start again", sInfo.Name);
                 return;
             }
 
@@ -315,25 +315,66 @@ namespace HomeOS.Hub.Platform
             {
                 string dllFullPath = Path.GetFullPath(dllPath);
 
+                Version vDesired = new Version(sInfo.DesiredVersion);
+
                 if (!File.Exists(dllFullPath))
+                {
+                    logger.Log("{0} is not present locally. Will try to get version {1} from Repository", sInfo.Name, sInfo.DesiredVersion);
+
                     GetScoutFromRep(sInfo); // now attempt to start what we got (if we did)
+                }
                 else
                 {
-                    string currentScoutVersion = Utils.GetHomeOSUpdateVersion(dllFullPath + ".config", logger);
-                    // we are using file versions for the Versioning and not Assembly versions because to read that 
-                    // the assembly needs to be loaded. But unloading the assembly is a pain (in case of version mismatch)
+                    
+                    Version vLocal = new Version(Utils.GetHomeOSUpdateVersion(dllFullPath + ".config", logger));
 
-                    if (!CompareModuleVersions(currentScoutVersion, sInfo.DesiredVersion))
-                        GetScoutFromRep(sInfo);// if we didn't get the right version, lets start what we have
-
-                    currentScoutVersion = Utils.GetHomeOSUpdateVersion(dllFullPath + ".config", logger);
-                    if (!CompareModuleVersions(currentScoutVersion, sInfo.DesiredVersion))
+                    //if local version and desired versions differ ... 
+                    if (vLocal.CompareTo(vDesired) != 0)
                     {
-                        logger.Log("WARNING: starting an inexact version of {0}", sInfo.Name);                       
+                        //if the desired version is unspecified, pick between the most recent of the latest-on-rep and local
+                        if (vDesired.CompareTo(new Version(Constants.UnknownHomeOSUpdateVersionValue)) == 0)
+                        {
+                            Version vLatestOnRep = new Version(GetVersionFromRep(Settings.RepositoryURIs, sInfo.DllName));
+
+                            if (vLatestOnRep.CompareTo(vLocal) > 0)
+                            {
+                                logger.Log("Local verison ({0}) is lower than the latest rep version ({1}) for {2}", vLocal.ToString(), vDesired.ToString(), sInfo.Name);
+
+                                GetScoutFromRep(sInfo);
+                            }
+                            else
+                            {
+                                logger.Log("Local verison ({0}) is already latest for {1}", vLocal.ToString(), sInfo.Name);
+                            }
+                        }
+                        //we a specific version is desired
+                        else
+                        {
+                            logger.Log("Will try to get specific version {0} for {1} from Repository", sInfo.DesiredVersion, sInfo.Name);
+
+                            GetScoutFromRep(sInfo); // now attempt to start what we got (if we did)
+                        }
+                    }
+                    else
+                    {
+                        logger.Log("Local verison ({0}) is same as desired version for {1}. Starting that", vDesired.ToString(), sInfo.Name);
                     }
                 }
 
-                logger.Log("starting scout {0} using dll {1} at url {2}", sInfo.Name, dllPath, baseUrl);
+                if (!File.Exists(dllFullPath))
+                {
+                    logger.Log("Error: Could not fine Scout {0} anywhere; not starting", sInfo.Name);
+                    return;
+                }
+
+                var vAboutToRun = new Version(Utils.GetHomeOSUpdateVersion(dllFullPath + ".config", logger));
+
+                if (vDesired.CompareTo(new Version(Constants.UnknownHomeOSUpdateVersionValue)) != 0 && vDesired.CompareTo(vAboutToRun) != 0)
+                {
+                    logger.Log("WARNING: couldn't get the desired version {0} for {1}. Starting {2}", vDesired.ToString(), sInfo.Name, vAboutToRun.ToString());
+                }
+
+                logger.Log("starting scout {0} (v{1}) using dll {2} at url {3}", sInfo.Name, vAboutToRun.ToString(), dllPath, baseUrl);
 
                 System.Reflection.Assembly myLibrary = System.Reflection.Assembly.LoadFile(dllFullPath);
                 Type myClass = (from type in myLibrary.GetExportedTypes()
@@ -345,7 +386,7 @@ namespace HomeOS.Hub.Platform
 
                 scout.Init(baseUrl, baseDir, this, logger);
 
-                sInfo.SetRunningVersion(Utils.GetHomeOSUpdateVersion(dllFullPath + ".config", logger));
+                sInfo.SetRunningVersion(vAboutToRun.ToString());
 
                 runningScouts.Add(sInfo.Name, new Tuple<ScoutInfo, IScout>(sInfo, scout));
             }
@@ -3191,14 +3232,10 @@ namespace HomeOS.Hub.Platform
 
                 string binaryversion = "Latest";
 
-                if (moduleInfo.GetDesiredVersion() != "0.0.0.0")
+                if (moduleInfo.GetDesiredVersion() != null && moduleInfo.GetDesiredVersion() != "0.0.0.0")
                 {
-                    if (moduleInfo.GetDesiredVersion() != null)
-                    {
-                        binaryversion = moduleInfo.GetDesiredVersion();
-                    }
+                    binaryversion = moduleInfo.GetDesiredVersion();
                 }
-
 
                 zipuri += '/' + binaryversion + '/' + moduleInfo.BinaryName() + ".zip";
 
@@ -3225,7 +3262,7 @@ namespace HomeOS.Hub.Platform
 
                 //by default platform should point to the Latest on the repository if a version of the binary isn't specified
                 string binaryversion = "Latest"; 
-                if (scoutInfo.DesiredVersion != null )
+                if (scoutInfo.DesiredVersion != null && scoutInfo.DesiredVersion != Constants.UnknownHomeOSUpdateVersionValue)
                 {
                     binaryversion = scoutInfo.DesiredVersion;
                 }

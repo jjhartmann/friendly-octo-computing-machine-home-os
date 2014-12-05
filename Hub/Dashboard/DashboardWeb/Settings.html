@@ -14,6 +14,7 @@
         var DATASTOREACCOUNTNAME;
         var DEFAULTEMAIL;
         var WIRELESSNETWORK;
+        var REMOTEACCESSLINK;
         //Load  1. HomeID, 2. RemoteAccessURL  3. Apps  4. Devices
         
         $(document).ready(
@@ -75,7 +76,8 @@
        
         function GetSettingsRemoteAccessUrlWebCallback(context, result) {
             if (result[0] == "") {
-                $("#urlInfo").html("URL for remote access: <a href='" + result[1] + "' target='_blank'>" + result[1] + "</a>");
+                REMOTEACCESSLINK = result[1];
+                $("#urlInfo").html("URL for remote access: <a href='" + result[1] + "' target='_blank'>" + result[1] + '</a>'); //<button class="btn" onclick="EmailRemoteAccessLink()">Email Link </button>');
             }
             else {
                 DisplayDebugging("GetRemoteAccess URL " + result[0]);
@@ -90,9 +92,9 @@
                     $("#installedApplications").html('<div class="settings_listitem"> No applications installed<br /></div>');
                 }
                 else {
-                    for (i = 1; i + 2 < result.length; i = i + 3) {
-                        //i is appName, i+1 is description i+2 is image file
-                        $("#installedApplications").append('<div class="settings_listitem">' + result[i] + '<button class="btn" onclick="ConfigureApp(' + "'" + result[i] + "'" + ')"  >Configure </button>  <button class= "btn" onclick="RemoveApp(' + "'" + result[i] + "'" + ')">Remove </button></div>');
+                    for (i = 1; i + 3 < result.length; i = i + 4) {
+                        //i is appName, i+1 is description,  i+2 is image file,  i+3 is version,
+                        $("#installedApplications").append('<div class="settings_listitem">' + result[i] + ' ' + result[i+3] + '<button class="btn" onclick="ConfigureApp(' + "'" + result[i] + "'" + ')"  >Configure </button>  <button class= "btn" onclick="RemoveApp(' + "'" + result[i] + "'" + ')">Remove </button></div>');
                     }
                 }
             }
@@ -265,6 +267,27 @@
 
         }
 
+
+        function EmailRemoteAccessLink() {
+           // Tuple<bool, string> SendEmail(string dst, string subject, string body);
+            //  var data2 = '{"uniqueDeviceId": "' + DEVICEID + '","friendlyName": "' + friendlyName + '","highSecurity": "false","location": "' + locationTmp + '",' + '"' + APPS_USER_PERMITS_NAME + '":' + appText + '}';
+            var dataParm = '{"dst": "' + DEFAULTEMAIL + '","subject": "Hub access link","body": "This is a test message"}';
+            new PlatformServiceHelper().MakeServiceCall("webapp/SendEmail",  dataParm, EmailAccessLinkSentCallback);
+           
+        }
+
+        function EmailAccessLinkSentCallback(context, result) {
+
+            if (result[0] == "") {
+                $("#status").show();
+                $("#status").html("Remote access link sent");
+            }
+            else {
+                $("#status").show();
+                $("#status").html("Problem sending email:" + result[0]);
+            }
+
+        }
 
         function SetNewEmail() {
             var emailAddr = $('#newEmail').val();

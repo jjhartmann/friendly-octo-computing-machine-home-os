@@ -132,8 +132,12 @@ namespace HomeOS.Hub.Common
 
             try
             {
-                synchronizer = Bolt.DataStore.SyncFactory.Instance.CreateSynchronizer(locationInfo, containerName, null);
+                synchronizer = Bolt.DataStore.SyncFactory.Instance.CreateLogSynchronizer(locationInfo, containerName);
                 synchronizer.SetLocalSource(archivingDirectory);
+
+                //lets sync for starters, in case there are leftover logs from last time
+                SafeThread worker = new SafeThread(delegate() { synchronizer.Sync(); }, "init log syncing", this);
+                worker.Start();
             }
             catch (System.FormatException ex1)
             {
@@ -222,7 +226,7 @@ namespace HomeOS.Hub.Common
 
             string archivingFile = archivingDirectory + "\\" + GetTimeStamp() + "-" + Path.GetFileName(fName);
 
-            while (File.Exists(archivingFile) || File.Exists(archivingFile + ".gz"))
+            while (File.Exists(archivingFile) || File.Exists(archivingFile + ".zip"))
                 archivingFile += ".1";
 
             File.Move(fName, archivingFile);

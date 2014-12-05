@@ -61,7 +61,10 @@ namespace HomeOS.Hub.Scouts.Kinect
             {
                 if (potentialSensor.Status == KinectStatus.Connected)
                 {
-                    string deviceName = potentialSensor.ToString();
+
+                    string uniqueID = potentialSensor.UniqueKinectId.Replace("\\", "-").Replace("&", ".");
+
+                    string deviceName =  "Kinect Sensor:" + uniqueID   ;
                     Device device = new Device(deviceName, deviceName, "", DateTime.Now, "HomeOS.Hub.Drivers.Kinect", false);
                     //intialize the parameters for this device
                     device.Details.DriverParams = new List<string>() { device.UniqueName };

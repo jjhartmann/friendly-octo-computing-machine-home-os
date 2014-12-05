@@ -920,11 +920,14 @@ namespace HomeOS.Hub.Platform
                     {
                         mNameList.Add("Unknown");
                         mNameList.Add("Unknown");
+                        mNameList.Add("Unknown");
                     }
                     else
                     {
                         mNameList.Add(app.Description);
                         mNameList.Add(app.IconUrl);
+                        string temp = mInfo.GetRunningVersion();
+                        mNameList.Add(mInfo.GetRunningVersion());
                     }
                 }
 

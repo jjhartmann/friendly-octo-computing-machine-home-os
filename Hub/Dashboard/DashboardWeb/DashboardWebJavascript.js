@@ -75,8 +75,8 @@ function GetInstalledAppsWebCallback(context, result) {
             return;
         }
      
-        for (i = 1; i + 2 < result.length; i = i + 3) {
-            //i is appName, i+1 is description i+2 is image file
+        for (i = 1; i + 3 < result.length; i = i + 4) {
+            //i is appName, i+1 is description i+2 is image file, i+3 is version
             var url = buildAppURL(result[i]);
             var iconURL = buildIconURL(result[i]);
             //AJB: TODO doing show image if we have one

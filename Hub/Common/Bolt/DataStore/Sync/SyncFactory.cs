@@ -141,17 +141,16 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
 
         ////////////////////////////////////////////////////////////////////////////////
         // Legacy Comaptibility Calls
-        //  - depricated
-        //  - do not use
+        //  - depricated (uses sync framework)
+        //  - do not use unless you know what you are doing
         ////////////////////////////////////////////////////////////////////////////////
-        /*
-        public ISync CreateSynchronizer(SynchronizerType st, RemoteInfo ri, string container)
+        public ISync CreateLogSynchronizer(LocationInfo Li, string container)
         {
             ISync isync = null;
-            switch (st)
+            switch (Li.st)
             {
                 case SynchronizerType.Azure:
-                    isync = new AzureSynchronizer(ri, container, SynchronizeDirection.Upload);
+                    isync = new HDS.AzureSynchronizer(new RemoteInfo(Li.accountName, Li.accountKey), container, SynchronizeDirection.Upload);
                     break;
                 default:
                     isync = null;
@@ -159,7 +158,6 @@ namespace HomeOS.Hub.Common.Bolt.DataStore
             }
             return isync;
         }
-        */
 
     }
 }
