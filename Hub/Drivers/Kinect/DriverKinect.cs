@@ -60,17 +60,26 @@ namespace HomeOS.Hub.Drivers.Kinect
         public override void Start()
         {
 
+
+            string kinectStr = moduleInfo.Args()[0];
+
             foreach (var potentialSensor in KinectSensor.KinectSensors)
             {
                 if (potentialSensor.Status == KinectStatus.Connected)
                 {
+                    //encode the id string as per the encoding in the scout so the match will work 
+                    // '\' and '&' cause problem when the values get written to the config file (XML writer not happy)
+                    string kinectid = "Kinect Sensor:" + potentialSensor.UniqueKinectId.Replace("\\", "-").Replace("&", ".");
+                    if (kinectStr == kinectid)
+                    { 
                     this.sensor = potentialSensor;
                     break;
+                    }
                 }
             }
 
             //Create a new port on the platform.
-            string kinectStr = moduleInfo.Args()[0];
+            
             VPortInfo pInfo = GetPortInfoFromPlatform("kinect" + kinectStr);
             List<VRole> roles = new List<VRole>() { RoleCamera.Instance, RoleDepthCam.Instance, RoleMicrophone.Instance, RoleSkeletonTracker.Instance, RoleSpeechReco.Instance };
 
@@ -80,7 +89,7 @@ namespace HomeOS.Hub.Drivers.Kinect
             RegisterPortWithPlatform(kinectPort);
 
      
-            logger.Log("Kinect Sensor Rigistered.");
+            logger.Log("Kinect Sensor Registered.");
             StartKinect();
         }
 
