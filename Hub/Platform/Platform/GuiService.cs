@@ -828,7 +828,9 @@ namespace HomeOS.Hub.Platform
                         continue;
 
                     //assume that we end up using homeStoreApp.AppName as friendly name in the new gui
-                    if (config.allModules.ContainsKey(homeStoreApp.AppName))
+                    //if (config.allModules.ContainsKey(homeStoreApp.AppName))
+                    //    continue;
+                    if (config.GetModule(homeStoreApp.AppName) != null)
                         continue;
 
                     //string triplet ugliness

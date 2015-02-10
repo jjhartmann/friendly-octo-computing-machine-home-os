@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Microsoft.Secpal.Core.ObjectModel;
@@ -267,7 +268,10 @@ namespace HomeOS.Hub.Platform
         private void AddSystemHighRules(Configuration config)
         {
             AccessRule systemHighaccessRule;
-            foreach (string moduleName in config.allModules.Keys)
+
+            var allModuleNames = config.GetAllModules().Select(module => module.FriendlyName());
+
+            foreach (string moduleName in allModuleNames)
             {
                 systemHighaccessRule = new AccessRule();
                 systemHighaccessRule.ModuleName = moduleName;

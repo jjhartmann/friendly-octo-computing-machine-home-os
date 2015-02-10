@@ -434,6 +434,9 @@ namespace HomeOS.Hub.Platform
             // cache the version
             this.platformVersion = Utils.GetHomeOSUpdateVersion(this.GetType().Assembly.CodeBase + ".config", logger);
 
+            //configure the services the way we like
+            ServicePointManager.DnsRefreshTimeout = 30 * 1000; //30 seconds
+            ServicePointManager.DefaultConnectionLimit = 100;
 
             //start the basic services
             infoService = new InfoService(this, logger);
@@ -527,6 +530,9 @@ namespace HomeOS.Hub.Platform
                     StartModule(new ModuleInfo("webcamdriver", "DriverWebCam", "HomeOS.Hub.Drivers.WebCam", null, false, @"Microsoft® LifeCam VX-7000"));
                     StartModule(new ModuleInfo("AppCam", "AppCamera", "HomeOS.Hub.Apps.SmartCam", null, false));
 
+                    StartModule(new ModuleInfo("webcamdriver", "DriverWebCam", "HomeOS.Hub.Drivers.WebCam", null, false, @"Integrated"));
+                    StartModule(new ModuleInfo("camerapp", "AppCamera", "HomeOS.Hub.Apps.SmartCam", null, false));
+
                     //string para1 = "C:\\Users\\t-chuchu\\Desktop\\homeos\\homeos\\Apps\\AppTracking\\VideoTracking\\para_camera1.txt";
                     //string para2 = "C:\\Users\\t-chuchu\\Desktop\\homeos\\homeos\\Apps\\AppTracking\\VideoTracking\\para_camera2.txt";
                     //StartModule(new ModuleInfo("trackingapp", "AppTracking", "AppTracking", null, false, para1, para2));                   
@@ -537,8 +543,6 @@ namespace HomeOS.Hub.Platform
                     //StartModule(new ModuleInfo("switchapp", "AppSwitch", "HomeOS.Hub.Apps.Switch", null, false));
 
                     //StartModule(new ModuleInfo("alerts", "AppAlerts", "HomeOS.Hub.Apps.Alerts", null, false));
-
-                    //StartModule(new ModuleInfo("foscamdriver1", "DriverFoscam", "HomeOS.Hub.Drivers.Foscam", null, false, "192.168.1.125", "admin", ""));
 
                     //StartModule(new ModuleInfo("AppDummy1", "AppDummy1", "HomeOS.Hub.Apps.Dummy", null, false, null));
                     //StartModule(new ModuleInfo("DriverDummy1", "DriverDummy1", "HomeOS.Hub.Drivers.Dummy", null, false, null));
@@ -1131,7 +1135,7 @@ namespace HomeOS.Hub.Platform
                 rebuildAddInTokens(); */
             
 
-            foreach (ModuleInfo moduleInfo in config.allModules.Values)
+            foreach (ModuleInfo moduleInfo in config.GetAllModules())
             {
                 if (moduleInfo != null && moduleInfo.AutoStart)
                 {
@@ -1247,7 +1251,7 @@ namespace HomeOS.Hub.Platform
 
             ////delete the temp dir
             //System.IO.DirectoryInfo dir = new DirectoryInfo(tempPath);   
-            //if (dir.Exists)  
+            //if (dir.Exists)  r
             //dir.Delete(true);
 
             return ret;
@@ -2487,6 +2491,11 @@ namespace HomeOS.Hub.Platform
             return config.GetDeviceDriverParams(targetDevice);
         }
 
+        public List<ModuleInfo> GetAllConfiguredModules()
+        {
+            return config.GetAllModules();
+        }
+
         #endregion
 
         public void AddService(PortInfo portInfo, string friendlyName, bool highSecurity, string locationStr, string[] apps) {
@@ -2743,13 +2752,13 @@ namespace HomeOS.Hub.Platform
         }
 
 #region static helpers for Update Manager tool to access modules, scouts
-        public static Dictionary<string, ModuleInfo> GetConfigModules(string configDir)
+        public static List<ModuleInfo> GetConfigModules(string configDir)
         {
             Settings.Initialize();            
             Configuration config = new Configuration(configDir);
             config.ParseSettings();
             config.ReadConfiguration();
-            return config.allModules;
+            return config.GetAllModules();
         }
 
         public static List<ScoutInfo> GetConfigScouts(string configDir)

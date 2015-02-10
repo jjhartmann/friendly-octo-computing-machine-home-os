@@ -17,7 +17,7 @@ namespace HomeOS.Hub.Platform
         //public Dictionary<string, HomeStoreApp> moduleDb = new Dictionary<string,HomeStoreApp>();
         //private Dictionary<string, HomeStoreDevice> deviceDb = new Dictionary<string, HomeStoreDevice>();
 
-        public Dictionary<string, ModuleInfo> allModules = new Dictionary<string, ModuleInfo>();
+        private Dictionary<string, ModuleInfo> allModules = new Dictionary<string, ModuleInfo>();
 
         private int nextUserOrGroupId = 1;  //0 is reserved for user system
         private Dictionary<string, UserInfo> allUsers = new Dictionary<string, UserInfo>(StringComparer.OrdinalIgnoreCase);
@@ -2108,6 +2108,14 @@ namespace HomeOS.Hub.Platform
             var retList = GetUnconfiguredPorts(uniqueDeviceId);
             retList.AddRange(GetConfiguredPortsUsingDeviceId(uniqueDeviceId));
             return retList;
+        }
+
+        public List<ModuleInfo> GetAllModules()
+        {
+            lock (allModules)
+            {
+                return new List<ModuleInfo>(allModules.Values);
+            }
         }
 
         public List<ModuleInfo> GetAllForegroundModules()

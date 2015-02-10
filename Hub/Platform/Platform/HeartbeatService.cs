@@ -126,7 +126,7 @@ namespace HomeOS.Hub.Platform
                 {
                     string jsonString = heartbeatInfo.SerializeToJsonStream();
                     logger.Log("Sending heartbeat: {0}", jsonString);
-                    WebClient webClient = new WebClient();
+                    var webClient = new NoKeepAlivesWebClient();
                     webClient.UploadStringCompleted += webClient_UploadHeartbeatInfoCompleted;
                     webClient.Headers["Content-type"] = "application/json";
                     webClient.Encoding = Encoding.UTF8;
@@ -214,6 +214,20 @@ namespace HomeOS.Hub.Platform
             {
                 logger.Log("Exception thrown while checking for unique Home ID, exception={0}", e.Message);
             }
+        }
+    }
+
+    public class NoKeepAlivesWebClient : WebClient
+    {
+        protected override WebRequest GetWebRequest(Uri address)
+        {
+            var request = base.GetWebRequest(address);
+            if (request is HttpWebRequest)
+            {
+                ((HttpWebRequest)request).KeepAlive = false;
+            }
+
+            return request;
         }
     }
 

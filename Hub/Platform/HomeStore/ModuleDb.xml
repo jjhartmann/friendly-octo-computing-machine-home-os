@@ -1,5 +1,15 @@
 ﻿<Modules>
 
+
+  <Module AppName="AzureEventHubSample" BinaryName="HomeOS.Hub.Apps.AzureEventHubSample" Description="A sample app to demonstrate how to send sensor data to an Azure Event Hub" Rating="5" IconUrl="icon.png">
+    <RoleList Optional="true">
+      <Role Name=":sensor:"/>
+    </RoleList>
+    <RoleList Optional="true">
+      <Role Name=":dummy:"/>
+    </RoleList>
+  </Module>
+  
   <Module AppName="Alerts" BinaryName="HomeOS.Hub.Apps.Alerts" Description="Get an alert when a sensor is triggered" Rating="5" IconUrl="icon.png">
     <RoleList>
       <Role Name=":sensor:"/>
@@ -52,14 +62,18 @@
   </Module-->
 
 
-  <!--<Module AppName="EmotoCouch" BinaryName="HomeOS.Hub.Apps.EmotoCouch" Description="Get Cozy with your Couch" Rating="5" IconUrl="Assets/Foscam.png">
-    --><!--<RoleList>
-      <Role Name="camera"/>
-    </RoleList>--><!--
+  <Module AppName="EmotoCouch" BinaryName="HomeOS.Hub.Apps.EmotoCouch" Description="Get Cozy with your Couch" Rating="5" IconUrl="Assets/Foscam.png">
     <RoleList>
       <Role Name=":couch:"/>
+      <Role Name=":sensor:"/>
+      <Role Name=":sensormultilevel:"/>
+      <Role Name=":weather:"/>
     </RoleList>
-  </Module>-->
+    <!--<RoleList Optional="true">
+
+
+    </RoleList>-->
+  </Module>
 
 
   <Module AppName="AppDummy" BinaryName="HomeOS.Hub.Apps.Dummy" Description="Example basic application" Rating="5">
@@ -86,6 +100,7 @@
       <Role Name=":sensor:"/>
       <Role Name=":sensormultilevel:"/>
       <Role Name=":dummy:"/>
+      <Role Name=":arduino:"/>
     </RoleList>
   </Module>
 
@@ -94,5 +109,7 @@
       <Role Name=":weather:"/>
     </RoleList>
   </Module>
+  
+ 
 
 </Modules>
