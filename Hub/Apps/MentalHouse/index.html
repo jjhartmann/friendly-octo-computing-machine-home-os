@@ -1,0 +1,469 @@
+﻿<script type="text/javascript" src="../GuiWeb/homeos-1.1.js"></script>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <!-- Nicholas Kostriken -->
+  <title> MindWave </title>
+   <script type="text/javascript" src="../GuiWeb/jquery-1.7.1.js"></script>
+      <script type="text/javascript" src="../GuiWeb/common.js"></script>  <!--contains helpful calls for calling WCF service-->
+  <link rel="Stylesheet" type="text/css" href="Styles/Dummy.css" />
+
+    <style>
+        .attMedGraphBox {
+            height: 200px;
+            width: 1000px;
+            bottom: 120px;
+            background-color: #445;
+        }
+        .barGraphBox {
+            height: 50px;
+            width: 200px;
+            background-color: #445;
+        }
+        .wavesGraphBox {
+            height: 260px;
+            width: 1200px;
+            background-color: #888;
+            fill: #FFF;
+        }
+    </style>
+
+
+
+    <script>
+
+        //Current MindWave values
+        var connection = 200,
+            attention = 0,
+            meditation = 0,
+            waves = [0, 0, 0, 0, 0, 0, 0, 0],
+            blink = 0;
+
+        var height, width, verticalInc, horizontalInc;
+        window.onload = function () {
+            //Initialize variables
+            height = parseInt($("#attMedGraph").get(0).getAttribute("viewBox").split(' ')[3]);
+            width = parseInt($("#attMedGraph").get(0).getAttribute("viewBox").split(' ')[2]);
+            //Vertical increment
+            verticalInc = height / 100;//svg height / max value
+            //Horizontal increment
+            horizontalInc = width / 60;//svg width / total values
+        }
+
+
+        //Get the strength of the current connection
+        function getConnection() {
+            new PlatformServiceHelper().MakeServiceCall("webapp/GetConnection", "", GetConnectionCallback);
+        }
+        function GetConnectionCallback(context, result) {
+            connection = parseInt(result.GetConnectionResult[0]);
+            if (connection == 200)
+                $("#connection").get(0).innerHTML = "<font color='red'><b>BAD</b></font>";
+            else if (connection > 0)
+                $("#connection").get(0).innerHTML = "<font color='gold'><b>POOR</b></font>";
+            else
+                $("#connection").get(0).innerHTML = "<font color='lime'><b>GOOD</b></font>";
+        }
+
+        //Get the current Attention Level
+        function getAttention() {
+            new PlatformServiceHelper().MakeServiceCall("webapp/GetAttention", "", GetAttentionCallback);
+        }
+        function GetAttentionCallback(context, result) {
+            attention = parseInt(result.GetAttentionResult[0]);
+        }
+
+        //Get the current Meditation level
+        function getMeditation() {
+            new PlatformServiceHelper().MakeServiceCall("webapp/GetMeditation", "", GetMeditationCallback);
+        }
+        function GetMeditationCallback(context, result) {
+            meditation = parseInt(result.GetMeditationResult[0]);
+        }
+
+
+        //Get the current brainwave data
+        function getWaves() {
+            new PlatformServiceHelper().MakeServiceCall("webapp/GetWaves", "", GetWavesCallback);
+        }
+        function GetWavesCallback(context, result) {
+            waves[0] = parseInt(result.GetWavesResult[0]);//delta
+            waves[1] = parseInt(result.GetWavesResult[1]);//theta
+            waves[2] = parseInt(result.GetWavesResult[2]);//lowAlpha
+            waves[3] = parseInt(result.GetWavesResult[3]);//highAlpha
+            waves[4] = parseInt(result.GetWavesResult[4]);//lowBeta
+            waves[5] = parseInt(result.GetWavesResult[5]);//highBeta
+            waves[6] = parseInt(result.GetWavesResult[6]);//lowGamma
+            waves[7] = parseInt(result.GetWavesResult[7]);//highGamma
+        }
+
+
+        //Get the last blink's strength
+        function getBlink() {
+            new PlatformServiceHelper().MakeServiceCall("webapp/GetBlink", "", GetBlinkCallback);
+        }
+        function GetBlinkCallback(context, result) {
+            blink = parseInt(result.GetBlinkResult[0]);
+            if (blink == 0)
+                $("#blink").get(0).innerHTML = "<font color='white'><b>NONE</b></font>";
+            else if (blink < 20)
+                $("#blink").get(0).innerHTML = "<font color='white'><b>BLINK</b></font>";
+            else if (blink > 20 && blink < 100)
+                $("#blink").get(0).innerHTML = "<font color='gold'><b>BLINK</b></font>";
+            else if (blink > 100)
+                $("#blink").get(0).innerHTML = "<font color='red'><b>BLINK</b></font>";
+        }
+
+
+        //Refresh the UI 10x a second
+        window.setInterval(function () { refreshUI() }, 100);
+
+        //Smooth attention/meditation bar transition values
+        var oldAttention = 0;
+        var attentionBarValue = 0;
+        var oldMeditation = 0;
+        var meditationBarValue = 0;
+
+        //Smooth wave bar transition values
+        var wavesMax = 0;
+        var oldWavesMax = 0;
+        var wavesMaxValue = 0;
+        var oldWaves = [0,0,0,0,0,0,0,0];
+        var waveBarValues = [0,0,0,0,0,0,0,0];
+
+        function refreshUI() {
+            //Get the connection strength
+            getConnection();
+
+            //Get the last blink
+            getBlink();
+
+            //Draw attention curve
+            drawCurve("attentionCurve", attentionData);
+            //Draw meditation curve
+            drawCurve("meditationCurve", meditationData);
+
+            //Draw attention bar
+            $("#attentionValue").get(0).innerHTML = attention;
+            attentionBarValue += (attention - oldAttention) / horizontalInc;
+            $("#attentionBar").get(0).setAttribute('width', attentionBarValue);
+
+            //Draw meditation bar
+            $("#meditationValue").get(0).innerHTML = meditation;
+            meditationBarValue += (meditation - oldMeditation) / horizontalInc;
+            $("#meditationBar").get(0).setAttribute('width', meditationBarValue);
+
+            offset++;
+
+            //Get new/remove old data smoothly as needed
+            if (offset > horizontalInc) {
+                offset = 0;
+
+                //Update the attention and meditation values
+                oldAttention = attention;
+                oldMeditation = meditation;
+                attentionBarValue = oldAttention;
+                meditationBarValue = oldMeditation;
+
+                getAttention();
+                getMeditation();
+
+                attentionData.shift();
+                attentionData.push(attention);
+
+                meditationData.shift();
+                meditationData.push(meditation);
+
+
+                //Update the wave-type activity values
+                for (var i = 0; i < waves.length; i++) {
+                    oldWaves[i] = waves[i];
+                    waveBarValues[i] = oldWaves[i];
+                }
+
+                getWaves();
+
+                oldWavesMax = wavesMax;
+                wavesMax = Math.max(waveBarValues[0], waveBarValues[1], waveBarValues[2], waveBarValues[3],
+                    waveBarValues[4], waveBarValues[5], waveBarValues[6], waveBarValues[7]);
+            }
+
+            //Smoothly increment the scale of the wave graph bars
+            wavesMaxValue += (wavesMax - oldWavesMax) / horizontalInc
+            var scale = 200 / wavesMaxValue;
+
+            //Draw delta value bar
+            $("#deltaValue").get(0).innerHTML = waves[0];
+            waveBarValues[0] += (waves[0] - oldWaves[0]) / horizontalInc;
+            $("#delta").get(0).setAttribute('height', scale * waveBarValues[0]);
+            $("#delta").get(0).setAttribute('y', 210 - (scale * waveBarValues[0]));
+
+            //Draw theta value bar
+            $("#thetaValue").get(0).innerHTML = waves[1];
+            waveBarValues[1] += (waves[1] - oldWaves[1]) / horizontalInc;
+            $("#theta").get(0).setAttribute('height', scale * waveBarValues[1]);
+            $("#theta").get(0).setAttribute('y', 210 - (scale * waveBarValues[1]));
+
+            //Draw low alpha value bar
+            $("#lowAlphaValue").get(0).innerHTML = waves[2];
+            waveBarValues[2] += (waves[2] - oldWaves[2]) / horizontalInc;
+            $("#lowAlpha").get(0).setAttribute('height', scale * waveBarValues[2]);
+            $("#lowAlpha").get(0).setAttribute('y', 210 - (scale * waveBarValues[2]));
+
+            //Draw high alpha value bar
+            $("#highAlphaValue").get(0).innerHTML = waves[3];
+            waveBarValues[3] += (waves[3] - oldWaves[3]) / horizontalInc;
+            $("#highAlpha").get(0).setAttribute('height', scale * waveBarValues[3]);
+            $("#highAlpha").get(0).setAttribute('y', 210 - (scale * waveBarValues[3]));
+
+            //Draw low beta value bar
+            $("#lowBetaValue").get(0).innerHTML = waves[4];
+            waveBarValues[4] += (waves[4] - oldWaves[4]) / horizontalInc;
+            $("#lowBeta").get(0).setAttribute('height', scale * waveBarValues[4]);
+            $("#lowBeta").get(0).setAttribute('y', 210 - (scale * waveBarValues[4]));
+
+            //Draw high beta value bar
+            $("#highBetaValue").get(0).innerHTML = waves[5];
+            waveBarValues[5] += (waves[5] - oldWaves[5]) / horizontalInc;
+            $("#highBeta").get(0).setAttribute('height', scale * waveBarValues[5]);
+            $("#highBeta").get(0).setAttribute('y', 210 - (scale * waveBarValues[5]));
+
+            //Draw low gamma value bar
+            $("#lowGammaValue").get(0).innerHTML = waves[6];
+            waveBarValues[6] += (waves[6] - oldWaves[6]) / horizontalInc;
+            $("#lowGamma").get(0).setAttribute('height', scale * waveBarValues[6]);
+            $("#lowGamma").get(0).setAttribute('y', 210 - (scale * waveBarValues[6]));
+
+            //Draw high gamma value bar
+            $("#highGammaValue").get(0).innerHTML = waves[7];
+            waveBarValues[7] += (waves[7] - oldWaves[7]) / horizontalInc;
+            $("#highGamma").get(0).setAttribute('height', scale * waveBarValues[7]);
+            $("#highGamma").get(0).setAttribute('y', 210 - (scale * waveBarValues[7]));
+        }
+
+
+        //Contain 64 values, 60 are shown and 2 form a visual buffer off each side of the graph
+        var attentionData = []; //all of the attention mindwave data is written into this
+        var meditationData = []; //all of the meditation mindwave data is written into this
+        for (var i = 0; i < 64; i++) {
+            attentionData[attentionData.length] = 2;//initializing the arrays to arbitrary numbers
+            meditationData[meditationData.length] = 4;
+        }
+
+        var offset = 0; //used to smooth the scrolling of the curve from right to left
+        
+        //Draw a curve based on the data to the graph
+        function drawCurve(curveName, data) {
+            //Starting point of curve
+            var curveString = "M" + (-2) + "," + height;
+
+            //Append each datapoint to the curve
+            for (var i = 0; i < 60+4; i++) {
+                //Data points
+                var curr = 100 - verticalInc * data[i];
+                var next = 0;
+                if (!isNaN(data[i+1])){ next = 100 - verticalInc * data[i + 1]; }
+
+                //Curve control points
+                var xc = ((i-1) * horizontalInc + i * horizontalInc) / 2;
+                var yc = (curr + next) / 2;
+
+                curveString += "Q" + ( ((i-1)*horizontalInc) - offset ) + "," + curr + "," + (xc - offset) + "," + yc;
+            }
+
+            //Redraw the curve
+            $("#"+curveName).get(0).setAttribute('d', curveString);
+        }
+
+
+    </script>
+
+
+</head>
+
+
+<body>
+
+    <div class="dashboard_toolbar">
+            <div class="homeID_title"><a href="../GuiWeb/index.html">Dashboard</a> | MentalHouse </div>
+        </div>
+        
+        <div class="page">
+            <div class="row">
+                <div class="page_title col">MindWaveApp</div>
+            </div>
+
+
+            <!-- Displays the data being recieved from the mindwave -->
+            <h1>Live View:</h1>
+            <table>
+                <tr>
+                    <td>
+                        <!--Displays the connection status of the mindwave-->
+                        <b>Connection:</b>&nbsp;<p id="connection" style="display: inline;"></p>
+                    </td>
+                    <td>
+                        <!--Displays the last blink strength-->
+                        <b>Blink:</b>&nbsp;<p id="blink" style="display: inline;"></p>
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td style="padding: 10px;">
+                        <!-- Smooth graph of attention and meditation -->
+                        <div class="attMedGraphBox">
+                            <svg id="attMedGraph" width="100%" height="100%" viewBox="0 0 500 100"><!--preserveAspectRatio="none"-->
+
+                                <!-- Draw grid on graph -->
+                                <defs>
+                                    <pattern id="smallSquares" width="10" height="10" patternUnits="userSpaceOnUse">
+                                        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5" />
+                                    </pattern>
+                                    <pattern id="squares" width="100" height="200" patternUnits="userSpaceOnUse">
+                                        <rect width="100" height="200" fill="url(#smallSquares)" />
+                                        <path d="M 100 0 L 0 0 0 200" fill="none" stroke="gray" stroke-width="1" />
+                                    </pattern>
+                                </defs>
+                                <rect width="100%" height="100%" fill="url(#squares)" />
+
+                                <path id="attentionCurve" fill="none" style="stroke: #CFC; stroke-width: 3;" d="" />
+                                <path id="meditationCurve" fill="none" style="stroke: #CCF; stroke-width: 3;" d="" />
+                            </svg>
+                        </div>
+                    </td>
+
+                    <td style="padding: 10px;">
+                        <!-- Attention value and bar graph -->
+                        <div>
+                            <b>Attention:</b>&nbsp;<p id="attentionValue" style="display: inline;">0</p>
+                        </div>
+                        <div class="barGraphBox">
+                            <svg width="100%" height="100%" viewBox="0 0 100 10" preserveAspectRatio="none">
+                                <rect id="attentionBar" width="0" height="10" style="fill: #CFC; stroke-width: 0;" />
+                            </svg>
+                        </div>
+
+                        <!-- Meditation value and bar graph -->
+                        <div>
+                            <b>Meditation:</b>&nbsp;<p id="meditationValue" style="display: inline;">0</p>
+                        </div>
+                        <div class="barGraphBox">
+                            <svg width="100%" height="100%" viewBox="0 0 100 10" preserveAspectRatio="none">
+                                <rect id="meditationBar" width="0" height="10" style="fill: #CCF; stroke-width: 0;" />
+                            </svg>
+                        </div>
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td colspan="2">
+                        <!-- Bar graph of the current brainwave activity -->
+                        <div class="wavesGraphBox">
+                            <svg width="100%" height="100%" viewBox="0 0 1200 260">
+                                <rect x="0" y="210" width="1200" height="50" style="fill:#778"; stroke-width: 0;" />
+
+                                <!-- Gradients to make the bars of the graph more visually appealing -->
+                                <linearGradient id="deltaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color: #FCB; stop-opacity: 1" />
+                                    <stop offset="100%" style="stop-color: #C98; stop-opacity: 1" />
+                                </linearGradient>
+
+                                <linearGradient id="thetaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color: #FD9; stop-opacity: 1" />
+                                    <stop offset="100%" style="stop-color: #CA6; stop-opacity: 1" />
+                                </linearGradient>
+                                
+                                <linearGradient id="lowAlphaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color: #CDE; stop-opacity: 1" />
+                                    <stop offset="100%" style="stop-color: #9AB; stop-opacity: 1" />
+                                </linearGradient>
+                                
+                                <linearGradient id="highAlphaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color: #8EB; stop-opacity: 1" />
+                                    <stop offset="100%" style="stop-color: #5B8; stop-opacity: 1" />
+                                </linearGradient>
+                                
+                                <linearGradient id="lowBetaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color: #7EE; stop-opacity: 1" />
+                                    <stop offset="100%" style="stop-color: #4BB; stop-opacity: 1" />
+                                </linearGradient>
+                                
+                                <linearGradient id="highBetaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color: #ADF; stop-opacity: 1" />
+                                    <stop offset="100%" style="stop-color: #7AC; stop-opacity: 1" />
+                                </linearGradient>
+                                
+                                <linearGradient id="lowGammaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color: #ECF; stop-opacity: 1" />
+                                    <stop offset="100%" style="stop-color: #B9C; stop-opacity: 1" />
+                                </linearGradient>
+                                
+                                <linearGradient id="highGammaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color: #FBE; stop-opacity: 1" />
+                                    <stop offset="100%" style="stop-color: #C8B; stop-opacity: 1" />
+                                </linearGradient>
+
+                                <!-- Wave-type graph bars with text underneath -->
+                                <rect id="delta" x="0" y="210" width="150" height="10" style="fill:url(#deltaGradient); stroke-width: 0;" />
+                                <text x="50" y="235" style="font-weight: bold;">Delta</text>
+                                <text x="50" y ="256" id="deltaValue"></text>
+
+                                <rect id="theta" x="150" y="210" width="150" height="10" style="fill:url(#thetaGradient); stroke-width: 0;" />
+                                <text x="200" y="235" style="font-weight: bold;">Theta</text>
+                                <text x="200" y ="256" id="thetaValue"></text>
+                                
+                                <rect id="lowAlpha" x="300" y="210" width="150" height="10" style="fill:url(#lowAlphaGradient); stroke-width: 0;" />
+                                <text x="350" y="225" style="font-weight: bold;">Low</text>
+                                <text x="345" y="240" style="font-weight: bold;">Alpha</text>
+                                <text x="345" y ="256" id="lowAlphaValue"></text>
+
+                                <rect id="highAlpha" x="450" y="210" width="150" height="10" style="fill:url(#highAlphaGradient); stroke-width: 0;" />
+                                <text x="500" y="225" style="font-weight: bold;">High</text>
+                                <text x="495" y="240" style="font-weight: bold;">Alpha</text>
+                                <text x="495" y ="256" id="highAlphaValue"></text>
+
+                                <rect id="lowBeta" x="600" y="210" width="150" height="10" style="fill:url(#lowBetaGradient); stroke-width: 0;" />
+                                <text x="650" y="225" style="font-weight: bold;">Low</text>
+                                <text x="650" y="240" style="font-weight: bold;">Beta</text>
+                                <text x="650" y ="256" id="lowBetaValue"></text>
+
+                                <rect id="highBeta" x="750" y="210" width="150" height="10" style="fill:url(#highBetaGradient); stroke-width: 0;" />
+                                <text x="800" y="225" style="font-weight: bold;">High</text>
+                                <text x="800" y="240" style="font-weight: bold;">Beta</text>
+                                <text x="800" y ="256" id="highBetaValue"></text>
+
+                                <rect id="lowGamma" x="900" y="210" width="150" height="10" style="fill:url(#lowGammaGradient); stroke-width: 0;" />
+                                <text x="950" y="225" style="font-weight: bold;">Low</text>
+                                <text x="940" y="240" style="font-weight: bold;">Gamma</text>
+                                <text x="940" y ="256" id="lowGammaValue"></text>
+
+                                <rect id="highGamma" x="1050" y="210" width="150" height="10" style="fill:url(#highGammaGradient); stroke-width: 0;" />
+                                <text x="1100" y="225" style="font-weight: bold;">High</text>
+                                <text x="1090" y="240" style="font-weight: bold;">Gamma</text>
+                                <text x="1090" y ="256" id="highGammaValue"></text>
+                            </svg>
+                        </div>
+                    </td>
+                </tr>
+
+
+            </table>
+
+    <br />
+    <br />
+    <br />
+    <br />
+
+    <!--Used for debugging messages, set style="display:none" to turn off showing them, common.js will put text into div with id =divDebugInfo when calls are made to service -->
+    <div id="divDebug" style="color:#888;display:block">
+        MentalHouse Service Status Debug Info: <p id="divDebugInfo"></p>
+    </div>
+
+</div>
+
+</body>
+
+</html>
