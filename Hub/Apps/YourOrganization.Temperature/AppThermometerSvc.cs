@@ -57,6 +57,11 @@ namespace HomeOS.Hub.Apps.Thermometer
             thermometerApp.setLEDs(low, high);
             return "";
         }
+
+        public string GetHistoricalTemps()
+        {
+            return thermometerApp.GetHistoricalTemps();
+        }
     }
 
     [ServiceContract]
@@ -65,6 +70,10 @@ namespace HomeOS.Hub.Apps.Thermometer
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json)]
         double GetTemperature();
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json)]
+        string GetHistoricalTemps();
 
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json)]

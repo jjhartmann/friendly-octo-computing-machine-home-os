@@ -7,12 +7,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
    <script type="text/javascript" src="../GuiWeb/jquery-1.7.1.js"></script>
   <script type="text/javascript" src="../GuiWeb/common.js"></script>
+  <script type="text/javascript" src='js/Chart.min.js'></script>
   <link rel="Stylesheet" type="text/css" href="Styles/AppAlertsStyleSheet.css" />
  
     <script>
         var currentTemperature = 0;
         var lowThreshold = 20;
         var highThreshold = 30;
+        var chart;
+        var chartData = [];
+        var chartCursor;
+
+        var historical0 = [];
+        var labels0 = [];
+        var data = {
+            labels: labels0,
+            datasets: [
+                {
+                    label: "Historical temperatures",
+                    fillColor: "rgba(220,220,220,0.5)",
+                    strokeColor: "rgba(220,220,220,0.8)",
+                    highlightFill: "rgba(220,220,220,0.75)",
+                    highlightStroke: "rgba(220,220,220,1)",
+                    data: historical0
+                }
+            ]
+        };
 
         $(document).ready(
             function () {
@@ -22,14 +42,66 @@
         );
 
         function RefreshTemperature() {
+
             new PlatformServiceHelper().MakeServiceCall("webapp/GetTemperature", "", RefreshTemperatureCallback);
         }
+
+        
+        function RefreshChart()
+        {
+            var l = $('#activateChartId:checked').length;
+
+            if (l > 0) {
+
+                
+                var currentdate = new Date();
+                var datetime = currentdate.getDate() + "/"
+                    + (currentdate.getMonth() + 1) + "/"
+                    + currentdate.getFullYear() + " @ "
+                    + currentdate.getHours() + ":"
+                    + currentdate.getMinutes() + ":"
+                    + currentdate.getSeconds();
+
+                if (historical0.length > 10) {
+                    historical0.shift();
+                    labels0.shift();
+                }
+                historical0.push(currentTemperature);
+                labels0.push(currentdate);
+
+                var data = {
+                    labels: labels0,
+                    datasets: [
+                        {
+                            label: "Historical temperatures",
+                            fillColor: "rgba(220,220,220,0.5)",
+                            strokeColor: "rgba(220,220,220,0.8)",
+                            highlightFill: "rgba(220,220,220,0.75)",
+                            highlightStroke: "rgba(220,220,220,1)",
+                            data: historical0
+                        }
+                    ]
+                };
+
+                var ctx = document.getElementById("temperatures").getContext("2d");
+                new Chart(ctx).Line(data, {
+                    responsive: true
+                });
+            }
+        }
+
+        $('#activateChartId').onchange(function () {
+            $('#temperatures').toggle();
+        });
 
         function RefreshTemperatureCallback(context, result) {
             currentTemperature = result.GetTemperatureResult;
             $("#temperatureValue").text(currentTemperature.toString());
             updateColors();
+
+            RefreshChart();
         }
+
 
         function updateColors() {
             if (currentTemperature < lowThreshold) {
@@ -60,6 +132,7 @@
             updateColors();
         }
     </script>
+
 </head>
 <body>
         <div class="dashboard_toolbar">
@@ -84,6 +157,13 @@
             </div>
         </div>
 
+        
+    <div id="historicalData" style="height: 200px; width:90%;">
+        Show the last 10 historical values in the chart: <input id="activateChartId" type="checkbox" name="activateChart" value="Value" /> <br/>
+
+        Historical temperatures:
+        <canvas id="temperatures"></canvas>
+    </div>
         <!--Used for debugging messages, set style="display:none" to turn off showing them, common.js will put text into div with id =divDebugInfo when calls are made to service -->
         <div id="divServiceDebug" style="display:block">
         Service Status Debug Info: <p id="divDebugInfo"></p>

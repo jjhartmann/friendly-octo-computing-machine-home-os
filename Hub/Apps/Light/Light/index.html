@@ -1,0 +1,77 @@
+﻿<script type="text/javascript" src="../GuiWeb/homeos-1.1.js"></script> 
+<!DOCTYPE html> 
+<html lang="en" class="js-disabled home">
+<head> 
+    <title>Light | HomeOS</title> 
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" /> 
+    <script type="text/javascript" src="../GuiWeb/jquery-1.7.1.js"></script> 
+    <script type="text/javascript" src="../GuiWeb/common.js"></script> 
+    <link rel="Stylesheet" type="text/css" href="Styles/AppAlertsStyleSheet.css" />
+    <script>
+        var currentLight = 0;
+        var lowThreshold = 275;
+        var highTreshold = 300;
+
+        $(document).ready(function ()
+        {
+            RefreshLight();
+            setInterval(function ()
+            {
+                RefreshLight()
+            }, 2000);
+        });
+
+        function RefreshLight() {
+            new PlatformServiceHelper().MakeServiceCall("webapp/GetLight", "", RefreshLightCallback);
+        }
+
+        function RefreshLightCallback(context, result) {
+            currentLight = result.GetLightResult;
+            $("#lightValue").text(currentLight.toString());
+            updateColors();
+        }
+        function updateColors() {
+            if (currentLight < lowThreshold) {
+                $("#biglightbox").css('color', 'light-blue');
+                console.log("set blue");
+            } else if (currentLight > highThreshold) {
+                $("#biglightbox").css('color', 'red');
+                console.log("set red");
+            } else {
+                $("#biglightbox").css('color', 'white');
+                console.log("set white");
+            }
+            console.log("Updated color to " + $("#biglightbox").css("color"));
+        }
+
+    </script> 
+</head> 
+    
+<body> 
+    <div class="dashboard_toolbar"> 
+        <div class="homeID_title"><a href="../GuiWeb/index.html">Dashboard</a> | Light </div> </div>
+    <div class="page"> 
+        <div class="row"> 
+            <div class="page_title col">Luminous intensity measured by your light sensor is:</div> 
+        </div> 
+        
+        <div class="row"> 
+            <div id="bigLightbox" style="text-align:center;width:100%;font-size:200px"> 
+                <span id="lightValue"></span>&nbsp; &curren; 
+            </div> 
+        </div> 
+
+        <!--
+        <div class="row"> 
+            <div style="padding-left:100px"> 
+                <input type="number" value="20" id="lowEntry" placeholder="Low value" /> 
+                <input type="number" value="30" id="highEntry" placeholder="High value" /> 
+                <input type="submit" value="Set lows and highs" onclick="" />
+            </div> 
+        </div> 
+        -->
+    </div>
+<!--Used for debugging messages, set style="display:none" to turn off showing them, common.js will put text
+     into div with id =divDebugInfo when calls are made to service --> 
+    <div id="divServiceDebug" style="display:normal"> Service Status Debug Info: <p id="divDebugInfo"></p> </div>
+</body> </html>

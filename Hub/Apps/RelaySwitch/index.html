@@ -1,0 +1,90 @@
+﻿<script type="text/javascript" src="../GuiWeb/homeos-1.1.js"></script>
+<!DOCTYPE html>
+<html lang="en" class="js-disabled home">
+
+<head>
+  <title>Relay Switch </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+   <script type="text/javascript" src="../GuiWeb/jquery-1.7.1.js"></script>
+  <script type="text/javascript" src="../GuiWeb/common.js"></script>
+  <link rel="Stylesheet" type="text/css" href="Styles/AppAlertsStyleSheet.css" />
+ 
+    <script>
+        var currentValue = 0;
+
+        $(document).ready(
+            function () {
+                RefreshRelaySwitch();
+                setInterval(function () { RefreshRelaySwitch() }, 1000);
+            }
+        );
+
+        function RefreshRelaySwitch() {
+            new PlatformServiceHelper().MakeServiceCall("webapp/GetRelaySwitch", "", RefreshRelaySwitchCallback);
+        }
+
+        function RefreshRelaySwitchCallback(context, result) {
+            currentValue = result.GetRelaySwitchResult;
+            $("#relayValue").text(currentValue.toString());
+            updateColors();
+        }
+
+        //function updateColors() {
+        //    if (currentTemperature < lowThreshold) {
+        //        $("#bigtemperaturebox").css('color', 'light-blue');
+        //        console.log("set blue");
+        //    }
+        //    else if (currentTemperature > highThreshold) {
+        //        $("#bigtemperaturebox").css('color', 'red');
+        //        console.log("set red");
+        //    }
+        //    else {
+        //        $("#bigtemperaturebox").css('color', 'white');
+        //        console.log("set white");
+        //    }
+        //    console.log("Updated color to " + $("#bigtemperaturebox").css("color"));
+        //}
+
+        function SetRelaySwitch(e) {
+            //lowThreshold = parseInt($("#lowEntry").val());
+            //highThreshold = parseInt($("#highEntry").val());
+            //updateColors();
+            //var json = JSON.stringify({ low: lowThreshold, high: highThreshold });
+            new PlatformServiceHelper().MakeServiceCall("webapp/SetRelaySwitch", "", RelaySwitchCallback);
+            return false;
+        }
+
+        function RelaySwitchCallback(context, result) {
+            //updateColors();
+        }
+    </script>
+</head>
+<body>
+        <div class="dashboard_toolbar">
+            <div class="homeID_title"><a href="../GuiWeb/index.html">Dashboard</a> | RelaySwitch </div>
+        </div>
+        
+        <div class="page">
+            <div class="row">
+                <div class="page_title col">RelaySwitch</div>
+            </div>
+            <div class="row">
+                <div id="bigtemperaturebox" style="text-align:center;width:100%;font-size:100px">
+                    <span id="relayValue"></span>
+                </div>
+            </div>
+            <div>
+                <div style="padding-left:100px">
+                        <input type="submit" value="Turn it on/off" onclick="SetRelaySwitch()" width="300" height="100"/>
+                    </div>
+            </div>
+        </div>
+
+        <!--Used for debugging messages, set style="display:none" to turn off showing them, common.js will put text into div with id =divDebugInfo when calls are made to service -->
+        <div id="divServiceDebug" style="display:block">
+        Service Status Debug Info: <p id="divDebugInfo"></p>
+        </div>
+
+    
+</body>
+</html>

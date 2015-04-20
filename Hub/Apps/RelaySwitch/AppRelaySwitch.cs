@@ -4,30 +4,27 @@ using HomeOS.Hub.Common;
 using HomeOS.Hub.Platform.Views;
 
 
-namespace HomeOS.Hub.Apps.Thermometer
+namespace HomeOS.Hub.Apps.RelaySwitch
 {
-    [System.AddIn.AddIn("HomeOS.Hub.Apps.Thermometer")]
-    public class AppThermometer : ModuleBase
+    [System.AddIn.AddIn("HomeOS.Hub.Apps.RelaySwitch")]
+    public class AppRelaySwitch : ModuleBase
     {
-        AppThermometerService service;
+        AppRelaySwitchService service;
         SafeServiceHost serviceHost;
         WebFileServer webUiServer;
 
         Dictionary<VPort, VCapability> registeredSensors = new Dictionary<VPort, VCapability>();
         Dictionary<VPort, VCapability> registeredActuators = new Dictionary<VPort, VCapability>();
 
-        /// <summary>
-        /// The most recently fetched temperature from the sensor
-        /// </summary>
-        public double Temperature = 0;
+        public int IsOn = 0;
 
         public override void Start()
         {
             logger.Log("Started: {0}", ToString());
 
-            service = new AppThermometerService(this, logger);
+            service = new AppRelaySwitchService(this, logger);
 
-            serviceHost = AppThermometerService.CreateServiceHost(logger, this, service, moduleInfo.BaseURL() + "/webapp");
+            serviceHost = AppRelaySwitchService.CreateServiceHost(logger, this, service, moduleInfo.BaseURL() + "/webapp");
 
             serviceHost.Open();
 
@@ -88,7 +85,7 @@ namespace HomeOS.Hub.Apps.Thermometer
             }
         }
 
-        public void setLEDs(double low, double high)
+        public void SetRelaySwitch()
         {
             foreach (var port in registeredActuators.Keys)
             {
@@ -97,19 +94,13 @@ namespace HomeOS.Hub.Apps.Thermometer
 
                 if (registeredActuators[port] != null)
                 {
-                    logger.Log(string.Format("Set LEDs {0},{1}", low, high));
+                    //logger.Log(string.Format("Set LEDs {0},{1}", low, high));
                     IList<VParamType> parameters = new List<VParamType>();
-                    parameters.Add(new ParamType((int)low));
-                    parameters.Add(new ParamType((int)high));
+                    parameters.Add(new ParamType((int)1));
 
                     port.Invoke(RoleActuator.RoleName, RoleActuator.OpPutName, parameters, ControlPort, registeredActuators[port], ControlPortCapability);
                 }
             }
-        }
-
-        public string GetHistoricalTemps()
-        {
-            return "";
         }
 
         public override void PortDeregistered(VPort port)
@@ -140,7 +131,7 @@ namespace HomeOS.Hub.Apps.Thermometer
             logger.Log("Notitification from {0} for {0}", roleName, opName);
             if (retVals.Count >= 1)
             {
-                this.Temperature = (double)retVals[0].Value();
+                this.IsOn = (int)retVals[0].Value();
             }
             else
             {
