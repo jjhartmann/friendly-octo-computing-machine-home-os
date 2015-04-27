@@ -37,6 +37,7 @@ namespace HomeOS.Hub.Drivers.Gadgeteer.MicrosoftResearch.TempHumiditySensor
 
         public override void Start()
         {
+            this.IsDriverLoggingEnabled = true;
             driverLogger = new Logger(moduleInfo.WorkingDir() +"\\" + "module.csv");   
 
             base.Start();
@@ -99,7 +100,7 @@ namespace HomeOS.Hub.Drivers.Gadgeteer.MicrosoftResearch.TempHumiditySensor
 
         private void Log(double temperature)
         {
-            if (temperature > 0 && false)
+            if (temperature > 0 && IsDriverLoggingEnabled)
             {
                 logger.Log("Gadgeteer Temperature: {0}", temperature.ToString());
                 DateTime date = DateTime.Now;

@@ -23,6 +23,12 @@ namespace HomeOS.Hub.Drivers.Gadgeteer
         protected abstract void WorkerThread();
         protected abstract List<VParamType> OnOperationInvoke(string roleName, String opName, IList<VParamType> parameters);
 
+        protected bool IsDriverLoggingEnabled
+        {
+            get;
+            set;
+        }
+
         public override void Start()
         {
             try

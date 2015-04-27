@@ -49,10 +49,10 @@
         
         function RefreshChart()
         {
-            var l = $('#activateChartId:checked').length;
+            var shouldBeActive = $('#activateChartId:checked').length > 0;
 
-            if (l > 0) {
-
+            if (shouldBeActive) {
+                $('#temperatures').show();
                 
                 var currentdate = new Date();
                 var datetime = currentdate.getDate() + "/"
@@ -85,14 +85,16 @@
 
                 var ctx = document.getElementById("temperatures").getContext("2d");
                 new Chart(ctx).Line(data, {
-                    responsive: true
+                    responsive: true,
+                    scaleBeginAtZero: true,
+                    scaleStartValue : 0
                 });
             }
+            else
+            {
+                $('#temperatures').hide();
+            }
         }
-
-        $('#activateChartId').onchange(function () {
-            $('#temperatures').toggle();
-        });
 
         function RefreshTemperatureCallback(context, result) {
             currentTemperature = result.GetTemperatureResult;
@@ -158,7 +160,7 @@
         </div>
 
         
-    <div id="historicalData" style="height: 200px; width:90%;">
+    <div id="historicalData" style="height: 100px; width:90%;">
         Show the last 10 historical values in the chart: <input id="activateChartId" type="checkbox" name="activateChart" value="Value" /> <br/>
 
         Historical temperatures:

@@ -36,6 +36,7 @@ namespace HomeOS.Hub.Drivers.Gadgeteer.MicrosoftResearch.RelaySwitch
 
         public override void Start()
         {
+            this.IsDriverLoggingEnabled = true;
             driverLogger = new Logger(moduleInfo.WorkingDir() +"\\" + "module.csv");   
 
             base.Start();
@@ -92,7 +93,7 @@ namespace HomeOS.Hub.Drivers.Gadgeteer.MicrosoftResearch.RelaySwitch
 
         private void Log(int isOn)
         {
-            if (isOn > -1 && false)
+            if (isOn > -1 && IsDriverLoggingEnabled)
             {
                 logger.Log("Gadgeteer Relay: {0}", isOn.ToString());
                 DateTime date = DateTime.Now;
