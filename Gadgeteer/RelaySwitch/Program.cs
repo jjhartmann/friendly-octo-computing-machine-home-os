@@ -42,12 +42,6 @@ namespace LightSensor
 
             Debug.Print("Program Started");
         }
-        //void relayTimer_Tick(GT.Timer timer)
-        //{
-        //    //this.relay_X1.Enabled = !this.relay_X1.Enabled;
-        //    Debug.Print(this.response);
-        //}
-      
 
         public void Switch()
         {   

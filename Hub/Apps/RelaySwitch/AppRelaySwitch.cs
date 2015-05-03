@@ -2,6 +2,7 @@
 
 using HomeOS.Hub.Common;
 using HomeOS.Hub.Platform.Views;
+using System;
 
 
 namespace HomeOS.Hub.Apps.RelaySwitch
@@ -85,8 +86,9 @@ namespace HomeOS.Hub.Apps.RelaySwitch
             }
         }
 
-        public void SetRelaySwitch()
+        public void SetRelaySwitch(string amount)
         {
+            int amountCnt = Int32.Parse(amount);
             foreach (var port in registeredActuators.Keys)
             {
                 if (registeredActuators[port] == null)
@@ -94,9 +96,8 @@ namespace HomeOS.Hub.Apps.RelaySwitch
 
                 if (registeredActuators[port] != null)
                 {
-                    //logger.Log(string.Format("Set LEDs {0},{1}", low, high));
                     IList<VParamType> parameters = new List<VParamType>();
-                    parameters.Add(new ParamType((int)1));
+                    parameters.Add(new ParamType((int)amountCnt));
 
                     port.Invoke(RoleActuator.RoleName, RoleActuator.OpPutName, parameters, ControlPort, registeredActuators[port], ControlPortCapability);
                 }

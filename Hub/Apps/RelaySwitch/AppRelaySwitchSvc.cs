@@ -42,9 +42,9 @@ namespace HomeOS.Hub.Apps.RelaySwitch
             return (int)relaySwitchApp.IsOn;
         }
 
-        public string SetRelaySwitch()
+        public string SetRelaySwitch(string amount)
         {
-            relaySwitchApp.SetRelaySwitch();
+            relaySwitchApp.SetRelaySwitch(amount);
             if (this.relaySwitchApp.IsOn == 0)
             {
                 this.relaySwitchApp.IsOn = 1;
@@ -67,7 +67,7 @@ namespace HomeOS.Hub.Apps.RelaySwitch
 
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.Wrapped, ResponseFormat = WebMessageFormat.Json)]
-        string SetRelaySwitch();
+        string SetRelaySwitch(string amount);
     }
 
 }

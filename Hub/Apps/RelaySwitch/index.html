@@ -29,28 +29,15 @@
             updateColors();
         }
 
-        //function updateColors() {
-        //    if (currentTemperature < lowThreshold) {
-        //        $("#bigtemperaturebox").css('color', 'light-blue');
-        //        console.log("set blue");
-        //    }
-        //    else if (currentTemperature > highThreshold) {
-        //        $("#bigtemperaturebox").css('color', 'red');
-        //        console.log("set red");
-        //    }
-        //    else {
-        //        $("#bigtemperaturebox").css('color', 'white');
-        //        console.log("set white");
-        //    }
-        //    console.log("Updated color to " + $("#bigtemperaturebox").css("color"));
-        //}
-
         function SetRelaySwitch(e) {
             //lowThreshold = parseInt($("#lowEntry").val());
             //highThreshold = parseInt($("#highEntry").val());
             //updateColors();
             //var json = JSON.stringify({ low: lowThreshold, high: highThreshold });
-            new PlatformServiceHelper().MakeServiceCall("webapp/SetRelaySwitch", "", RelaySwitchCallback);
+
+            var amount = $("#amountId").val();
+
+            new PlatformServiceHelper().MakeServiceCall("webapp/SetRelaySwitch", '{"amount": "' + amount + '"}', RelaySwitchCallback);
             return false;
         }
 
@@ -75,7 +62,9 @@
             </div>
             <div>
                 <div style="padding-left:100px">
-                        <input type="submit" value="Turn it on/off" onclick="SetRelaySwitch()" width="300" height="100"/>
+                    How many times turn it on and off? <input id="amountId" type="text" value="1" />
+                    <br/>
+                    <input type="submit" value="Turn it on/off" onclick="SetRelaySwitch()" style="text-align:center;width:50%" />
                     </div>
             </div>
         </div>

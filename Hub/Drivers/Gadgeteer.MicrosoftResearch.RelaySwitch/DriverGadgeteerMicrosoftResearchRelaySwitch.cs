@@ -107,6 +107,13 @@ namespace HomeOS.Hub.Drivers.Gadgeteer.MicrosoftResearch.RelaySwitch
         /// <param name="message"></param>
         protected override List<VParamType> OnOperationInvoke(string roleName, String opName, IList<VParamType> parameters)
         {
+            int amount = 1;
+            if (parameters.Count > 0)
+            {
+                VParamType p = parameters[0] as VParamType;
+                amount = (int)p.Value();
+            }
+
             switch (roleName.ToLower())
             {
                 case RoleSensor.RoleName:
@@ -133,7 +140,7 @@ namespace HomeOS.Hub.Drivers.Gadgeteer.MicrosoftResearch.RelaySwitch
                                 { 
                                     try 
                                     {
-                                        string url = string.Format("http://{0}/IsOn", deviceIp);
+                                        string url = string.Format("http://{0}/IsOn?amount={1}", deviceIp, amount);
 
                                         HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
                                         HttpWebResponse response = (HttpWebResponse)webRequest.GetResponse();
