@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace LightSensor {
+namespace RelaySensor {
     using Gadgeteer;
     using GTM = Gadgeteer.Modules;
     
