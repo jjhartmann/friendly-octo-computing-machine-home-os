@@ -11,8 +11,9 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using HomeOS.Hub.Common;
 using HomeOS.Hub.Platform.Views;
-using SmartRecorder;
 using System.ServiceModel;
+using HomeOS.Hub.Apps.SmartCam;
+using SmartRecorder;
 
 namespace HomeOS.Hub.Apps.SmartCam
 {
