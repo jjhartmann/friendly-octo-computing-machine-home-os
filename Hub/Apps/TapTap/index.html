@@ -1,0 +1,70 @@
+﻿<script type="text/javascript" src="../GuiWeb/homeos-1.1.js"></script>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <title> TapTap Application</title>
+   <script type="text/javascript" src="../GuiWeb/jquery-1.7.1.js"></script>
+      <script type="text/javascript" src="../GuiWeb/common.js"></script>  <!--contains helpful calls for calling WCF service-->
+  <link rel="Stylesheet" type="text/css" href="Styles/TapTap.css" />
+
+    <script>
+
+        //run when document loads
+        $(document).ready(
+            function () {
+
+                //get any messages 
+                ShowTapTapPortsInfo();
+
+                //Set up timer function to refresh display every 1 seconds
+                taptapCheck = setInterval(function () { ShowTapTapPortsInfo() }, 1000);
+                //To stop do this: clearInterval(taptapCheck);     
+            }
+        );
+
+        function ShowTapTapPortsInfo() {
+            new PlatformServiceHelper().MakeServiceCall("webapp/GetReceivedMessages", "", GetReceivedMessagesCallback);
+        }
+
+
+        function GetReceivedMessagesCallback(context, result) {
+            $("#TapTapList").html('');
+            for (i = 0; i < result.length; i++) {
+                $("#TapTapList").append(result[i] + "&#13;&#10"); //replace <br /> with &#13;&#10 because that makes newlines in more browsers
+            }
+        }
+
+    </script>
+</head>
+<body>
+
+    <div class="dashboard_toolbar">
+            <div class="homeID_title"><a href="../GuiWeb/index.html">Dashboard</a> | TapTap </div>
+        </div>
+        
+        <div class="page">
+            <div class="row">
+                <div class="page_title col">TapTap Application</div>
+            </div>
+
+        <textarea id="TapTapList" class="app_form" rows="30" cols="50" wrap="hard"></textarea>
+           
+        <br />
+        <br />
+
+        <div><button class="app_button" id="Button1" onclick="ShowTapTapPortsInfo()">Manual Update</button></div> 
+
+ 
+  
+
+    <!--Used for debugging messages, set style="display:none" to turn off showing them, common.js will put text into div with id =divDebugInfo when calls are made to service -->
+    <div id="divTapTapServiceDebug" style="display:block">
+    TapTap Service Status Debug Info: <p id="divDebugInfo"></p>
+    </div>
+
+   
+</div>
+</body>
+
+</html>
