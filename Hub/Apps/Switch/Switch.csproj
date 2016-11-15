@@ -80,7 +80,6 @@
     <Compile Include="SwitchSvc.cs" />
     <Compile Include="SwitchController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TapTapServer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.png">

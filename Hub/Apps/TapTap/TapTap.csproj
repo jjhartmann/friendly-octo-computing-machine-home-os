@@ -83,6 +83,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TapTapServer.cs" />
     <Compile Include="TapTapService.cs" />
     <Compile Include="TapTap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
