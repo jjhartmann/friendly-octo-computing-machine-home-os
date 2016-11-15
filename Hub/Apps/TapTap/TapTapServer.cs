@@ -89,12 +89,23 @@ namespace HomeOS.Hub.Apps.TapTap
         // Call Back functions
         public static void AcceptCallBack(IAsyncResult ar)
         {
+            // Signal Main thread to continue
+            allDone.Set();
+
+            // Get socket handles
+            Socket listener = (Socket)ar.AsyncState;
+            Socket handler = listener.EndAccept(ar);
+
+            // Create State Object and handle recieve
+            StateObject state = new StateObject();
+            state.workSocket = handler;
+            handler.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReadCallBack), state);
 
         }
 
         public static void ReadCallBack(IAsyncResult ar)
         {
-
+            StateObject state = (StateObject) ar.AsyncState;
         }
 
 
