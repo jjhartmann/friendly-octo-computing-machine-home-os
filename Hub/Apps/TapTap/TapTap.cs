@@ -66,19 +66,22 @@ namespace HomeOS.Hub.Apps.TapTap
         public override void Stop()
         {
             logger.Log("AppTapTap clean up");
-            if (worker != null)
-                worker.Abort();
-            
-            if (datastream != null)
-                datastream.Close();
+            lock (this) {
 
-            if (serviceHost != null)
-                serviceHost.Close();
+                if (worker != null)
+                    worker.Abort();
 
-            if (appServer != null)
-                appServer.Dispose();
+                if (datastream != null)
+                    datastream.Close();
+
+                if (serviceHost != null)
+                    serviceHost.Close();
+
+                if (appServer != null)
+                    appServer.Dispose();
+
+            }
         }
-
         /// <summary>
         /// Sit in a loop and spray the Pings to all active ports
         /// </summary>
