@@ -40,9 +40,15 @@ namespace HomeOS.Hub.Apps.TapTap
 
         }
 
+        // Delclare delegate type
+        public delegate void ParserDelegate(string message);
+        private static ParserDelegate pDelegate;
 
-        public static void StartListening()
+        public static void StartListening(ParserDelegate parserCallback)
         {
+            // Assign delegate
+            pDelegate = parserCallback;
+
             // Data buffer
             byte[] bytes = new Byte[1024];
 
@@ -122,6 +128,7 @@ namespace HomeOS.Hub.Apps.TapTap
                 if (data.IndexOf("<EOF>") > -1)
                 {
                     Console.WriteLine("Read {0} Bytes. \nData: {1}", data.Length, data);
+                    pDelegate(data);
                     Send(handler, data);
                 }
                 else
