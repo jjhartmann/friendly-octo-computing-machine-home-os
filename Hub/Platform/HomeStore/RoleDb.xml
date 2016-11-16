@@ -11,6 +11,7 @@
   <Role Name=":switchmultilevel:" />
   <Role Name=":camera:"/>
   <Role Name=":dummy:"/>
+  <Role Name=":taptap:"/>
   <Role Name=":switchbinary:"/>
   <Role Name=":huebridge:"/>
   <Role Name=":couch:" /> 

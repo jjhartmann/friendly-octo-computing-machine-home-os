@@ -35,6 +35,15 @@
     </RoleList>
   </Module>
 
+
+  <Module AppName="TapTap" BinaryName="HomeOS.Hub.Apps.TapTap" Description="TapTap: Ubiquitous device interaction" Rating="5">
+    <RoleList>
+      <Role Name=":taptap:"/>
+      <Role Name=":dummy:"/>
+      <!--<Role Name=":switchbinary:"/>-->
+    </RoleList>
+  </Module>
+
   <!--<Module AppName="SpeechInteraction" BinaryName="HomeOS.Hub.Apps.SpeechInteraction" Description="Use your voice to interact" Rating="5" IconUrl="icon.png" Version="1.0.0.0">
     <RoleList>
       <Role Name=":microphone:"/>     
@@ -81,6 +90,7 @@
       <Role Name=":dummy:"/>
     </RoleList>
   </Module>
+
 
   <!--<Module AppName="ThermoAlerts" BinaryName="HomeOS.Hub.Apps.Thermometer" Description="Sample application for Gadgeteer guide" Rating="5">
     <RoleList>

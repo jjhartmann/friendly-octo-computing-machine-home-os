@@ -106,6 +106,10 @@ namespace HomeOS.Hub.Apps.TapTap
         public static void ReadCallBack(IAsyncResult ar)
         {
             StateObject state = (StateObject) ar.AsyncState;
+
+            Console.WriteLine("CHecking Read Callback");
+            Console.WriteLine(Encoding.ASCII.GetString(
+                state.buffer, 0, 1024));
         }
 
 

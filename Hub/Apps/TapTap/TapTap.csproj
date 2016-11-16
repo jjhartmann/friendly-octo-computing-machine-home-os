@@ -102,6 +102,24 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\Shared.csproj">
+      <Project>{10571a55-2270-4a83-9b56-28c186bac59d}</Project>
+      <Name>Shared</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Bolt\DataStore\DataStore.csproj">
+      <Project>{540d10b0-39fe-47e7-86ab-aff845791daf}</Project>
+      <Name>DataStore</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Common.csproj">
+      <Project>{6f879b8b-c4b1-4e8d-9bf2-c6376b05e4ec}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Platform\View\Views.csproj">
+      <Project>{71272f38-fc7d-4170-8411-51e27200c791}</Project>
+      <Name>Views</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
