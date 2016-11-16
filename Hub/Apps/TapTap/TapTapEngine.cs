@@ -21,8 +21,8 @@ namespace HomeOS.Hub.Apps.TapTap
     {
         // Variables
         private string mData;
-        ProtocolFormat mMsg;
-        XmlSerializer serializer;
+        private ProtocolFormat mMsg;
+        private XmlSerializer serializer;
 
         public TapTapEngine() { }
 
@@ -45,6 +45,11 @@ namespace HomeOS.Hub.Apps.TapTap
             } catch (Exception e)
             {
                 Console.WriteLine("Error occorded in ParseData: {0}", e);
+            }
+
+            //
+            if (mMsg == null || (mMsg != null && mMsg.actionType == null))
+            {
                 return false;
             }
 
