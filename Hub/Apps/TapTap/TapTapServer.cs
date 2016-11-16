@@ -102,7 +102,7 @@ namespace HomeOS.Hub.Apps.TapTap
             Socket listener = (Socket)ar.AsyncState;
             Socket handler = listener.EndAccept(ar);
 
-            // Create State Object and handle recieve
+            // Create State Object and handle receive
             StateObject state = new StateObject();
             state.workSocket = handler;
             handler.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReadCallBack), state);
@@ -128,8 +128,18 @@ namespace HomeOS.Hub.Apps.TapTap
                 if (data.IndexOf("<EOF>") > -1)
                 {
                     Console.WriteLine("Read {0} Bytes. \nData: {1}", data.Length, data);
-                    pDelegate(data);
-                    Send(handler, data);
+
+                    // Call engine to process request. 
+                    TapTapEngine engine = new TapTapEngine();
+
+                    if (engine.ParseData(data))
+                    {
+                        Send(handler, "Success\n");
+                    }
+                    else
+                    {
+                        Send(handler, "Error\n");
+                    }
                 }
                 else
                 {
