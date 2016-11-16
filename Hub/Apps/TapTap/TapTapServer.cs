@@ -122,6 +122,7 @@ namespace HomeOS.Hub.Apps.TapTap
                 if (data.IndexOf("<EOF>") > -1)
                 {
                     Console.WriteLine("Read {0} Bytes. \nData: {1}", data.Length, data);
+                    Send(handler, data);
                 }
                 else
                 {
@@ -131,6 +132,37 @@ namespace HomeOS.Hub.Apps.TapTap
             }
         }
 
+
+        private static void Send(Socket handler, String data)
+        {
+            // Convert data into byte stream
+            byte[] byteData = Encoding.ASCII.GetBytes(data);
+
+            // Send to client. 
+            handler.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), handler);
+
+        }
+
+        private static void SendCallback(IAsyncResult ar)
+        {
+            try
+            {
+                // Get handler for socket
+                Socket handler = (Socket)ar.AsyncState;
+
+                // Send data
+                int byteSent = handler.EndSend(ar);
+                Console.WriteLine("Send {0} bytes to client.", byteSent);
+
+                handler.Shutdown(SocketShutdown.Both);
+                handler.Close();
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
 
 
     }
