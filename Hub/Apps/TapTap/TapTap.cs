@@ -87,6 +87,9 @@ namespace HomeOS.Hub.Apps.TapTap
         /// </summary>
         public void Work()
         {
+            // Start the server 
+            AsynchronousSocketListener.StartListening();
+
             int counter = 0;
             while (true)
             {

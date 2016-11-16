@@ -103,13 +103,32 @@ namespace HomeOS.Hub.Apps.TapTap
 
         }
 
+        // Handle the connection to the server
         public static void ReadCallBack(IAsyncResult ar)
         {
             StateObject state = (StateObject) ar.AsyncState;
+            Socket handler = state.workSocket;
 
             Console.WriteLine("CHecking Read Callback");
-            Console.WriteLine(Encoding.ASCII.GetString(
-                state.buffer, 0, 1024));
+
+            String data = String.Empty;
+            int bytesRecieved = handler.EndReceive(ar);
+
+            if (bytesRecieved > 0) {
+
+                state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRecieved));
+
+                data = state.sb.ToString();
+                if (data.IndexOf("<EOF>") > -1)
+                {
+                    Console.WriteLine("Read {0} Bytes. \nData: {1}", data.Length, data);
+                }
+                else
+                {
+                    handler.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReadCallBack), state);
+                }
+
+            }
         }
 
 
