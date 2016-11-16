@@ -11,10 +11,10 @@ namespace HomeOS.Hub.Apps.TapTap
 {
     public class ProtocolFormat
     {
-        string actionType;
-        string actionValue;
-        string clientID;
-        int deviceID;
+        public string actionType;
+        public string actionValue;
+        public string clientID;
+        public int deviceID;
         
     }
     class TapTapEngine
@@ -34,11 +34,11 @@ namespace HomeOS.Hub.Apps.TapTap
         public bool ParseData(string data)
         {
             serializer = new XmlSerializer(typeof(ProtocolFormat));
-            mData = data;
+            mData = data.Substring(0, data.IndexOf("<EOF>"));
 
             try
             {
-                using (var reader = new StringReader(data))
+                using (var reader = new StringReader(mData))
                 {
                     mMsg = (ProtocolFormat)serializer.Deserialize(reader);
                 }
