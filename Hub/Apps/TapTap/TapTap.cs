@@ -64,9 +64,10 @@ namespace HomeOS.Hub.Apps.TapTap
         }
 
         // Call back delegate for communication with server
-        private void parserCallback(string data)
+        private void EngineCallback(TapTapEngine engine)
         {
-            Console.WriteLine("Parser Callback. \nData: {0}", data);
+            Console.WriteLine("Parser Callback. \nData: {0}", engine.Message.actionType);
+            engine.Send("Inside Taptap main!! \n");
         }
 
         public override void Stop()
@@ -94,7 +95,7 @@ namespace HomeOS.Hub.Apps.TapTap
         public void Work()
         {
             // Start the server 
-            AsynchronousSocketListener.StartListening(parserCallback);
+            AsynchronousSocketListener.StartListening(EngineCallback);
 
             int counter = 0;
             while (true)

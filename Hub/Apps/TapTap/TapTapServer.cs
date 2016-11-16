@@ -41,13 +41,13 @@ namespace HomeOS.Hub.Apps.TapTap
         }
 
         // Delclare delegate type
-        public delegate void ParserDelegate(string message);
-        private static ParserDelegate pDelegate;
+        public delegate void EngineDelegate(TapTapEngine engine);
+        private static EngineDelegate eDelegate;
 
-        public static void StartListening(ParserDelegate parserCallback)
+        public static void StartListening(EngineDelegate c)
         {
             // Assign delegate
-            pDelegate = parserCallback;
+            eDelegate = c;
 
             // Data buffer
             byte[] bytes = new Byte[1024];
@@ -130,15 +130,9 @@ namespace HomeOS.Hub.Apps.TapTap
                     Console.WriteLine("Read {0} Bytes. \nData: {1}", data.Length, data);
 
                     // Call engine to process request. 
-                    TapTapEngine engine = new TapTapEngine();
-
-                    if (engine.ParseData(data))
-                    {
-                        Send(handler, "Success\n");
-                    }
-                    else
-                    {
-                        Send(handler, "Error\n");
+                    TapTapEngine engine = new TapTapEngine(handler);
+                    if (engine.ParseData(data)) {
+                        eDelegate(engine);
                     }
                 }
                 else

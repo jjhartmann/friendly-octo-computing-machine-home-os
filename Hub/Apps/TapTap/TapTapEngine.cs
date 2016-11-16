@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using System.Net;
+using System.Net.Sockets;
 
 
 namespace HomeOS.Hub.Apps.TapTap
@@ -17,18 +19,34 @@ namespace HomeOS.Hub.Apps.TapTap
         public int deviceID;
         
     }
-    class TapTapEngine
+    public class TapTapEngine
     {
         // Variables
         private string mData;
         private ProtocolFormat mMsg;
+        public ProtocolFormat Message
+        {
+            get
+            {
+                return mMsg;
+            }
+            set
+            {
+                mMsg = value;
+            }
+        }
+
         private XmlSerializer serializer;
+        private Socket mHandler;
+
+        
 
         public TapTapEngine() { }
 
-        public TapTapEngine(string data)
+        public TapTapEngine(Socket handler)
         {
             Console.WriteLine("TapTapEngine");
+            mHandler = handler;
         }
 
         public bool ParseData(string data)
@@ -50,10 +68,46 @@ namespace HomeOS.Hub.Apps.TapTap
             //
             if (mMsg == null || (mMsg != null && mMsg.actionType == null))
             {
+                Send("Error Occurred: Unable to parse command from client\n");
                 return false;
             }
 
+            Send("Success in parsingCommand \n");
             return true;
+        }
+
+        public void Send(String data)
+        {
+            // Convert data into byte stream
+            byte[] byteData = Encoding.ASCII.GetBytes(data);
+
+            // Send to client. 
+            mHandler.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), mHandler);
+
+        }
+
+        public void shutDown()
+        {
+            mHandler.Shutdown(SocketShutdown.Both);
+            mHandler.Close();
+            mHandler = null;
+        }
+
+        private void SendCallback(IAsyncResult ar)
+        {
+            try
+            {
+                // Get handler for socket
+                Socket handler = (Socket)ar.AsyncState;
+
+                // Send data
+                int byteSent = handler.EndSend(ar);
+                Console.WriteLine("Send {0} bytes to client.", byteSent);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
         }
 
 
