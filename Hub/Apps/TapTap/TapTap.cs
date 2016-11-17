@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,17 @@ using HomeOS.Hub.Common.Bolt.DataStore;
 
 namespace HomeOS.Hub.Apps.TapTap
 {
+    public enum SwitchType { Binary, Multi };
+
+    class SwitchInfo
+    {
+        public VCapability Capability { get; set; }
+        public double Level { get; set; }
+        public SwitchType Type { get; set; }
+
+        public bool IsColored { get; set; }
+        public Color Color { get; set; }
+    }
 
     /// <summary>
     /// A taptap a module that 
@@ -20,6 +32,9 @@ namespace HomeOS.Hub.Apps.TapTap
     {
         //list of accessible taptap ports in the system
         List<VPort> accessibleTapTapPorts;
+
+        Dictionary<VPort, SwitchInfo> switchRegistered = new Dictionary<VPort, SwitchInfo>();
+        Dictionary<string, VPort> switchFriendlyName = new Dictionary<string, VPort>();
 
         private SafeServiceHost serviceHost;
 
@@ -68,6 +83,19 @@ namespace HomeOS.Hub.Apps.TapTap
         {
             Console.WriteLine("Parser Callback. \nData: {0}", engine.Message.actionType);
             engine.Send("Inside Taptap main!! \n");
+
+
+            switch(engine.Message.actionType)
+            {
+                case "binarySwitch":
+                   
+                    break;
+
+                default:
+                    break;
+            }
+
+
         }
 
         public override void Stop()
@@ -191,21 +219,123 @@ namespace HomeOS.Hub.Apps.TapTap
 
             lock (this)
             {
-                //if (!accessibleTapTapPorts.Contains(port) && 
-                //    Role.ContainsRole(port, RoleSwitchMultiLevel.RoleName) && 
-                //    GetCapabilityFromPlatform(port) != null)
-                //{
-                //    accessibleTapTapPorts.Add(port);
+                if (Role.ContainsRole(port, RoleSwitchBinary.RoleName))
+                {
+                    if (!switchRegistered.ContainsKey(port) && GetCapabilityFromPlatform(port) != null)
+                    {
+                        var switchType = Role.ContainsRole(port, RoleSwitchMultiLevel.RoleName) ? SwitchType.Multi : SwitchType.Binary;
+                        bool colored = Role.ContainsRole(port, RoleLightColor.RoleName);
 
-                //    logger.Log("{0} added port {1}", this.ToString(), port.ToString());
+                        InitSwitch(port, switchType, colored);
 
-                //    if (Subscribe(port, RoleSwitchMultiLevel.Instance, RoleSwitchMultiLevel.OpEchoSubName))
-                //        logger.Log("{0} subscribed to port {1}", this.ToString(), port.ToString());
-                //    else
-                //        logger.Log("failed to subscribe to port {1}", this.ToString(), port.ToString());
-                //}
+                    }
+                }
             }
         }
+
+        
+        /// <summary>
+        ///  Initilize the swtich for use in application
+        /// </summary>
+        /// <param name="port"></param>
+        /// <param name="switchType"></param>
+        /// <param name="isColored"></param>
+        void InitSwitch(VPort port, SwitchType switchType, bool isColored)
+        {
+            logger.Log("{0} adding switch {1} {2}", this.ToString(), switchType.ToString(), port.ToString());
+
+            SwitchInfo sinfo = new SwitchInfo();
+            sinfo.Capability = GetCapability(port, Constants.UserSystem);
+            sinfo.Level = 0;
+            sinfo.Type = switchType;
+
+            sinfo.IsColored = isColored;
+            sinfo.Color = Color.Black;
+
+            switchRegistered.Add(port, sinfo);
+
+            string friendlyName = port.GetInfo().GetFriendlyName();
+            switchFriendlyName.Add(friendlyName, port);
+
+            if (sinfo.Capability != null)
+            {
+                IList<VParamType> retVals;
+
+                if (switchType == SwitchType.Binary)
+                {
+                    retVals = port.Invoke(
+                        RoleSwitchBinary.RoleName, 
+                        RoleSwitchBinary.OpGetName, 
+                        null, 
+                        ControlPort, 
+                        sinfo.Capability, 
+                        ControlPortCapability);
+
+                    port.Subscribe(
+                        RoleSwitchBinary.RoleName, 
+                        RoleSwitchBinary.OpGetName, 
+                        ControlPort, 
+                        sinfo.Capability, 
+                        ControlPortCapability);
+
+                    if (retVals[0].Maintype() < 0)
+                    {
+                        logger.Log("SwtichBinary could not get current level for {0}", friendlyName);
+                    }
+                    else
+                    {
+                        bool blevel = (bool)retVals[0].Value();
+                        sinfo.Level = blevel ? 1 : 0;
+                    }
+
+
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// Turn on or off the switch.
+        /// </summary>
+        /// <param name="switchFriendlyName"></param>
+        /// <param name="level"></param>
+        internal void SetLevel(string switchFriendlyName, double level)
+        {
+            
+            // Determine the swtich
+
+            if (switchRegistered.First().Key != null)
+            {
+                VPort sport = switchRegistered.First().Key;
+
+                SwitchInfo sinfo = switchRegistered[sport];
+
+                IList<VParamType> args = new List<VParamType>();
+
+                //make sure that the level is between zero and 1
+                if (level < 0) level = 0;
+                if (level > 1) level = 1;
+
+                if (sinfo.Type == SwitchType.Binary)
+                {
+                    bool blevel = (level > 0) ? true : false;
+
+                    var retVal = Invoke(sport, RoleSwitchBinary.Instance, RoleSwitchBinary.OpSetName, new ParamType(blevel));
+
+                    if (retVal != null && retVal.Count == 1 && retVal[0].Maintype() == (int)ParamType.SimpleType.error)
+                    {
+                        logger.Log("Error in setting level: {0}", retVal[0].Value().ToString());
+
+                        throw new Exception(retVal[0].Value().ToString());
+                    }
+                }
+
+
+            }
+
+
+        }
+
 
         public override void PortDeregistered(VPort port)
         {
