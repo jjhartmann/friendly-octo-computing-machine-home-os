@@ -88,7 +88,19 @@ namespace HomeOS.Hub.Apps.TapTap
             switch(engine.Message.actionType)
             {
                 case "binarySwitch":
-                   
+                    // TODO: Chekc and config NFC ID
+                    double level = Convert.ToDouble(engine.Message.actionValue);
+                    if (SetLevel("PowerSwitch", level))
+                    {
+                        engine.Send("Success in activating Switch\n");
+                    }
+                    else
+                    {
+                        engine.Send("Failure: in activating Switch\n");
+                    }
+
+                    engine.shutDown();
+
                     break;
 
                 default:
@@ -299,39 +311,51 @@ namespace HomeOS.Hub.Apps.TapTap
         /// </summary>
         /// <param name="switchFriendlyName"></param>
         /// <param name="level"></param>
-        internal void SetLevel(string switchFriendlyName, double level)
+        internal bool SetLevel(string friendlyName, double level)
         {
-            
-            // Determine the swtich
 
-            if (switchRegistered.First().Key != null)
+            // Determine the swtich'
+            if (switchFriendlyName.ContainsKey(friendlyName))
             {
-                VPort sport = switchRegistered.First().Key;
+                VPort sport = switchFriendlyName[friendlyName];
 
-                SwitchInfo sinfo = switchRegistered[sport];
-
-                IList<VParamType> args = new List<VParamType>();
-
-                //make sure that the level is between zero and 1
-                if (level < 0) level = 0;
-                if (level > 1) level = 1;
-
-                if (sinfo.Type == SwitchType.Binary)
+                if (switchRegistered.First().Key != null)
                 {
-                    bool blevel = (level > 0) ? true : false;
 
-                    var retVal = Invoke(sport, RoleSwitchBinary.Instance, RoleSwitchBinary.OpSetName, new ParamType(blevel));
+                    SwitchInfo sinfo = switchRegistered[sport];
 
-                    if (retVal != null && retVal.Count == 1 && retVal[0].Maintype() == (int)ParamType.SimpleType.error)
+                    IList<VParamType> args = new List<VParamType>();
+
+                    //make sure that the level is between zero and 1
+                    if (level < 0) level = 0;
+                    if (level > 1) level = 1;
+
+                    if (sinfo.Type == SwitchType.Binary)
                     {
-                        logger.Log("Error in setting level: {0}", retVal[0].Value().ToString());
+                        bool blevel = (level > 0) ? true : false;
 
-                        throw new Exception(retVal[0].Value().ToString());
+                        var retVal = Invoke(sport, RoleSwitchBinary.Instance, RoleSwitchBinary.OpSetName, new ParamType(blevel));
+
+                        if (retVal != null && retVal.Count == 1 && retVal[0].Maintype() == (int)ParamType.SimpleType.error)
+                        {
+                            logger.Log("Error in setting level: {0}", retVal[0].Value().ToString());
+
+                            throw new Exception(retVal[0].Value().ToString());
+                        }
                     }
+
+                    sinfo.Level = level;
+
+                    return true;
                 }
-
-
+            } 
+            else
+            {
+                // Throw exception
+               
             }
+
+            return false;
 
 
         }
