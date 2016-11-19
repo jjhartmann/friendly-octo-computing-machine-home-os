@@ -4,9 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.ServiceModel;
+using System.Xml;
 using HomeOS.Hub.Common;
 using HomeOS.Hub.Platform.Views;
 using HomeOS.Hub.Common.Bolt.DataStore;
+using HomeOS.Hub.Platform;
+using System.IO;
 
 namespace HomeOS.Hub.Apps.TapTap
 {
@@ -45,17 +48,69 @@ namespace HomeOS.Hub.Apps.TapTap
 
         IStream datastream;
 
+        //we use this method to save xmlDoc to minimize the chances that bad configs will be left on disk
+        private void SaferSave(XmlDocument xmlDoc, string fileName)
+        {
+            string tmpFile = fileName + ".tmp";
+
+            xmlDoc.Save(tmpFile);
+
+            if (System.IO.File.Exists(fileName))
+                System.IO.File.Delete(fileName);
+
+            System.IO.File.Move(tmpFile, fileName);
+        }
+
         public override void Start()
         {
             logger.Log("Started: {0} ", ToString());
 
             TapTapService taptapService = new TapTapService(logger, this);
-            serviceHost = new SafeServiceHost(logger,typeof(ITapTapContract), taptapService , this, Constants.AjaxSuffix, moduleInfo.BaseURL());
+            serviceHost = new SafeServiceHost(logger, typeof(ITapTapContract), taptapService, this, Constants.AjaxSuffix, moduleInfo.BaseURL());
             serviceHost.Open();
 
             appServer = new WebFileServer(moduleInfo.BinaryDir(), moduleInfo.BaseURL(), logger);
-            
- 
+
+            // Read configuration file
+            string taptapConfigDirector = moduleInfo.WorkingDir() + "\\Config";
+            Directory.CreateDirectory(taptapConfigDirector);
+
+            string taptapConfigFile = taptapConfigDirector + "\\taptapconfig.xml";
+            if (!File.Exists(taptapConfigFile))
+            {
+                File.Create(taptapConfigFile).Close();
+            }
+
+
+            XmlReaderSettings xmlsettings = new XmlReaderSettings();
+            XmlDocument xmlDoc = new XmlDocument();
+            XmlReader xmlReader = XmlReader.Create(taptapConfigFile, xmlsettings);
+
+            try
+            {
+                xmlDoc.Load(xmlReader);
+
+                XmlElement root = xmlDoc.FirstChild as XmlElement;
+                
+
+            }
+            catch (Exception e)
+            {
+                // Create file 
+                xmlReader.Close();
+                XmlElement root = xmlDoc.CreateElement("TapTapConfig");
+                xmlDoc.AppendChild(root);
+
+                SaferSave(xmlDoc, taptapConfigFile);
+
+            }
+
+
+
+
+
+
+
             //........... instantiate the list of other ports that we are interested in
             accessibleTapTapPorts = new List<VPort>();
 
