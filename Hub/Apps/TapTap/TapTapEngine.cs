@@ -76,14 +76,23 @@ namespace HomeOS.Hub.Apps.TapTap
             return true;
         }
 
-        public void Send(String data)
+        public bool Send(String data)
         {
             // Convert data into byte stream
             byte[] byteData = Encoding.ASCII.GetBytes(data);
 
             // Send to client. 
-            mHandler.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), mHandler);
+            try
+            {
+                mHandler.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), mHandler);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: TaptapEngine::SEND, \n Message: {0}", e);
+                return false;
+            }
 
+            return true;
         }
 
         public void shutDown()
