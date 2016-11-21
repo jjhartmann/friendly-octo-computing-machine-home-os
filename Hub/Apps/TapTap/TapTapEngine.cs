@@ -84,7 +84,10 @@ namespace HomeOS.Hub.Apps.TapTap
             // Send to client. 
             try
             {
-                mHandler.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), mHandler);
+                //mHandler.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), mHandler);
+                SocketError error;
+                int byteSent =  mHandler.Send(byteData, 0, byteData.Length, 0, out error);
+                Console.WriteLine("Send {0} bytes to client.", byteSent);
             }
             catch (Exception e)
             {
@@ -101,25 +104,6 @@ namespace HomeOS.Hub.Apps.TapTap
             mHandler.Close();
             mHandler = null;
         }
-
-        private void SendCallback(IAsyncResult ar)
-        {
-            try
-            {
-                // Get handler for socket
-                Socket handler = (Socket)ar.AsyncState;
-
-                // Send data
-                int byteSent = handler.EndSend(ar);
-                Console.WriteLine("Send {0} bytes to client.", byteSent);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
-        }
-
-
 
     }
 }
