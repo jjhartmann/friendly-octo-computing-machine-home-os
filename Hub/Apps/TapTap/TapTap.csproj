@@ -86,6 +86,7 @@
   <ItemGroup>
     <Compile Include="CommandParser.cs" />
     <Compile Include="TapTapEngine.cs" />
+    <Compile Include="TapTapParser.cs" />
     <Compile Include="TapTapServer.cs" />
     <Compile Include="TapTapService.cs" />
     <Compile Include="TapTap.cs" />

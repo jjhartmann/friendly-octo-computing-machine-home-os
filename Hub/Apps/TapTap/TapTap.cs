@@ -48,18 +48,6 @@ namespace HomeOS.Hub.Apps.TapTap
 
         IStream datastream;
 
-        //we use this method to save xmlDoc to minimize the chances that bad configs will be left on disk
-        private void SaferSave(XmlDocument xmlDoc, string fileName)
-        {
-            string tmpFile = fileName + ".tmp";
-
-            xmlDoc.Save(tmpFile);
-
-            if (System.IO.File.Exists(fileName))
-                System.IO.File.Delete(fileName);
-
-            System.IO.File.Move(tmpFile, fileName);
-        }
 
         public override void Start()
         {
@@ -101,7 +89,7 @@ namespace HomeOS.Hub.Apps.TapTap
             //    XmlElement root = xmlDoc.CreateElement("TapTapConfig");
             //    xmlDoc.AppendChild(root);
 
-            //    SaferSave(xmlDoc, taptapConfigFile);
+            //SaferSave(xmlDoc, taptapConfigFile);
 
             //}
 
