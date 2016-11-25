@@ -25,16 +25,47 @@ namespace HomeOS.Hub.Apps.TapTap
         public Color Color { get; set; }
     }
 
-
-
-    public class TapTapConfig
+    interface IXMLParsable
     {
+        string GetXMLString();
+    }
+
+    public class TapTapConfig : IXMLParsable
+    {
+
+        public string mPath;
+        public string mFile;
 
         public Dictionary<string, string> mDevices = new Dictionary<string, string>();
         public Dictionary<string, string> mThings = new Dictionary<string, string>();
         public Dictionary<string, string> Devices { get { return mDevices;  } set { mDevices = value; } }
         public Dictionary<string, string> Things { get { return mThings; } set { mThings = value; } }
 
+        /// <summary>
+        /// Create a serilizable string of XML
+        /// </summary>
+        /// <returns>XML String</returns>
+        string IXMLParsable.GetXMLString()
+        {
+            
+            string xml = "<TapTapConfig><Devices>";
+
+            foreach ( KeyValuePair<string, string> e in mDevices)
+            {
+                xml += "<Device><Id>" + e.Key + "</Id><Name>" + e.Value + "</Name></Device>";
+            }
+            xml += "</Device><Things>";
+
+            foreach (KeyValuePair<string, string> e in mThings)
+            {
+                xml += "<Thing><Id>" + e.Key + "</Id><NFCTag>" + e.Value + "</NFCTag></Thing>";
+            }
+            xml += "</Things></TapTapConfig>";
+
+
+            return xml;
+
+        }
     }
 
     /// <summary>
@@ -60,7 +91,10 @@ namespace HomeOS.Hub.Apps.TapTap
 
         IStream datastream;
 
+        // Config 
+        TapTapConfig config;
 
+       
         public override void Start()
         {
             logger.Log("Started: {0} ", ToString());
@@ -73,8 +107,15 @@ namespace HomeOS.Hub.Apps.TapTap
 
             //// Read configuration file
             string taptapConfigDirector = moduleInfo.WorkingDir() + "\\Config";
+            // Parser
+            TapTapParser parser = new TapTapParser(taptapConfigDirector, "taptapconifg.xml", "TapTapConfig");
 
-                     
+            config = parser.GenObject<TapTapConfig>();
+            config.mPath = taptapConfigDirector;
+            config.mFile = "taptapconifg.xml";
+
+
+
 
             //........... instantiate the list of other ports that we are interested in
             accessibleTapTapPorts = new List<VPort>();

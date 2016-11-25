@@ -97,5 +97,20 @@ namespace TapTapParsserTest
             TapTapConfig cobj = parser.GenObject<TapTapConfig>();
             Assert.AreNotEqual(cobj, null);
         }
+
+
+        [TestMethod]
+        public void TestXMLObjectGenEmpty()
+        {
+            TapTapParser parser = new TapTapParser();
+            string xml = @"<ConfigTapTap> 
+                           </ConfigTapTap>";
+            parser.ReadRaw(xml.Replace("\r\n", string.Empty));
+
+
+            // Generate new object
+            TapTapConfig cobj = parser.GenObject<TapTapConfig>();
+            Assert.AreNotEqual(cobj, null);
+        }
     }
 }

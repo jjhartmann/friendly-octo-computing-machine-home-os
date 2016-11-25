@@ -23,12 +23,12 @@ namespace HomeOS.Hub.Apps.TapTap
 
         }
 
-        public TapTapParser(string in_dir, string in_file)
+        public TapTapParser(string in_dir, string in_file, string in_name)
         {
-            Read(in_dir, in_file); 
+            Read(in_dir, in_file, in_name); 
         }
 
-        public void Read(string in_dir, string in_file)
+        public void Read(string in_dir, string in_file, string in_name)
         {
             // Read configuration file
             Directory.CreateDirectory(in_dir);
@@ -51,7 +51,7 @@ namespace HomeOS.Hub.Apps.TapTap
             {
                 // Create file 
                 xmlReader.Close();
-                XmlElement root = xmlDoc.CreateElement("TapTapConfig");
+                XmlElement root = xmlDoc.CreateElement(in_name);
                 xmlDoc.AppendChild(root);
 
                 SaferSave();
@@ -133,7 +133,7 @@ namespace HomeOS.Hub.Apps.TapTap
 
                             bool isDict = propType.Name.Equals("Dictionary`2") ? true : false;
 
-                            if (isDict)
+                            if (isDict && val != null && val.HasChildNodes)
                             {
                                 Type[] args = propType.GenericTypeArguments;
                                 Type TKey = args[0];
@@ -162,6 +162,15 @@ namespace HomeOS.Hub.Apps.TapTap
             }
 
             return (T) obj;
+        }
+
+
+
+        public void CreateXml(IXMLParsable obj)
+        {
+            string xml = obj.GetXMLString();
+            xmlDoc.LoadXml(xml);
+            SaferSave();
         }
 
 
