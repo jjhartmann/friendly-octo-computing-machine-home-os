@@ -19,5 +19,37 @@ namespace TapTapParsserTest
             
             parser.ReadRaw(xml.Replace("\r\n", string.Empty));
         }
+
+
+
+        class CoolObject
+        {
+            string mName;
+            string mRegion;
+            int mNumber = 0;
+
+            public string Name { get { return mName; } set { mName = value; } }
+
+            public string Region { get { return mRegion; } set { mRegion = value; } }
+
+            public int Number { get { return mNumber; } set { mNumber = value; } }
+
+        }
+
+        [TestMethod]
+        public void TestXMLObjectGen() {
+            TapTapParser parser = new TapTapParser();
+            string xml = @"<TEST> 
+                                <Name>hello</Name>
+                                <Region>canada</Region>
+                                <Number> 234 </Number>
+                            </TEST>";
+            parser.ReadRaw(xml.Replace("\r\n", string.Empty));
+
+
+            // Generate new object
+            CoolObject cobj = parser.GenObject<CoolObject>();
+            Assert.AreNotEqual(cobj, null);
+        }
     }
 }
