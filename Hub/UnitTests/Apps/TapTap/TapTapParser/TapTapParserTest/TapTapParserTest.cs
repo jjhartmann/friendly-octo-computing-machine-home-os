@@ -37,7 +37,7 @@ namespace TapTapParsserTest
         }
 
         [TestMethod]
-        public void TestXMLObjectGen() {
+        public void TestXMLObjectGenPostive() {
             TapTapParser parser = new TapTapParser();
             string xml = @"<TEST> 
                                 <Name>hello</Name>

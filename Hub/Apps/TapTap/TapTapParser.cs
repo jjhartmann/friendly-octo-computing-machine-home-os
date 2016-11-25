@@ -95,6 +95,35 @@ namespace HomeOS.Hub.Apps.TapTap
                 if (propInfo.CanRead)
                 {
 
+                    // TODO: Check for child nodes.
+                    XmlNode node = xmlDoc.DocumentElement;
+                    string name = propInfo.Name;
+                    Type propType = propInfo.PropertyType;
+                    string val = node[propInfo.Name].InnerText;
+
+                    switch (Type.GetTypeCode(propType))
+                    {
+                        case TypeCode.Byte:
+                        case TypeCode.SByte:
+                        case TypeCode.UInt16:
+                        case TypeCode.UInt32:
+                        case TypeCode.UInt64:
+                        case TypeCode.Int16:
+                        case TypeCode.Int32:
+                        case TypeCode.Int64:
+                        case TypeCode.Decimal:
+                        case TypeCode.Double:
+                        case TypeCode.Single:
+                            int intVal = Int32.Parse(val);
+                            propInfo.SetValue(obj, intVal);
+                            break;
+                        case TypeCode.String:
+                            propInfo.SetValue(obj, val);
+                            break;
+                        default:
+                            break;
+                    }
+                    
                 }
             }
 
