@@ -207,6 +207,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Switch", "Apps\Switch\Switc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TapTap", "Apps\TapTap\TapTap.csproj", "{987F849B-3131-4386-B76F-474F4E736684}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TapTapTest", "UnitTests\Apps\TapTap\TapTapParser\TapTapParserTest\TapTapTest.csproj", "{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		ClientDebug|Any CPU = ClientDebug|Any CPU
@@ -1114,6 +1116,36 @@ Global
 		{987F849B-3131-4386-B76F-474F4E736684}.Release|x64.Build.0 = Release|Any CPU
 		{987F849B-3131-4386-B76F-474F4E736684}.Release|x86.ActiveCfg = Release|Any CPU
 		{987F849B-3131-4386-B76F-474F4E736684}.Release|x86.Build.0 = Release|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.ClientDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.ClientDebug|Any CPU.Build.0 = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.ClientDebug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.ClientDebug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.ClientDebug|Win32.ActiveCfg = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.ClientDebug|Win32.Build.0 = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.ClientDebug|x64.ActiveCfg = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.ClientDebug|x64.Build.0 = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.ClientDebug|x86.ActiveCfg = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.ClientDebug|x86.Build.0 = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Debug|Win32.Build.0 = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Debug|x64.Build.0 = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Debug|x86.Build.0 = Debug|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Release|Win32.ActiveCfg = Release|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Release|Win32.Build.0 = Release|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Release|x64.ActiveCfg = Release|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Release|x64.Build.0 = Release|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Release|x86.ActiveCfg = Release|Any CPU
+		{CA81A58A-A2A3-4395-8BFC-F5E90BB62C0C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -9,7 +9,7 @@ using System.Xml;
 
 namespace HomeOS.Hub.Apps.TapTap
 {
-    class TapTapParser
+    public class TapTapParser
     {
 
         XmlDocument xmlDoc = new XmlDocument();
@@ -18,7 +18,10 @@ namespace HomeOS.Hub.Apps.TapTap
         string mFile;
         bool mIsValid = false;
 
+        public TapTapParser()
+        {
 
+        }
 
         public TapTapParser(string in_dir, string in_file)
         {
@@ -52,6 +55,22 @@ namespace HomeOS.Hub.Apps.TapTap
                 xmlDoc.AppendChild(root);
 
                 SaferSave();
+            }
+
+        }
+
+
+        public void ReadRaw(string xml)
+        {
+            try
+            {
+                xmlDoc.LoadXml(xml);
+                mIsValid = true;
+            }
+            catch (Exception e)
+            {
+                // Create file 
+                Console.WriteLine("Error has occurred in xml parsing");
             }
 
         }
@@ -106,5 +125,14 @@ namespace HomeOS.Hub.Apps.TapTap
 
 
 
+        /// TESTING ////
+        public static void Main()
+        {
+
+        }
+
+
     }
+
+
 }

@@ -60,7 +60,7 @@
     </ProjectReference>
     <ProjectReference Include="..\..\Common\Common.csproj">
       <Project>{6f879b8b-c4b1-4e8d-9bf2-c6376b05e4ec}</Project>
-      <Name>Common %28Common\Common%29</Name>
+      <Name>Common</Name>
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\View\Views.csproj">
