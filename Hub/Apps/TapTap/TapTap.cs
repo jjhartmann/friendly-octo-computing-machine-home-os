@@ -30,10 +30,10 @@ namespace HomeOS.Hub.Apps.TapTap
     public class TapTapConfig
     {
 
-        public Dictionary<int, string> mDevices = new Dictionary<int, string>();
+        public Dictionary<string, string> mDevices = new Dictionary<string, string>();
         public Dictionary<string, string> mThings = new Dictionary<string, string>();
-        public Dictionary<int, string> Devices { get { return mDevices;  } }
-        public Dictionary<string, string> Things { get { return mThings; } }
+        public Dictionary<string, string> Devices { get { return mDevices;  } set { mDevices = value; } }
+        public Dictionary<string, string> Things { get { return mThings; } set { mThings = value; } }
 
     }
 

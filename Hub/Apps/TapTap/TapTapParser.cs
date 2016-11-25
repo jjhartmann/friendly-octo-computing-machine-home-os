@@ -99,15 +99,15 @@ namespace HomeOS.Hub.Apps.TapTap
                     XmlNode node = xmlDoc.DocumentElement;
                     string name = propInfo.Name;
                     Type propType = propInfo.PropertyType;
-                    string val = "NULL";
+                    XmlNode val;
 
                     try
                     {
-                        val = node[propInfo.Name].InnerText;
+                        val = node[propInfo.Name];
                     }
                     catch (Exception e)
                     {
-                        val = "NULL";
+                        val = null;
                     }
 
                     switch (Type.GetTypeCode(propType))
@@ -123,11 +123,36 @@ namespace HomeOS.Hub.Apps.TapTap
                         case TypeCode.Decimal:
                         case TypeCode.Double:
                         case TypeCode.Single:
-                            int intVal = val == "NULL" ? -1 : Int32.Parse(val);
+                            int intVal = val ==  null ? -1 : Int32.Parse(val.InnerText);
                             propInfo.SetValue(obj, intVal);
                             break;
                         case TypeCode.String:
-                            propInfo.SetValue(obj, val);
+                            propInfo.SetValue(obj, val.InnerText);
+                            break;
+                        case TypeCode.Object:
+
+                            bool isDict = propType.Name.Equals("Dictionary`2") ? true : false;
+
+                            if (isDict)
+                            {
+                                Type[] args = propType.GenericTypeArguments;
+                                Type TKey = args[0];
+                                Type TVal = args[1];
+
+                                Dictionary<string, string> dictProp = new Dictionary<string, string>();
+
+                                XmlNodeList nodeList = val.ChildNodes;
+                                foreach (XmlNode i in nodeList)
+                                {
+                                    string textOne = i.ChildNodes[0].InnerText;
+                                    string textTwo = i.ChildNodes[1].InnerText;
+
+                                    dictProp[textOne] = textTwo;
+                                }
+
+
+                                propInfo.SetValue(obj, dictProp);
+                            }
                             break;
                         default:
                             break;
