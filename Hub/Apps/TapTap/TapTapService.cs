@@ -38,6 +38,20 @@ namespace HomeOS.Hub.Apps.TapTap
             return retVal;
         }
 
+        public List<string> SetupDevice()
+        {
+            List<string> retVal = new List<string>();
+            try
+            {
+                retVal = TapTap.GetReceivedMessages();
+            }
+            catch (Exception e)
+            {
+                logger.Log("Got exception in GetReceivedMessages: " + e);
+            }
+            return retVal;
+        }
+
     }
 
      [ServiceContract]
@@ -46,6 +60,10 @@ namespace HomeOS.Hub.Apps.TapTap
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
         List<string> GetReceivedMessages();
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        List<string> SetupDevice();
 
 
     }

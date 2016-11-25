@@ -32,7 +32,7 @@ namespace HomeOS.Hub.Apps.TapTap
 
     public class TapTapConfig : IXMLParsable
     {
-
+        public const string mName = "TapTapConfig";
         public string mPath;
         public string mFile;
 
