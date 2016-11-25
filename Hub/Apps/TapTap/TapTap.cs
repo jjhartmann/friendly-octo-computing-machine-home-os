@@ -25,6 +25,18 @@ namespace HomeOS.Hub.Apps.TapTap
         public Color Color { get; set; }
     }
 
+
+
+    public class TapTapConfig
+    {
+
+        public Dictionary<int, string> mDevices = new Dictionary<int, string>();
+        public Dictionary<string, string> mThings = new Dictionary<string, string>();
+        public Dictionary<int, string> Devices { get { return mDevices;  } }
+        public Dictionary<string, string> Things { get { return mThings; } }
+
+    }
+
     /// <summary>
     /// A taptap a module that 
     /// 1. sends ping messages to all active taptap ports
@@ -61,43 +73,8 @@ namespace HomeOS.Hub.Apps.TapTap
 
             //// Read configuration file
             string taptapConfigDirector = moduleInfo.WorkingDir() + "\\Config";
-            //Directory.CreateDirectory(taptapConfigDirector);
 
-            //string taptapConfigFile = taptapConfigDirector + "\\taptapconfig.xml";
-            //if (!File.Exists(taptapConfigFile))
-            //{
-            //    File.Create(taptapConfigFile).Close();
-            //}
-
-
-            //XmlReaderSettings xmlsettings = new XmlReaderSettings();
-            //XmlDocument xmlDoc = new XmlDocument();
-            //XmlReader xmlReader = XmlReader.Create(taptapConfigFile, xmlsettings);
-
-            //try
-            //{
-            //    xmlDoc.Load(xmlReader);
-
-            //    XmlElement root = xmlDoc.FirstChild as XmlElement;
-
-
-            //}
-            //catch (Exception e)
-            //{
-            //    // Create file 
-            //    xmlReader.Close();
-            //    XmlElement root = xmlDoc.CreateElement("TapTapConfig");
-            //    xmlDoc.AppendChild(root);
-
-            //SaferSave(xmlDoc, taptapConfigFile);
-
-            //}
-
-
-
-
-
-
+                     
 
             //........... instantiate the list of other ports that we are interested in
             accessibleTapTapPorts = new List<VPort>();

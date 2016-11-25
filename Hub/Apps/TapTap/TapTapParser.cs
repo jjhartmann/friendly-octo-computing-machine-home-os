@@ -99,7 +99,16 @@ namespace HomeOS.Hub.Apps.TapTap
                     XmlNode node = xmlDoc.DocumentElement;
                     string name = propInfo.Name;
                     Type propType = propInfo.PropertyType;
-                    string val = node[propInfo.Name].InnerText;
+                    string val = "NULL";
+
+                    try
+                    {
+                        val = node[propInfo.Name].InnerText;
+                    }
+                    catch (Exception e)
+                    {
+                        val = "NULL";
+                    }
 
                     switch (Type.GetTypeCode(propType))
                     {
@@ -114,7 +123,7 @@ namespace HomeOS.Hub.Apps.TapTap
                         case TypeCode.Decimal:
                         case TypeCode.Double:
                         case TypeCode.Single:
-                            int intVal = Int32.Parse(val);
+                            int intVal = val == "NULL" ? -1 : Int32.Parse(val);
                             propInfo.SetValue(obj, intVal);
                             break;
                         case TypeCode.String:
