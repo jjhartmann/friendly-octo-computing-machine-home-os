@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using HomeOS.Hub.Apps.TapTap;
+using System.IO;
 
 namespace TapTapParsserTest
 {
@@ -111,6 +112,48 @@ namespace TapTapParsserTest
             // Generate new object
             TapTapConfig cobj = parser.GenObject<TapTapConfig>();
             Assert.AreNotEqual(cobj, null);
+        }
+
+        [TestMethod]
+        public void TestXMLFileCreation()
+        {
+            TapTapConfig config = new TapTapConfig();
+
+            config.mDevices["11131yweryeh5112"] = "Hello Phone";
+            config.mDevices["24whshwey5622"] = "Hello Phone";
+            config.mDevices["2324562525uy4uyt423"] = "Hello Phone";
+            config.mDevices["23252562456"] = "Hello Phone";
+            config.mDevices["562625622yehw"] = "Hello Phone";
+            config.mDevices["2426525622252"] = "Hello Phone";
+            config.mDevices["11126262315112"] = "Hello Phone";
+            config.mDevices["111325625615112"] = "Hello Phone";
+            config.mDevices["werter33y"] = "Hello Phone";
+            config.mDevices["fweryy"] = "Hello Phone";
+            config.mDevices["dfgqerqyqy"] = "Hello Phone";
+            config.mDevices["1113256215112"] = "Hello Phone";
+            config.mDevices["111256252315112"] = "Hello Phone";
+
+            config.mThings["sdfgsfg"] = "2314123123232";
+            config.mThings["hwwerh"] = "2314123123232";
+            config.mThings["sdfgs"] = "2314123123232";
+            config.mThings["zwave4sdfgsf35"] = "2314123123232";
+            config.mThings["zwave453"] = "2314123123232";
+            config.mThings["zw5avsdfgsdfse43"] = "2314123123232";
+            config.mThings["zw5a6fgsdfgsdgsve43"] = "2314123123232";
+            config.mThings["asdfasdfasdfasdfas"] = "2314123123232";
+            config.mThings["zwa6ve43"] = "2314123123232";
+            config.mThings["zw7sdfgsdg5ave43"] = "2314123123232";
+            config.mThings["zwa7dgsdfgsd252ve43"] = "2314123123232";
+            config.mThings["zwa2gqw3267ve43"] = "2314123123232";
+            config.mThings["zwav252525e43"] = "2314123123232";
+            config.mThings["zwa223452ve43"] = "2314123123232";
+
+            TapTapParser parser = new TapTapParser(Directory.GetCurrentDirectory().ToString(), "Test.xml", "Test");
+            parser.CreateXml(config);
+            
+
+
+            
         }
     }
 }

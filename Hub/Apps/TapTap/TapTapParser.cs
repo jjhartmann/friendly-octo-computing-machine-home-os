@@ -33,7 +33,7 @@ namespace HomeOS.Hub.Apps.TapTap
             // Read configuration file
             Directory.CreateDirectory(in_dir);
 
-            string mFile = in_dir + "\\" + in_file;
+            mFile = in_dir + "\\" + in_file;
             if (!File.Exists(mFile))
             {
                 File.Create(mFile).Close();
@@ -127,7 +127,8 @@ namespace HomeOS.Hub.Apps.TapTap
                             propInfo.SetValue(obj, intVal);
                             break;
                         case TypeCode.String:
-                            propInfo.SetValue(obj, val.InnerText);
+                            string valstr = val != null ? val.InnerText : "NULL";
+                            propInfo.SetValue(obj, valstr);
                             break;
                         case TypeCode.Object:
 
@@ -166,13 +167,6 @@ namespace HomeOS.Hub.Apps.TapTap
 
 
 
-        public void CreateXml(IXMLParsable obj)
-        {
-            string xml = obj.GetXMLString();
-            xmlDoc.LoadXml(xml);
-            SaferSave();
-        }
-
 
         
         // Get attribute from XMLDoc
@@ -180,6 +174,27 @@ namespace HomeOS.Hub.Apps.TapTap
         {
             XmlNode node = xmlDoc.DocumentElement;
             return node[in_attr].Value;
+        }
+
+
+
+
+        public bool CreateXml(IXMLParsable obj)
+        {
+            string xml = obj.GetXMLString();
+            xmlReader.Close();
+            try
+            {
+                xmlDoc.LoadXml(xml);
+                SaferSave();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: Unable to save file");
+            }
+
+            return false;
         }
 
         //we use this method to save xmlDoc to minimize the chances that bad configs will be left on disk

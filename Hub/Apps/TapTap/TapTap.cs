@@ -25,7 +25,7 @@ namespace HomeOS.Hub.Apps.TapTap
         public Color Color { get; set; }
     }
 
-    interface IXMLParsable
+    public interface IXMLParsable
     {
         string GetXMLString();
     }
@@ -54,7 +54,7 @@ namespace HomeOS.Hub.Apps.TapTap
             {
                 xml += "<Device><Id>" + e.Key + "</Id><Name>" + e.Value + "</Name></Device>";
             }
-            xml += "</Device><Things>";
+            xml += "</Devices><Things>";
 
             foreach (KeyValuePair<string, string> e in mThings)
             {
