@@ -9,6 +9,10 @@
   <link rel="Stylesheet" type="text/css" href="Styles/TapTap.css" />
 
     <script>
+        // Dictionary for all Devices
+        var DEVICE_INFORMATION_DICT = {};
+        var THING_INFORMATION_DICT = {};
+
 
         //run when document loads
         $(document).ready(
@@ -25,13 +29,15 @@
 
         function CreateUI() {
             // Creat the interface for TapTap;.
-            new PlatformServiceHelper().MakeServiceCall("webapp/GetDevices", "",)
+            new PlatformServiceHelper().MakeServiceCall("webapp/GetDevices", "", GetDevicesCallback)
         }
 
 
         function GetDevicesCallback(context, result) {
             // Store all the deivices here. 
-
+            for (key in result) {
+                DEVICE_INFORMATION_DICT[key] = result[key];
+            }
         }
 
 
