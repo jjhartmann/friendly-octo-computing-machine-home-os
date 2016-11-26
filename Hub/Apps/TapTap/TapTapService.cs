@@ -47,7 +47,7 @@ namespace HomeOS.Hub.Apps.TapTap
             }
             catch (Exception e)
             {
-                logger.Log("Got exception in GetReceivedMessages: " + e);
+                logger.Log("Got exception in SetupDevice: " + e);
             }
             return retVal;
         }
@@ -62,7 +62,7 @@ namespace HomeOS.Hub.Apps.TapTap
             }
             catch (Exception e)
             {
-                logger.Log("Got exception in GetReceivedMessages: " + e);
+                logger.Log("Got exception in GetAllDevices: " + e);
             }
             return retVal;
         }
@@ -76,7 +76,7 @@ namespace HomeOS.Hub.Apps.TapTap
             }
             catch (Exception e)
             {
-                logger.Log("Got exception in GetReceivedMessages: " + e);
+                logger.Log("Got exception in GetAllThings: " + e);
             }
             return retVal;
         }
@@ -90,7 +90,7 @@ namespace HomeOS.Hub.Apps.TapTap
             }
             catch (Exception e)
             {
-                logger.Log("Got exception in GetReceivedMessages: " + e);
+                logger.Log("Got exception in SaveDeviceName: " + e);
             }
             return retVal;
         }
@@ -104,7 +104,7 @@ namespace HomeOS.Hub.Apps.TapTap
             }
             catch (Exception e)
             {
-                logger.Log("Got exception in GetReceivedMessages: " + e);
+                logger.Log("Got exception in SaveThingTag: " + e);
             }
             return retVal;
         }
@@ -118,7 +118,22 @@ namespace HomeOS.Hub.Apps.TapTap
             }
             catch (Exception e)
             {
-                logger.Log("Got exception in GetReceivedMessages: " + e);
+                logger.Log("Got exception in GetDeviceRequests: " + e);
+            }
+            return retVal;
+        }
+
+
+        bool SendDeviceVerification(string id, string pass)
+        {
+            bool retVal = false;
+            try
+            {
+                
+            }
+            catch (Exception e)
+            {
+                logger.Log("Got exception in SendDeviceVerification: " + e);
             }
             return retVal;
         }
@@ -154,5 +169,9 @@ namespace HomeOS.Hub.Apps.TapTap
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
         List<string> GetDeviceRequests();
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        bool SendDeviceVerification(string id, string pass);
     }
 }
