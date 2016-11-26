@@ -170,6 +170,14 @@ namespace HomeOS.Hub.Apps.TapTap
 
         public string DeviceId { get { return mDeviceId; } set { mDeviceId = value; } }
         public string DevicePassPharse { get { return mDevicePassPharse; } set { mDevicePassPharse = value; } }
+
+
+        public DeviceRequest(string indevice, string inpass)
+        {
+            mDeviceId = indevice;
+            mDevicePassPharse = inpass;
+        }
+
     }
 
 
@@ -275,6 +283,9 @@ namespace HomeOS.Hub.Apps.TapTap
                     break;
 
                 case "AddDeviceRequest":
+                    // Get device request. 
+
+                    DeviceRequest request = new DeviceRequest(engine.Message.deviceID, engine.Message.actionValue);
 
                     
 

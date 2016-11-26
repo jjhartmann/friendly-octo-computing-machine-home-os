@@ -16,7 +16,7 @@ namespace HomeOS.Hub.Apps.TapTap
         public string actionType;
         public string actionValue;
         public string clientID;
-        public int deviceID;
+        public string deviceID;
         
     }
     public class TapTapEngine

@@ -79,8 +79,14 @@
         }
 
 
+        /// CREATE HTML FOR DEVICES AND THINGS
         function CreateHTMLUI() {
             $("#currentdevices").html("");
+            $("#requesteddevice").html("");
+            $("#currentthings").html("");
+
+            // Check for requests
+            $("#requesteddevice").append('<div class="row"> <div class="related_content col" >' + "Requests" + ' <div style="float: right;" ><button class= "app_button" onclick="CheckForRequests()"  > REFRESH </button></div></div></div>');
 
             /// Devices
             $("#currentdevices").append('<div class="row"> <div class="related_content col" >' + "Devices" + '</div></div>');
@@ -93,10 +99,10 @@
             }
 
             /// Things
-            $("#currentdevices").append('<div class="row"> <div class="related_content col" >' + "Things" + '</div></div>');
+            $("#currentthings").append('<div class="row"> <div class="related_content col" >' + "Things" + '</div></div>');
             for (key in THING_INFORMATION_DICT) {
                 var val = THING_INFORMATION_DICT[key];
-                $("#currentdevices").append('<div class="app_content col">' + val.Key +
+                $("#currentthings").append('<div class="app_content col">' + val.Key +
                                     '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="FreindlyDeviceName" type="text" maxlength="512" id="' + val.Key + '" value="' + val.Value + '"/>' +
                                     '      <button class= "app_button" onclick="SaveThingTag(' + "'" + val.Key + "'" + ')"  >SAVE </button>' +
                                     ' </div>');
@@ -105,17 +111,43 @@
         }
         
 
-        function ShowTapTapPortsInfo() {
-            new PlatformServiceHelper().MakeServiceCall("webapp/GetReceivedMessages", "", GetReceivedMessagesCallback);
-        }
-
-
-        function GetReceivedMessagesCallback(context, result) {
-            $("#TapTapList").html('');
-            for (i = 0; i < result.length; i++) {
-                $("#TapTapList").append(result[i] + "&#13;&#10"); //replace <br /> with &#13;&#10 because that makes newlines in more browsers
+        // DEVICE REQUST GEN UI
+        function DeviceRquestUI(DEVICE_PROPS) {
+            for (key in DEVICE_PROPS) {
+                var val = DEVICE_PROPS[key];
+                $("#currentthings").append('<div class="app_content col">' + val.Key +
+                                    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="FreindlyDeviceName" type="text" maxlength="512" id="' + val.Key + '" value="' + 'Enter Passphrase' + '"/>' +
+                                    '      <button class= "app_button" onclick="SendDeviceRequest(' + "'" + val.Key + "'" + ')"  > VERIFY </button>' +
+                                    ' </div>');
             }
         }
+
+        function CheckForRequests() {
+
+        }
+
+        function CheckForRequestsCallback(context, result) {
+
+        }
+
+        function SendDeviceRequest(id) {
+            var pass = document.getElementById(id).value;
+
+        }
+
+
+        //////// OLD
+        //function ShowTapTapPortsInfo() {
+        //    new PlatformServiceHelper().MakeServiceCall("webapp/GetReceivedMessages", "", GetReceivedMessagesCallback);
+        //}
+
+
+        //function GetReceivedMessagesCallback(context, result) {
+        //    $("#TapTapList").html('');
+        //    for (i = 0; i < result.length; i++) {
+        //        $("#TapTapList").append(result[i] + "&#13;&#10"); //replace <br /> with &#13;&#10 because that makes newlines in more browsers
+        //    }
+        //}
 
     </script>
 </head>
@@ -129,19 +161,9 @@
         <div class="row">
             <div class="page_title">TapTap</div>
         </div>
-        <!--<div class="row">
-            <div id="allOffButton" class="app_content">
-                <button id="btnAllOff" class="app_button" onclick="AllLights(0)">
-                    All Off
-                </button>
-                <button id="btnAllOn" class="app_button" onclick="AllLights(1)">
-                    All On
-                </button>
-                 <div class="row">Dim:</div>
-                    <div id="slider-range" class="slider">Test</div>
-                </div>
-            </div>
-        </div>-->
+        <div class="spacer"></div>
+        <div class="row" id="requesteddevice">
+        </div>
 
         <!--spacer div to create a line between sections on the page -->
         <div class="spacer"></div>
@@ -149,6 +171,12 @@
             <!--    <div class="app_content col"> Test:0 <button class= "app_button" onclick="SingleSwitch('Test','1')"  >On </button>      <button class= "app_button" onclick="SingleSwitch('Test','0')"  >Off </button> </div>
             -->
         </div>
+
+    <div class="spacer"> </div>
+    <div class="row" id="currentthings">
+        <!--    <div class="app_content col"> Test:0 <button class= "app_button" onclick="SingleSwitch('Test','1')"  >On </button>      <button class= "app_button" onclick="SingleSwitch('Test','0')"  >Off </button> </div>
+        -->
+    </div>
 
     </div>
   
