@@ -67,9 +67,9 @@ namespace HomeOS.Hub.Apps.TapTap
             return retVal;
         }
 
-        public List<string> GetAllThings()
+        public Dictionary<string, string> GetAllThings()
         {
-            List<string> retVal = new List<string>();
+            Dictionary < string, string> retVal = new Dictionary<string, string> ();
             try
             {
 
@@ -100,7 +100,7 @@ namespace HomeOS.Hub.Apps.TapTap
 
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
-        List<string> GetAllThings();
+        Dictionary<string, string> GetAllThings();
 
 
     }

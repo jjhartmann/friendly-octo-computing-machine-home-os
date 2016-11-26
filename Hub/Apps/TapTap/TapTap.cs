@@ -444,6 +444,13 @@ namespace HomeOS.Hub.Apps.TapTap
             return ret;
         }
 
+        // Get all Things
+        public Dictionary<string, string> GetAllThings()
+        {
+            Dictionary<string, string> ret = new Dictionary<string, string>(config.Things);
+            return ret;
+        }
+
 
         public List<string> GetReceivedMessages()
         {

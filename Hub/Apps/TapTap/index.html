@@ -29,14 +29,32 @@
 
         function CreateUI() {
             // Creat the interface for TapTap;.
-            new PlatformServiceHelper().MakeServiceCall("webapp/GetDevices", "", GetDevicesCallback)
-        }
+            new PlatformServiceHelper().MakeServiceCall("webapp/GetAllDevices", "", GetDevicesCallback);
+            new PlatformServiceHelper().MakeServiceCall("webapp/GetAllThings", "", GetThingsCallback);
 
+            CreateHTMLUI();
+        }
 
         function GetDevicesCallback(context, result) {
             // Store all the deivices here. 
             for (key in result) {
                 DEVICE_INFORMATION_DICT[key] = result[key];
+            }
+        }
+
+        function GetThingsCallback(context, result) {
+            // Store all the deivices here. 
+            for (key in result) {
+                THING_INFORMATION_DICT[key] = result[key];
+               
+            }
+        }
+
+
+        function CreateHTMLUI() {
+            for (key in result) {
+                var val = THING_INFORMATION_DICT[key];
+                $("#TapTapList").append(key + "&#13;&#10"); //replace <br /> with &#13;&#10 because that makes newlines in more browsers         
             }
         }
 
