@@ -22,7 +22,7 @@
                 CreateUI();
 
                 //Set up timer function to refresh display every 1 seconds
-                taptapCheck = setInterval(function () { CreateUI() }, 1000);
+                //taptapCheck = setInterval(function () { CreateUI() }, 1000);
                 //To stop do this: clearInterval(taptapCheck);     
             }
         );
@@ -56,8 +56,8 @@
         }
 
 
-        function SaveDeviceName(name){
-
+        function SaveDeviceName(id){
+            var newName = document.getElementById(id).value;
         }
 
 
@@ -67,7 +67,8 @@
             for (key in DEVICE_INFORMATION_DICT) {
                 var val = DEVICE_INFORMATION_DICT[key];
                 $("#currentdevices").append('<div class="app_content col">' + val.Key +
-                                    '      <button class= "app_button" onclick="SaveDeviceName(' + key + ')"  >SAVE </button>' +
+                                    '<input name="FreindlyDeviceName" type="text" maxlength="512" id="' + val.Key + '" class="textField" value="' + val.Value  +'"/>' +
+                                    '      <button class= "app_button" onclick="SaveDeviceName(' + "'" + val.Key + "'" + ')"  >SAVE </button>' +
                                     ' </div>');
             }
         }
@@ -121,6 +122,7 @@
     </div>
   
  
+    <div><button class="app_button" id="Button1" onclick="CreateUI()">Manual Update</button></div> 
   
 
     <!--Used for debugging messages, set style="display:none" to turn off showing them, common.js will put text into div with id =divDebugInfo when calls are made to service -->
