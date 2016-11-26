@@ -66,6 +66,13 @@ namespace HomeOS.Hub.Apps.TapTap
             return xml;
 
         }
+
+
+        public void WriteToDisk()
+        {
+            TapTapParser parser = new TapTapParser(mPath, mFile, mName);
+            parser.CreateXml(this);
+        }
     }
 
     /// <summary>
@@ -112,7 +119,7 @@ namespace HomeOS.Hub.Apps.TapTap
 
             config = parser.GenObject<TapTapConfig>();
             config.mPath = taptapConfigDirector;
-            config.mFile = "taptapconifg.xml";
+            config.mFile = "taptapconfig.xml";
 
 
 
@@ -464,6 +471,7 @@ namespace HomeOS.Hub.Apps.TapTap
             try
             {
                 config.mDevices[id] = name;
+                config.WriteToDisk();
                 return true;
             }
             catch (Exception e)
@@ -478,6 +486,7 @@ namespace HomeOS.Hub.Apps.TapTap
             try
             {
                 config.mThings[id] = tag;
+                config.WriteToDisk();
                 return true;
             }
             catch (Exception e)
