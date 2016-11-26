@@ -602,7 +602,20 @@ namespace HomeOS.Hub.Apps.TapTap
         // Get all Things
         public Dictionary<string, string> GetAllThings()
         {
-            Dictionary<string, string> ret = new Dictionary<string, string>(config.Things);
+            Dictionary<string, string> ret = new Dictionary<string, string>();
+
+            foreach(string name in switchFriendlyName.Keys)
+            {
+                if (config.Devices.ContainsKey(name))
+                {
+                    ret.Add(name, config.Devices[name]);
+                }
+                else
+                {
+                    ret.Add(name, "Insert NFC Tag");
+                }
+            }
+
             return ret;
         }
 
