@@ -458,5 +458,34 @@ namespace HomeOS.Hub.Apps.TapTap
             retList.Reverse();
             return retList;
         }
+
+        public bool SaveDeviceName(string id, string name)
+        {
+            try
+            {
+                config.mDevices[id] = name;
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error in changing device name: {0}", e);
+            }
+            return false;
+        }
+
+        public bool SaveThingTag(string id, string tag)
+        {
+            try
+            {
+                config.mThings[id] = tag;
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error in changing thing name: {0}", e);
+            }
+            return false;
+        }
+
     }
 }

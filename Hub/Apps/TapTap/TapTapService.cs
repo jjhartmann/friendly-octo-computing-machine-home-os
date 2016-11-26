@@ -72,7 +72,7 @@ namespace HomeOS.Hub.Apps.TapTap
             Dictionary < string, string> retVal = new Dictionary<string, string> ();
             try
             {
-
+                retVal = TapTap.GetAllThings();
             }
             catch (Exception e)
             {
@@ -81,6 +81,33 @@ namespace HomeOS.Hub.Apps.TapTap
             return retVal;
         }
 
+        public bool SaveDeviceName(string id, string name)
+        {
+            bool retVal = false;
+            try
+            {
+                retVal = TapTap.SaveDeviceName(id, name);
+            }
+            catch (Exception e)
+            {
+                logger.Log("Got exception in GetReceivedMessages: " + e);
+            }
+            return retVal;
+        }
+
+        public bool SaveThingTag(string id, string tag)
+        {
+            bool retVal = false;
+            try
+            {
+                retVal = TapTap.SaveThingTag(id, tag);
+            }
+            catch (Exception e)
+            {
+                logger.Log("Got exception in GetReceivedMessages: " + e);
+            }
+            return retVal;
+        }
     }
 
     [ServiceContract]
@@ -102,6 +129,12 @@ namespace HomeOS.Hub.Apps.TapTap
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
         Dictionary<string, string> GetAllThings();
 
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        bool SaveDeviceName(string id, string name);
 
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        bool SaveThingTag(string id, string tag);
     }
 }

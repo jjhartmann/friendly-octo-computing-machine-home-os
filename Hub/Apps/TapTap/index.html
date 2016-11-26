@@ -62,19 +62,46 @@
 
         function SaveDeviceName(id){
             var newName = document.getElementById(id).value;
+            new PlatformServiceHelper().MakeServiceCall("webapp/SaveDeviceName", '{ "id":"' + id + '","name":"' + newName + '" }', SaveDeviceNameCallback);
+        }
+
+        function SaveDeviceNameCallback(context, result) {
+            CreateUI();
+        }
+
+        function SaveThingTag(id) {
+            var nfctag = document.getElementById(id).value;
+            new PlatformServiceHelper().MakeServiceCall("webapp/SaveThingTag", '{ "id":"' + id + '","tag":"' + nfctag + '" }', SaveThingTagCallback);
+        }
+
+        function SaveThingTagCallback(context, result) {
+            CreateUI();
         }
 
 
         function CreateHTMLUI() {
             $("#currentdevices").html("");
+
+            /// Devices
             $("#currentdevices").append('<div class="row"> <div class="related_content col" >' + "Devices" + '</div></div>');
             for (key in DEVICE_INFORMATION_DICT) {
                 var val = DEVICE_INFORMATION_DICT[key];
                 $("#currentdevices").append('<div class="app_content col">' + val.Key +
-                                    '<input name="FreindlyDeviceName" type="text" maxlength="512" id="' + val.Key + '" value="' + val.Value  +'"/>' +
+                                    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="FreindlyDeviceName" type="text" maxlength="512" id="' + val.Key + '" value="' + val.Value + '"/>' +
                                     '      <button class= "app_button" onclick="SaveDeviceName(' + "'" + val.Key + "'" + ')"  >SAVE </button>' +
                                     ' </div>');
             }
+
+            /// Things
+            $("#currentdevices").append('<div class="row"> <div class="related_content col" >' + "Things" + '</div></div>');
+            for (key in THING_INFORMATION_DICT) {
+                var val = THING_INFORMATION_DICT[key];
+                $("#currentdevices").append('<div class="app_content col">' + val.Key +
+                                    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="FreindlyDeviceName" type="text" maxlength="512" id="' + val.Key + '" value="' + val.Value + '"/>' +
+                                    '      <button class= "app_button" onclick="SaveThingTag(' + "'" + val.Key + "'" + ')"  >SAVE </button>' +
+                                    ' </div>');
+            }
+
         }
         
 
