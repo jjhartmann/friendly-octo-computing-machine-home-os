@@ -14,19 +14,12 @@ namespace HomeOS.Hub.Apps.TapTap
 
         XmlDocument xmlDoc = new XmlDocument();
         XmlReaderSettings xmlsettings = new XmlReaderSettings();
-        XmlReader xmlReader;
         string mFile;
         bool mIsValid = false;
 
 
         ~TapTapParser()
         {
-            if (xmlReader != null)
-            {
-                xmlReader.Close();
-                xmlReader.Dispose();
-            }
-
             if (xmlDoc != null)
             {
                 xmlDoc = null;
@@ -54,12 +47,14 @@ namespace HomeOS.Hub.Apps.TapTap
                 File.Create(mFile).Close();
             }
 
-            xmlReader = XmlReader.Create(mFile, xmlsettings);
+            XmlReader xmlReader = XmlReader.Create(mFile, xmlsettings);
 
 
             try
             {
                 xmlDoc.Load(xmlReader);
+                xmlReader.Close();
+                xmlReader.Dispose();
                 mIsValid = true;
             }
             catch (Exception e)
@@ -73,6 +68,8 @@ namespace HomeOS.Hub.Apps.TapTap
                 SaferSave();
             }
 
+
+
         }
 
 
@@ -80,7 +77,6 @@ namespace HomeOS.Hub.Apps.TapTap
         {
             try
             {
-                xmlReader = null;
                 xmlDoc.LoadXml(xml);
                 mIsValid = true;
             }
@@ -199,7 +195,7 @@ namespace HomeOS.Hub.Apps.TapTap
         public bool CreateXml(IXMLParsable obj)
         {
             string xml = obj.GetXMLString();
-            xmlReader.Close();
+            
             try
             {
                 xmlDoc.LoadXml(xml);
@@ -219,12 +215,12 @@ namespace HomeOS.Hub.Apps.TapTap
         {
             string tmpFile = mFile + ".tmp";
 
-            xmlDoc.Save(tmpFile);
+            xmlDoc.Save(mFile);
 
-            if (System.IO.File.Exists(mFile))
-                System.IO.File.Delete(mFile);
+            //if (System.IO.File.Exists(mFile))
+            //    System.IO.File.Delete(mFile);
 
-            System.IO.File.Move(tmpFile, mFile);
+            //System.IO.File.Move(tmpFile, mFile);
         }
 
 

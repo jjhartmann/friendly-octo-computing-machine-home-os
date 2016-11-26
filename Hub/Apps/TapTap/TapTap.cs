@@ -45,9 +45,24 @@ namespace HomeOS.Hub.Apps.TapTap
         public string mFile;
 
         private Dictionary<string, string> mDevices = new Dictionary<string, string>();
+        private Dictionary<string, string> mThingsRev = new Dictionary<string, string>();
         private Dictionary<string, string> mThings = new Dictionary<string, string>();
-        public Dictionary<string, string> Devices { get { return mDevices;  } set { mDevices = value; } }
-        public Dictionary<string, string> Things { get { return mThings; } set { mThings = value; } }
+        
+        public Dictionary<string, string> Devices {
+            get { return mDevices;  }
+            set { mDevices = value; }
+        }
+        public Dictionary<string, string> Things {
+            get { return mThings; }
+            set
+            {
+                mThings = value;
+                foreach (string key in mThings.Keys)
+                {
+                    mThingsRev[mThings[key]] = key;
+                }
+            }
+        }
 
         /// <summary>
         /// Create a serilizable string of XML
@@ -118,6 +133,8 @@ namespace HomeOS.Hub.Apps.TapTap
             try
             {
                 mThings[id] = name;
+                mThingsRev[name] = id;
+
                 WriteToDisk();
                 return true;
             }
@@ -135,6 +152,7 @@ namespace HomeOS.Hub.Apps.TapTap
         {
             try
             {
+                mThingsRev.Remove(mDevices[id]);
                 mThings.Remove(id);
                 WriteToDisk();
                 return true;
@@ -150,9 +168,10 @@ namespace HomeOS.Hub.Apps.TapTap
 
         public void WriteToDisk()
         {
+            TapTapConfig temp =  (TapTapConfig) this.MemberwiseClone();
             SafeThread w = new SafeThread(delegate {
                 TapTapParser parser = new TapTapParser(mPath, mFile, mName);
-                parser.CreateXml(this);
+                parser.CreateXml(temp);
             }, "taptapconfig-writetodisk", logger);
             w.Start();
             
