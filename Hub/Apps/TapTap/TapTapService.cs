@@ -108,6 +108,20 @@ namespace HomeOS.Hub.Apps.TapTap
             }
             return retVal;
         }
+
+        public List<string> GetDeviceRequests()
+        {
+            List<string> retVal = new List<string>();
+            try
+            {
+                
+            }
+            catch (Exception e)
+            {
+                logger.Log("Got exception in GetReceivedMessages: " + e);
+            }
+            return retVal;
+        }
     }
 
     [ServiceContract]
@@ -136,5 +150,9 @@ namespace HomeOS.Hub.Apps.TapTap
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
         bool SaveThingTag(string id, string tag);
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        List<string> GetDeviceRequests();
     }
 }

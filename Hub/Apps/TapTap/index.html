@@ -123,11 +123,13 @@
         }
 
         function CheckForRequests() {
-
+            new PlatformServiceHelper().MakeServiceCall("webapp/GetDeviceRequests", "", CheckForRequestsCallback);
         }
 
         function CheckForRequestsCallback(context, result) {
-
+            if (result.length > 0) {
+                DeviceRquestUI(result);
+            }
         }
 
         function SendDeviceRequest(id) {
