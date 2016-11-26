@@ -115,9 +115,9 @@
         function DeviceRquestUI(DEVICE_PROPS) {
             for (key in DEVICE_PROPS) {
                 var val = DEVICE_PROPS[key];
-                $("#currentthings").append('<div class="app_content col">' + val.Key +
-                                    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="FreindlyDeviceName" type="text" maxlength="512" id="' + val.Key + '" value="' + 'Enter Passphrase' + '"/>' +
-                                    '      <button class= "app_button" onclick="SendDeviceRequest(' + "'" + val.Key + "'" + ')"  > VERIFY </button>' +
+                $("#requesteddevice").append('<div class="app_content col">' + val +
+                                    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="FreindlyDeviceName" type="text" maxlength="512" id="' + val + '" placeholder="' + 'Enter Passphrase' + '"/>' +
+                                    '      <button class= "app_button" onclick="SendDeviceRequest(' + "'" + val + "'" + ')"  > VERIFY </button>' +
                                     ' </div>');
             }
         }
