@@ -19,16 +19,17 @@
             function () {
 
                 //get any messages 
-                //CreateUI();
+                CreateUI();
 
                 //Set up timer function to refresh display every 1 seconds
-                //taptapCheck = setInterval(function () { CreateUI() }, 1000);
+                taptapCheck = setInterval(function () { CreateUI() }, 1000);
                 //To stop do this: clearInterval(taptapCheck);     
             }
         );
 
         function CreateUI() {
             // Creat the interface for TapTap;.
+
             new PlatformServiceHelper().MakeServiceCall("webapp/GetAllDevices", "", GetDevicesCallback);
             new PlatformServiceHelper().MakeServiceCall("webapp/GetAllThings", "", GetThingsCallback);
 
@@ -36,6 +37,8 @@
         }
 
         function GetDevicesCallback(context, result) {
+            DEVICE_INFORMATION_DICT = {};
+
             // Store all the deivices here. 
             for (key in result) {
                 DEVICE_INFORMATION_DICT[key] = result[key];
@@ -43,6 +46,8 @@
         }
 
         function GetThingsCallback(context, result) {
+            THING_INFORMATION_DICT = {};
+
             // Store all the deivices here. 
             for (key in result) {
                 THING_INFORMATION_DICT[key] = result[key];
@@ -51,13 +56,22 @@
         }
 
 
-        function CreateHTMLUI() {
-            for (key in DEVICE_INFORMATION_DICT) {
-                var val = DEVICE_INFORMATION_DICT[key];
-                $("#TapTapList").append(val.Key + " " + val.Value +  "&#13;&#10"); //replace <br /> with &#13;&#10 because that makes newlines in more browsers         
-            }
+        function SaveDeviceName(name){
+
         }
 
+
+        function CreateHTMLUI() {
+            $("#currentdevices").html("");
+            $("#currentdevices").append('<div class="row"> <div class="related_content col" >' + "Devices" + '</div></div>');
+            for (key in DEVICE_INFORMATION_DICT) {
+                var val = DEVICE_INFORMATION_DICT[key];
+                $("#currentdevices").append('<div class="app_content col">' + val.Key +
+                                    '      <button class= "app_button" onclick="SaveDeviceName(' + key + ')"  >SAVE </button>' +
+                                    ' </div>');
+            }
+        }
+        
 
         function ShowTapTapPortsInfo() {
             new PlatformServiceHelper().MakeServiceCall("webapp/GetReceivedMessages", "", GetReceivedMessagesCallback);
@@ -76,21 +90,36 @@
 <body>
 
     <div class="dashboard_toolbar">
-            <div class="homeID_title"><a href="../GuiWeb/index.html">Dashboard</a> | TapTap </div>
+        <div class="homeID_title"><a href="../GuiWeb/index.html">Dashboard</a> | TapTap </div>
+    </div>
+
+    <div class="page">
+        <div class="row">
+            <div class="page_title">TapTap</div>
         </div>
-        
-        <div class="page">
-            <div class="row">
-                <div class="page_title col">TapTap Application</div>
+        <!--<div class="row">
+            <div id="allOffButton" class="app_content">
+                <button id="btnAllOff" class="app_button" onclick="AllLights(0)">
+                    All Off
+                </button>
+                <button id="btnAllOn" class="app_button" onclick="AllLights(1)">
+                    All On
+                </button>
+                 <div class="row">Dim:</div>
+                    <div id="slider-range" class="slider">Test</div>
+                </div>
             </div>
+        </div>-->
 
-        <textarea id="TapTapList" class="app_form" rows="30" cols="50" wrap="hard"></textarea>
-           
-        <br />
-        <br />
+        <!--spacer div to create a line between sections on the page -->
+        <div class="spacer"></div>
+        <div class="row" id="currentdevices">
+            <!--    <div class="app_content col"> Test:0 <button class= "app_button" onclick="SingleSwitch('Test','1')"  >On </button>      <button class= "app_button" onclick="SingleSwitch('Test','0')"  >Off </button> </div>
+            -->
+        </div>
 
-        <div><button class="app_button" id="Button1" onclick="CreateUI()">Manual Update</button></div> 
-
+    </div>
+  
  
   
 
