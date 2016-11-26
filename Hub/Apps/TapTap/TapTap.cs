@@ -625,9 +625,9 @@ namespace HomeOS.Hub.Apps.TapTap
 
             foreach(string name in switchFriendlyName.Keys)
             {
-                if (config.Devices.ContainsKey(name))
+                if (config.Things.ContainsKey(name))
                 {
-                    ret.Add(name, config.Devices[name]);
+                    ret.Add(name, config.Things[name]);
                 }
                 else
                 {
