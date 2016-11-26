@@ -434,6 +434,17 @@ namespace HomeOS.Hub.Apps.TapTap
             }
         }
 
+
+
+
+        // Get all Devices
+        public Dictionary<string, string> GetAllDevices()
+        {
+            Dictionary<string, string> ret = new Dictionary<string, string> (config.Devices);
+            return ret;
+        }
+
+
         public List<string> GetReceivedMessages()
         {
             List<string> retList = new List<string>(this.receivedMessageList);

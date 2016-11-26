@@ -52,9 +52,38 @@ namespace HomeOS.Hub.Apps.TapTap
             return retVal;
         }
 
+
+        public Dictionary<string, string> GetAllDevices()
+        {
+            Dictionary<string, string> retVal = new Dictionary<string, string>();
+            try
+            {
+                retVal = TapTap.GetAllDevices();
+            }
+            catch (Exception e)
+            {
+                logger.Log("Got exception in GetReceivedMessages: " + e);
+            }
+            return retVal;
+        }
+
+        public List<string> GetAllThings()
+        {
+            List<string> retVal = new List<string>();
+            try
+            {
+
+            }
+            catch (Exception e)
+            {
+                logger.Log("Got exception in GetReceivedMessages: " + e);
+            }
+            return retVal;
+        }
+
     }
 
-     [ServiceContract]
+    [ServiceContract]
     public interface ITapTapContract
     {
         [OperationContract]
@@ -64,6 +93,14 @@ namespace HomeOS.Hub.Apps.TapTap
         [OperationContract]
         [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
         List<string> SetupDevice();
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        Dictionary<string, string> GetAllDevices();
+
+        [OperationContract]
+        [WebInvoke(Method = "POST", BodyStyle = WebMessageBodyStyle.WrappedRequest, ResponseFormat = WebMessageFormat.Json)]
+        List<string> GetAllThings();
 
 
     }

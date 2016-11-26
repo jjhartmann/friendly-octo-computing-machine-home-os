@@ -15,13 +15,25 @@
             function () {
 
                 //get any messages 
-                ShowTapTapPortsInfo();
+                CreateUI();
 
                 //Set up timer function to refresh display every 1 seconds
-                taptapCheck = setInterval(function () { ShowTapTapPortsInfo() }, 1000);
+                taptapCheck = setInterval(function () { CreateUI() }, 1000);
                 //To stop do this: clearInterval(taptapCheck);     
             }
         );
+
+        function CreateUI() {
+            // Creat the interface for TapTap;.
+            new PlatformServiceHelper().MakeServiceCall("webapp/GetDevices", "",)
+        }
+
+
+        function GetDevicesCallback(context, result) {
+            // Store all the deivices here. 
+
+        }
+
 
         function ShowTapTapPortsInfo() {
             new PlatformServiceHelper().MakeServiceCall("webapp/GetReceivedMessages", "", GetReceivedMessagesCallback);
