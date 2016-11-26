@@ -68,6 +68,80 @@ namespace HomeOS.Hub.Apps.TapTap
         }
 
 
+        // Add device to the config file
+        public bool AddDevice(string id, string name)
+        {
+            try
+            {
+                mDevices[id] = name;
+                WriteToDisk();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error in creating Device entry: {0}", e);
+                
+            }
+
+            return false;
+        }
+
+        // Remove device to the Config file.
+        public bool RemoveDevice(string id)
+        {
+            try
+            {
+                mDevices.Remove(id);
+                WriteToDisk();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error in creating Device entry: {0}", e);
+
+            }
+
+            return false;
+        }
+
+        // Add thing to the config file
+        public bool AddThing(string id, string name)
+        {
+            try
+            {
+                mThings[id] = name;
+                WriteToDisk();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error in creating Device entry: {0}", e);
+
+            }
+
+            return false;
+        }
+
+        // Remove thing to the Config file.
+        public bool RemoveThing(string id)
+        {
+            try
+            {
+                mThings.Remove(id);
+                WriteToDisk();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error in creating Device entry: {0}", e);
+
+            }
+
+            return false;
+        }
+
+
+
         public void WriteToDisk()
         {
             TapTapParser parser = new TapTapParser(mPath, mFile, mName);
@@ -146,7 +220,11 @@ namespace HomeOS.Hub.Apps.TapTap
             worker.Start();
         }
 
-        // Call back delegate for communication with server
+        /// <summary>
+        /// Call back delegate for communication with server. Will determine case based on protocol from client. 
+        /// </summary>
+        /// <param name="engine"></param>
+        // 
         private void EngineCallback(TapTapEngine engine)
         {
             Console.WriteLine("Parser Callback. \nData: {0}", engine.Message.actionType);
@@ -168,6 +246,12 @@ namespace HomeOS.Hub.Apps.TapTap
                     }
 
                     engine.shutDown();
+
+                    break;
+
+                case "AddDeviceRequest":
+
+                    
 
                     break;
 
