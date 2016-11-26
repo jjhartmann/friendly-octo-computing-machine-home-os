@@ -114,7 +114,7 @@ namespace HomeOS.Hub.Apps.TapTap
             List<string> retVal = new List<string>();
             try
             {
-                
+                retVal = TapTap.GetDeviceRequests();
             }
             catch (Exception e)
             {

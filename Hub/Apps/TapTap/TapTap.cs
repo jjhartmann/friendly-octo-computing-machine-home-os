@@ -162,7 +162,7 @@ namespace HomeOS.Hub.Apps.TapTap
     /// <summary>
     /// Simple class to set up device with Taptap server.
     /// </summary>
-    class DeviceRequest
+    class TapTapDeviceRequest
     {
         // Setting up device
         private string mDeviceId = "NULL";
@@ -172,7 +172,7 @@ namespace HomeOS.Hub.Apps.TapTap
         public string DevicePassPharse { get { return mDevicePassPharse; } set { mDevicePassPharse = value; } }
 
 
-        public DeviceRequest(string indevice, string inpass)
+        public TapTapDeviceRequest(string indevice, string inpass)
         {
             mDeviceId = indevice;
             mDevicePassPharse = inpass;
@@ -206,9 +206,11 @@ namespace HomeOS.Hub.Apps.TapTap
         IStream datastream;
 
         // Config 
-        TapTapConfig config;
+        TapTapConfig config = null;
+        TapTapDeviceRequest deviceRequest = null;
 
-       
+
+
         public override void Start()
         {
             logger.Log("Started: {0} ", ToString());
@@ -282,10 +284,10 @@ namespace HomeOS.Hub.Apps.TapTap
 
                     break;
 
-                case "AddDeviceRequest":
+                case "addDeviceRequest":
                     // Get device request. 
 
-                    DeviceRequest request = new DeviceRequest(engine.Message.deviceID, engine.Message.actionValue);
+                     deviceRequest = new TapTapDeviceRequest(engine.Message.deviceID, engine.Message.actionValue);
 
                     
 
@@ -562,7 +564,8 @@ namespace HomeOS.Hub.Apps.TapTap
         }
 
 
-
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // SERVICE CALLBACK FUNCTIONS
 
         // Get all Devices
         public Dictionary<string, string> GetAllDevices()
@@ -612,6 +615,24 @@ namespace HomeOS.Hub.Apps.TapTap
                 Console.WriteLine("Error in changing thing name: {0}", e);
             }
             return false;
+        }
+
+        public List<string> GetDeviceRequests()
+        {
+            // TODO: Change the requests to a List of requests for multiple simultaneous requests
+            List<string> retVal = new List<string>();
+            try
+            {
+                if (deviceRequest != null)
+                {
+                    retVal.Add(deviceRequest.DeviceId);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error in getting device requests: {0}", e);
+            }
+            return retVal;
         }
 
     }
