@@ -30,8 +30,15 @@ namespace HomeOS.Hub.Apps.TapTap
         string GetXMLString();
     }
 
+
+
+    /// <summary>
+    /// Configuration class for taptap. Integrates with XML Flat file.
+    /// </summary>
     public class TapTapConfig : IXMLParsable
     {
+
+        // Config Settings
         public const string mName = "TapTapConfig";
         public string mPath;
         public string mFile;
@@ -140,14 +147,27 @@ namespace HomeOS.Hub.Apps.TapTap
             return false;
         }
 
-
-
         public void WriteToDisk()
         {
             TapTapParser parser = new TapTapParser(mPath, mFile, mName);
             parser.CreateXml(this);
         }
     }
+
+    /// <summary>
+    /// Simple class to set up device with Taptap server.
+    /// </summary>
+    class DeviceRequest
+    {
+        // Setting up device
+        private string mDeviceId = "NULL";
+        private string mDevicePassPharse = "NULL";
+
+        public string DeviceId { get { return mDeviceId; } set { mDeviceId = value; } }
+        public string DevicePassPharse { get { return mDevicePassPharse; } set { mDevicePassPharse = value; } }
+    }
+
+
 
     /// <summary>
     /// A taptap a module that 
