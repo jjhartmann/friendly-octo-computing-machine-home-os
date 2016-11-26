@@ -37,14 +37,15 @@ namespace HomeOS.Hub.Apps.TapTap
     /// </summary>
     public class TapTapConfig : IXMLParsable
     {
+        private VLogger logger;
 
         // Config Settings
         public const string mName = "TapTapConfig";
         public string mPath;
         public string mFile;
 
-        public Dictionary<string, string> mDevices = new Dictionary<string, string>();
-        public Dictionary<string, string> mThings = new Dictionary<string, string>();
+        private Dictionary<string, string> mDevices = new Dictionary<string, string>();
+        private Dictionary<string, string> mThings = new Dictionary<string, string>();
         public Dictionary<string, string> Devices { get { return mDevices;  } set { mDevices = value; } }
         public Dictionary<string, string> Things { get { return mThings; } set { mThings = value; } }
 
@@ -149,8 +150,12 @@ namespace HomeOS.Hub.Apps.TapTap
 
         public void WriteToDisk()
         {
-            TapTapParser parser = new TapTapParser(mPath, mFile, mName);
-            parser.CreateXml(this);
+            SafeThread w = new SafeThread(delegate {
+                TapTapParser parser = new TapTapParser(mPath, mFile, mName);
+                parser.CreateXml(this);
+            }, "taptapconfig-writetodisk", logger);
+            w.Start();
+            
         }
     }
 
@@ -286,7 +291,6 @@ namespace HomeOS.Hub.Apps.TapTap
         {
             logger.Log("AppTapTap clean up");
             lock (this) {
-
                 if (worker != null)
                     worker.Abort();
 
@@ -298,6 +302,7 @@ namespace HomeOS.Hub.Apps.TapTap
 
                 if (appServer != null)
                     appServer.Dispose();
+
 
             }
         }
@@ -574,8 +579,7 @@ namespace HomeOS.Hub.Apps.TapTap
         {
             try
             {
-                config.mDevices[id] = name;
-                config.WriteToDisk();
+                config.AddDevice(id, name);
                 return true;
             }
             catch (Exception e)
@@ -589,8 +593,7 @@ namespace HomeOS.Hub.Apps.TapTap
         {
             try
             {
-                config.mThings[id] = tag;
-                config.WriteToDisk();
+                config.AddThing(id, tag);
                 return true;
             }
             catch (Exception e)

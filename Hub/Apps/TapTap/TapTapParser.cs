@@ -18,6 +18,21 @@ namespace HomeOS.Hub.Apps.TapTap
         string mFile;
         bool mIsValid = false;
 
+
+        ~TapTapParser()
+        {
+            if (xmlReader != null)
+            {
+                xmlReader.Close();
+                xmlReader.Dispose();
+            }
+
+            if (xmlDoc != null)
+            {
+                xmlDoc = null;
+            }
+        }
+
         public TapTapParser()
         {
 
@@ -51,6 +66,7 @@ namespace HomeOS.Hub.Apps.TapTap
             {
                 // Create file 
                 xmlReader.Close();
+                xmlReader.Dispose();
                 XmlElement root = xmlDoc.CreateElement(in_name);
                 xmlDoc.AppendChild(root);
 
@@ -64,6 +80,7 @@ namespace HomeOS.Hub.Apps.TapTap
         {
             try
             {
+                xmlReader = null;
                 xmlDoc.LoadXml(xml);
                 mIsValid = true;
             }
