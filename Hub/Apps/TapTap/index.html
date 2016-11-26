@@ -33,7 +33,7 @@
             new PlatformServiceHelper().MakeServiceCall("webapp/GetAllDevices", "", GetDevicesCallback);
             new PlatformServiceHelper().MakeServiceCall("webapp/GetAllThings", "", GetThingsCallback);
 
-            CreateHTMLUI();
+            
         }
 
         function GetDevicesCallback(context, result) {
@@ -43,6 +43,8 @@
             for (key in result) {
                 DEVICE_INFORMATION_DICT[key] = result[key];
             }
+
+            CreateHTMLUI();
         }
 
         function GetThingsCallback(context, result) {
@@ -53,6 +55,8 @@
                 THING_INFORMATION_DICT[key] = result[key];
                
             }
+
+            CreateHTMLUI();
         }
 
 
@@ -67,7 +71,7 @@
             for (key in DEVICE_INFORMATION_DICT) {
                 var val = DEVICE_INFORMATION_DICT[key];
                 $("#currentdevices").append('<div class="app_content col">' + val.Key +
-                                    '<input name="FreindlyDeviceName" type="text" maxlength="512" id="' + val.Key + '" class="textField" value="' + val.Value  +'"/>' +
+                                    '<input name="FreindlyDeviceName" type="text" maxlength="512" id="' + val.Key + '" value="' + val.Value  +'"/>' +
                                     '      <button class= "app_button" onclick="SaveDeviceName(' + "'" + val.Key + "'" + ')"  >SAVE </button>' +
                                     ' </div>');
             }
