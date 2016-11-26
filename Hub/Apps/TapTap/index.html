@@ -19,10 +19,10 @@
             function () {
 
                 //get any messages 
-                CreateUI();
+                //CreateUI();
 
                 //Set up timer function to refresh display every 1 seconds
-                taptapCheck = setInterval(function () { CreateUI() }, 1000);
+                //taptapCheck = setInterval(function () { CreateUI() }, 1000);
                 //To stop do this: clearInterval(taptapCheck);     
             }
         );
@@ -52,9 +52,9 @@
 
 
         function CreateHTMLUI() {
-            for (key in result) {
-                var val = THING_INFORMATION_DICT[key];
-                $("#TapTapList").append(key + "&#13;&#10"); //replace <br /> with &#13;&#10 because that makes newlines in more browsers         
+            for (key in DEVICE_INFORMATION_DICT) {
+                var val = DEVICE_INFORMATION_DICT[key];
+                $("#TapTapList").append(val.Key + " " + val.Value +  "&#13;&#10"); //replace <br /> with &#13;&#10 because that makes newlines in more browsers         
             }
         }
 
@@ -89,7 +89,7 @@
         <br />
         <br />
 
-        <div><button class="app_button" id="Button1" onclick="ShowTapTapPortsInfo()">Manual Update</button></div> 
+        <div><button class="app_button" id="Button1" onclick="CreateUI()">Manual Update</button></div> 
 
  
   

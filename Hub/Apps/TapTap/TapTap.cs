@@ -108,7 +108,7 @@ namespace HomeOS.Hub.Apps.TapTap
             //// Read configuration file
             string taptapConfigDirector = moduleInfo.WorkingDir() + "\\Config";
             // Parser
-            TapTapParser parser = new TapTapParser(taptapConfigDirector, "taptapconifg.xml", "TapTapConfig");
+            TapTapParser parser = new TapTapParser(taptapConfigDirector, "taptapconfig.xml", "TapTapConfig");
 
             config = parser.GenObject<TapTapConfig>();
             config.mPath = taptapConfigDirector;
