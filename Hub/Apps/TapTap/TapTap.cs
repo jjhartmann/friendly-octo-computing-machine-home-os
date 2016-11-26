@@ -167,6 +167,7 @@ namespace HomeOS.Hub.Apps.TapTap
         // Setting up device
         private string mDeviceId = "NULL";
         private string mDevicePassPharse = "NULL";
+        private TapTapEngine mEngine = null;
 
         public string DeviceId { get { return mDeviceId; } set { mDeviceId = value; } }
         public string DevicePassPharse { get { return mDevicePassPharse; } set { mDevicePassPharse = value; } }
@@ -177,6 +178,32 @@ namespace HomeOS.Hub.Apps.TapTap
             mDeviceId = indevice;
             mDevicePassPharse = inpass;
         }
+
+        public bool Verify(string id, string pass)
+        {
+            if (id == mDeviceId && pass == mDevicePassPharse)
+            {
+                mEngine.Send("Device Verify Success");
+                return true;
+            }
+
+            mEngine.Send("Device Verify Failed");
+            return false;
+        }
+
+        public void AddEngine(TapTapEngine engine)
+        {
+            mEngine = engine;
+        }
+
+
+        public void Dispose()
+        {
+            mEngine.shutDown();
+            mDeviceId = "NULL";
+            mDevicePassPharse = "NULL";
+        }
+
 
     }
 
@@ -262,6 +289,7 @@ namespace HomeOS.Hub.Apps.TapTap
         // 
         private void EngineCallback(TapTapEngine engine)
         {
+            // TODO: The egnine onwner ship in conflict, who shuts it down. 
             Console.WriteLine("Parser Callback. \nData: {0}", engine.Message.actionType);
             engine.Send("Inside Taptap main!! \n");
 
@@ -286,11 +314,8 @@ namespace HomeOS.Hub.Apps.TapTap
 
                 case "addDeviceRequest":
                     // Get device request. 
-
-                     deviceRequest = new TapTapDeviceRequest(engine.Message.deviceID, engine.Message.actionValue);
-
-                    
-
+                    deviceRequest = new TapTapDeviceRequest(engine.Message.deviceID, engine.Message.actionValue);
+                    deviceRequest.AddEngine(engine);
                     break;
 
                 default:
@@ -626,6 +651,29 @@ namespace HomeOS.Hub.Apps.TapTap
                 if (deviceRequest != null)
                 {
                     retVal.Add(deviceRequest.DeviceId);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error in getting device requests: {0}", e);
+            }
+            return retVal;
+        }
+
+        public bool SendDeviceVerification(string id, string pass)
+        {
+            bool retVal = false;
+            try
+            {
+                if (deviceRequest != null)
+                {
+                    if ((retVal = deviceRequest.Verify(id, pass)))
+                    {
+                        config.AddDevice(id, "Friendly Name for Your device");
+                    }
+
+                    deviceRequest.Dispose();
+                    deviceRequest = null;
                 }
             }
             catch (Exception e)

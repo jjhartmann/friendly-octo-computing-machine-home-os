@@ -117,7 +117,7 @@
                 var val = DEVICE_PROPS[key];
                 $("#requesteddevice").append('<div class="app_content col">' + val +
                                     '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name="FreindlyDeviceName" type="text" maxlength="512" id="' + val + '" placeholder="' + 'Enter Passphrase' + '"/>' +
-                                    '      <button class= "app_button" onclick="SendDeviceRequest(' + "'" + val + "'" + ')"  > VERIFY </button>' +
+                                    '      <button class= "app_button" onclick="SendDeviceVerification(' + "'" + val + "'" + ')"  > VERIFY </button>' +
                                     ' </div>');
             }
         }
@@ -129,12 +129,29 @@
         function CheckForRequestsCallback(context, result) {
             if (result.length > 0) {
                 DeviceRquestUI(result);
+            } else {
+                CreateHTMLUI();
             }
         }
 
-        function SendDeviceRequest(id) {
+        function SendDeviceVerification(id) {
             var pass = document.getElementById(id).value;
+            new PlatformServiceHelper().MakeServiceCall("webapp/SendDeviceVerification", '{"id":"' + id + '", "pass":"' + pass + '" }', SendDeviceVerificationCallBack);
+        }
 
+        function SendDeviceVerificationCallBack(context, result) {
+            if (result) {
+                // Success!
+                CreateHTMLUI();
+                CreateUI();
+                $("#requesteddevice").append('<div style="float: left; color=green;"> SUCCESS! </div>');
+            }
+            else {
+                // Failure
+                CreateHTMLUI();
+                CreateUI();
+                $("#requesteddevice").append('<div style="float: left; color=red;"> FAILED! </div>');
+            }
         }
 
 

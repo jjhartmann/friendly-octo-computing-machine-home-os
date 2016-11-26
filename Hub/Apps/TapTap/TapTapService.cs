@@ -124,12 +124,12 @@ namespace HomeOS.Hub.Apps.TapTap
         }
 
 
-        bool SendDeviceVerification(string id, string pass)
+        public bool SendDeviceVerification(string id, string pass)
         {
             bool retVal = false;
             try
             {
-                
+                retVal = TapTap.SendDeviceVerification(id, pass);
             }
             catch (Exception e)
             {
