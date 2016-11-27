@@ -331,19 +331,37 @@ namespace HomeOS.Hub.Apps.TapTap
             Console.WriteLine("Parser Callback. \nData: {0}", engine.Message.actionType);
             engine.Send("Inside Taptap main!! \n");
 
+            // Check new Add Device Request
+            if (engine.Message.actionType == "addDeviceRequest")
+            {
+                // Get device request. 
+                deviceRequest = new TapTapDeviceRequest(engine.Message.clientID, engine.Message.actionValue);
+                deviceRequest.AddEngine(engine);
+                return;
+            }
 
-            switch(engine.Message.actionType)
+            // Check if device is valid. 
+            if (!config.VerifyDevice(engine.Message.clientID))
+            {
+                engine.Send("Device not Validated\n");
+                engine.shutDown();
+                return;
+            }
+
+
+            // Check messages from client.
+            switch (engine.Message.actionType)
             {
                 case "binarySwitch":
                     // Process the switch and turn device on or off. 
                     VerifySwitchInteraction(engine);
                     break;
 
-                case "addDeviceRequest":
-                    // Get device request. 
-                    deviceRequest = new TapTapDeviceRequest(engine.Message.clientID, engine.Message.actionValue);
-                    deviceRequest.AddEngine(engine);
-                    break;
+                //case "addDeviceRequest":
+                //    // Get device request. 
+                //    deviceRequest = new TapTapDeviceRequest(engine.Message.clientID, engine.Message.actionValue);
+                //    deviceRequest.AddEngine(engine);
+                //    break;
 
                 default:
                     break;
@@ -621,13 +639,6 @@ namespace HomeOS.Hub.Apps.TapTap
 
         private bool VerifySwitchInteraction(TapTapEngine engine)
         {
-            if (!config.VerifyDevice(engine.Message.clientID))
-            {
-                engine.Send("Device not Validated\n");
-                engine.shutDown();
-                return false;
-            }
-
             string friendlySwitchname = "NULL";
             if ( (friendlySwitchname = config.GetThingFriendlyName(engine.Message.tagID)) == "NULL")
             {
