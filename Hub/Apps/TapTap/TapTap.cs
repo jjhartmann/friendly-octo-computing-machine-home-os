@@ -676,7 +676,7 @@ namespace HomeOS.Hub.Apps.TapTap
         }
 
         // Get all Things
-        public Dictionary<string, string> GetAllThings()
+        public Dictionary<string, string> GetAllThings()  
         {
             Dictionary<string, string> ret = new Dictionary<string, string>();
 
