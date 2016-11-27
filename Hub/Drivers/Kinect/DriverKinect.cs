@@ -8,6 +8,7 @@ using System.Threading;
 using System.Drawing;
 using HomeOS.Hub.Common;
 using HomeOS.Hub.Common.WebCam.WebCamWrapper.Camera;
+using HomeOS.Hub.Common.WebCam;
 using HomeOS.Hub.Platform.Views;
 using System.IO;
 using System.Diagnostics;
@@ -27,7 +28,8 @@ namespace HomeOS.Hub.Drivers.Kinect
     {
         Port kinectPort;
         private KinectSensor sensor;
-        KinectAudioSource audioSource;
+        AudioSource audioSource;
+
         SafeThread worker = null;
 
         //only turn these on if someone asks for them because they suck up memory
@@ -59,24 +61,26 @@ namespace HomeOS.Hub.Drivers.Kinect
 
         public override void Start()
         {
-
+            
 
             string kinectStr = moduleInfo.Args()[0];
+            sensor = KinectSensor.GetDefault();
+            
 
-            foreach (var potentialSensor in KinectSensor.KinectSensors)
-            {
-                if (potentialSensor.Status == KinectStatus.Connected)
-                {
-                    //encode the id string as per the encoding in the scout so the match will work 
-                    // '\' and '&' cause problem when the values get written to the config file (XML writer not happy)
-                    string kinectid = "Kinect Sensor:" + potentialSensor.UniqueKinectId.Replace("\\", "-").Replace("&", ".");
-                    if (kinectStr == kinectid)
-                    { 
-                    this.sensor = potentialSensor;
-                    break;
-                    }
-                }
-            }
+            //foreach (var potentialSensor in KinectSensor.KinectSensors)
+            //{
+            //    if (potentialSensor.Status == KinectStatus.Connected)
+            //    {
+            //        //encode the id string as per the encoding in the scout so the match will work 
+            //        // '\' and '&' cause problem when the values get written to the config file (XML writer not happy)
+            //        string kinectid = "Kinect Sensor:" + potentialSensor.UniqueKinectId.Replace("\\", "-").Replace("&", ".");
+            //        if (kinectStr == kinectid)
+            //        { 
+            //        this.sensor = potentialSensor;
+            //        break;
+            //        }
+            //    }
+            //}
 
             //Create a new port on the platform.
             
@@ -119,23 +123,25 @@ namespace HomeOS.Hub.Drivers.Kinect
         /// </summary>
         /// <param name="sender">object sending the event</param>
         /// <param name="e">event arguments</param>
-        private void SensorColorFrameReady(object sender, ColorImageFrameReadyEventArgs e)
+        private void SensorColorFrameReady(object sender, ColorFrameArrivedEventArgs e)
         {
             List<VParamType> ret = new List<VParamType>();
 
             // Allocate space to put the pixels we'll receive
-            byte[] colorPixels = new byte[this.sensor.ColorStream.FramePixelDataLength];
+            byte[] colorPixels = new byte[this.sensor.ColorFrameSource.FrameDescription.LengthInPixels];
+            //byte[] colorPixels = new byte[this.sensor.ColorStream.FramePixelDataLength];
 
             // This is the bitmap we'll display on-screen
-            WriteableBitmap colorBitmap = new WriteableBitmap(this.sensor.ColorStream.FrameWidth, this.sensor.ColorStream.FrameHeight, 96.0, 96.0, PixelFormats.Bgr32, null);
+            WriteableBitmap colorBitmap = new WriteableBitmap(this.sensor.ColorFrameSource.FrameDescription.Width, this.sensor.ColorFrameSource.FrameDescription.Height, 96.0, 96.0, PixelFormats.Bgr32, null);
 
 
-            using (ColorImageFrame colorFrame = e.OpenColorImageFrame())
+            using (ColorFrame colorFrame = e.FrameReference.AcquireFrame())
             {
                 if (colorFrame != null)
                 {
                     // Copy the pixel data from the image to a temporary array
-                    colorFrame.CopyPixelDataTo(colorPixels);
+                    colorFrame.CopyRawFrameDataToArray(colorPixels);
+                    //colorFrame.CopyPixelDataTo(colorPixels);
 
                     // Write the pixel data into our bitmap
                     colorBitmap.WritePixels(
@@ -169,13 +175,14 @@ namespace HomeOS.Hub.Drivers.Kinect
         /// </summary>
         /// <param name="sender">object sending the event</param>
         /// <param name="e">event arguments</param>
-        private void SensorDepthFrameReady(object sender, DepthImageFrameReadyEventArgs e)
+        private void SensorDepthFrameReady(object sender, Depth e)
         {
             List<VParamType> ret = new List<VParamType>();
             List<VParamType> ret_array = new List<VParamType>();
 
             // Allocate space to put the pixels we'll receive
             DepthImagePixel[] depthPixels = new DepthImagePixel[this.sensor.DepthStream.FramePixelDataLength];
+            
             // Allocate space to put the color pixels we'll create
             byte[] depthByte = new byte[this.sensor.DepthStream.FramePixelDataLength * sizeof(int)];
             // This is the bitmap we'll display on-screen
