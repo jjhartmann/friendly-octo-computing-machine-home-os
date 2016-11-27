@@ -166,6 +166,25 @@ namespace HomeOS.Hub.Apps.TapTap
             return false;
         }
 
+        public string GetThingFriendlyName(string tag)
+        {
+            if (mThingsRev.ContainsKey(tag))
+                return mThingsRev[tag];
+
+            return "NULL";
+        }
+
+
+        public bool VerifyDevice(string dName)
+        {
+            return mDevices.ContainsKey(dName);
+        }
+
+        public bool VerifyNFCTag(string tag)
+        {
+            return mThingsRev.ContainsKey(tag);
+        }
+
         public void WriteToDisk()
         {
             TapTapConfig temp =  (TapTapConfig) this.MemberwiseClone();
@@ -316,24 +335,13 @@ namespace HomeOS.Hub.Apps.TapTap
             switch(engine.Message.actionType)
             {
                 case "binarySwitch":
-                    // TODO: Chekc and config NFC ID
-                    double level = Convert.ToDouble(engine.Message.actionValue);
-                    if (SetLevel("PowerSwitch", level))
-                    {
-                        engine.Send("Success in activating Switch\n");
-                    }
-                    else
-                    {
-                        engine.Send("Failure: in activating Switch\n");
-                    }
-
-                    engine.shutDown();
-
+                    // Process the switch and turn device on or off. 
+                    VerifySwitchInteraction(engine);
                     break;
 
                 case "addDeviceRequest":
                     // Get device request. 
-                    deviceRequest = new TapTapDeviceRequest(engine.Message.deviceID, engine.Message.actionValue);
+                    deviceRequest = new TapTapDeviceRequest(engine.Message.clientID, engine.Message.actionValue);
                     deviceRequest.AddEngine(engine);
                     break;
 
@@ -608,6 +616,38 @@ namespace HomeOS.Hub.Apps.TapTap
             return false;
 
 
+        }
+
+
+        private bool VerifySwitchInteraction(TapTapEngine engine)
+        {
+            if (!config.VerifyDevice(engine.Message.clientID))
+            {
+                engine.Send("Device not Validated\n");
+                engine.shutDown();
+                return false;
+            }
+
+            string friendlySwitchname = "NULL";
+            if ( (friendlySwitchname = config.GetThingFriendlyName(engine.Message.deviceID)) == "NULL")
+            {
+                engine.Send("Tag Not Valid \n");
+                engine.shutDown();
+                return false;
+            }
+
+            double level = Convert.ToDouble(engine.Message.actionValue);
+            if (SetLevel(friendlySwitchname, level))
+            {
+                 engine.Send("Success in activating Switch\n");
+            }
+            else
+            {
+                engine.Send("Failure: in activating Switch\n");
+            }
+
+            engine.shutDown();
+            return true;
         }
 
 
