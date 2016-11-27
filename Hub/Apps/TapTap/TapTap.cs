@@ -288,6 +288,9 @@ namespace HomeOS.Hub.Apps.TapTap
 
             //// Read configuration file
             string taptapConfigDirector = moduleInfo.WorkingDir() + "\\Config";
+            string taptapCertificate = moduleInfo.WorkingDir() + "\\Cert\\Certificate.cer";
+
+
             // Parser
             TapTapParser parser = new TapTapParser(taptapConfigDirector, "taptapconfig.xml", "TapTapConfig");
 
@@ -315,7 +318,7 @@ namespace HomeOS.Hub.Apps.TapTap
 
             worker = new SafeThread(delegate()
             {
-                Work();
+                Work(taptapCertificate);
             }, "AppTapTap-worker", logger);
             worker.Start();
         }
@@ -392,10 +395,10 @@ namespace HomeOS.Hub.Apps.TapTap
         /// <summary>
         /// Sit in a loop and spray the Pings to all active ports
         /// </summary>
-        public void Work()
+        public void Work(string serverCertivicate)
         {
             // Start the server 
-            AsynchronousSocketListener.StartListening(EngineCallback);
+            AsynchronousSocketListener.StartListening(EngineCallback, serverCertivicate);
 
             int counter = 0;
             while (true)

@@ -6,7 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
-
+using System.Collections;
+using System.Net.Security;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
+using System.IO;
 
 namespace HomeOS.Hub.Apps.TapTap
 {
@@ -17,7 +21,10 @@ namespace HomeOS.Hub.Apps.TapTap
     public class StateObject
     {
         // The Clients Socket
-        public Socket workSocket = null;
+        public TcpClient workClient = null;
+
+        // The SSLStream
+        public SslStream sslStream = null;
 
         // Buffer size
         public const int bufferSize = 1024;
@@ -33,6 +40,8 @@ namespace HomeOS.Hub.Apps.TapTap
     {
         // Notifies threads when event occors
         public static ManualResetEvent allDone = new ManualResetEvent(false);
+        static X509Certificate serverCertificate = null;
+
 
         // Constructor
         public AsynchronousSocketListener()
@@ -44,10 +53,13 @@ namespace HomeOS.Hub.Apps.TapTap
         public delegate void EngineDelegate(TapTapEngine engine);
         private static EngineDelegate eDelegate;
 
-        public static void StartListening(EngineDelegate c)
+        public static void StartListening(EngineDelegate c, string certificate)
         {
             // Assign delegate
             eDelegate = c;
+
+
+            serverCertificate = X509Certificate.CreateFromCertFile(certificate);
 
             // Data buffer
             byte[] bytes = new Byte[1024];
@@ -59,13 +71,16 @@ namespace HomeOS.Hub.Apps.TapTap
 
 
             // Create TCP/IP Socket
-            Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            //Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            TcpListener listener = new TcpListener(IPAddress.Any, 8080);
+            listener.Start();
+
 
             // Set up listener
             try
             {
-                listener.Bind(localEndPoint);
-                listener.Listen(100);
+                //listener.Bind(localEndPoint);
+                //listener.Listen(100);
 
                 while(true)
                 {
@@ -74,7 +89,8 @@ namespace HomeOS.Hub.Apps.TapTap
 
                     // Start async listener
                     Console.WriteLine("Pending Connection...");
-                    listener.BeginAccept(new AsyncCallback(AcceptCallBack), listener);
+                    listener.BeginAcceptTcpClient(new AsyncCallback(AcceptCallBack), listener);
+                    //listener.BeginAccept(new AsyncCallback(AcceptCallBack), listener);
 
                     // Thread Wait
                     allDone.WaitOne();            
@@ -99,26 +115,58 @@ namespace HomeOS.Hub.Apps.TapTap
             allDone.Set();
 
             // Get socket handles
-            Socket listener = (Socket)ar.AsyncState;
-            Socket handler = listener.EndAccept(ar);
+            //Socket listener = (Socket)ar.AsyncState;
+            //Socket handler = listener.EndAccept(ar);
+            TcpListener listener = (TcpListener)ar.AsyncState;
+            TcpClient client = listener.EndAcceptTcpClient(ar);
+
 
             // Create State Object and handle receive
             StateObject state = new StateObject();
-            state.workSocket = handler;
-            handler.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReadCallBack), state);
+            state.workClient = client;
+            //handler.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReadCallBack), state);
 
+        }
+
+
+        static void ProcessClient(StateObject state)
+        {
+            // Get the SSL Stream
+            SslStream sslStream = new SslStream(state.workClient.GetStream(), false);
+
+            try
+            {
+                // Authenticate Server
+                sslStream.AuthenticateAsServer(serverCertificate, false, SslProtocols.Tls12, true);
+
+                // Set SslStream
+                state.sslStream = sslStream;
+                sslStream.BeginRead(state.buffer, 0, StateObject.bufferSize, new AsyncCallback(ReadCallBack), state);
+            }
+            catch(AuthenticationException e)
+            {
+                Console.WriteLine("Exception: {0}", e.Message);
+                if (e.InnerException != null)
+                {
+                    Console.WriteLine("Inner exception: {0}", e.InnerException.Message);
+                }
+                Console.WriteLine("Authentication failed - closing the connection.");
+                sslStream.Close();
+                state.workClient.Close();
+                return;
+            }
         }
 
         // Handle the connection to the server
         public static void ReadCallBack(IAsyncResult ar)
         {
             StateObject state = (StateObject) ar.AsyncState;
-            Socket handler = state.workSocket;
+            SslStream stream = state.sslStream;
 
             Console.WriteLine("CHecking Read Callback");
 
             String data = String.Empty;
-            int bytesRecieved = handler.EndReceive(ar);
+            int bytesRecieved = stream.EndRead(ar);
 
             if (bytesRecieved > 0) {
 
@@ -130,14 +178,14 @@ namespace HomeOS.Hub.Apps.TapTap
                     Console.WriteLine("Read {0} Bytes. \nData: {1}", data.Length, data);
 
                     // Call engine to process request. 
-                    TapTapEngine engine = new TapTapEngine(handler);
+                    TapTapEngine engine = new TapTapEngine(state);
                     if (engine.ParseData(data)) {
                         eDelegate(engine);
                     }
                 }
                 else
                 {
-                    handler.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReadCallBack), state);
+                    stream.BeginRead(state.buffer, 0, StateObject.bufferSize, new AsyncCallback(ReadCallBack), state);
                 }
 
             }

@@ -37,16 +37,16 @@ namespace HomeOS.Hub.Apps.TapTap
         }
 
         private XmlSerializer serializer;
-        private Socket mHandler;
+        private StateObject mState;
 
         
 
         public TapTapEngine() { }
 
-        public TapTapEngine(Socket handler)
+        public TapTapEngine(StateObject state)
         {
             Console.WriteLine("TapTapEngine");
-            mHandler = handler;
+            mState = state;
         }
 
         public bool ParseData(string data)
@@ -84,10 +84,10 @@ namespace HomeOS.Hub.Apps.TapTap
             // Send to client. 
             try
             {
-                //mHandler.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), mHandler);
                 SocketError error;
-                int byteSent =  mHandler.Send(byteData, 0, byteData.Length, 0, out error);
-                Console.WriteLine("Send {0} bytes to client.", byteSent);
+                //int byteSent =  mState.sslStream.Write(byteData, 0, byteData.Length, 0, out error);
+                mState.sslStream.Write(byteData, 0, byteData.Length);
+                Console.WriteLine("Send {0} bytes to client.", byteData.Length);
             }
             catch (Exception e)
             {
@@ -100,9 +100,9 @@ namespace HomeOS.Hub.Apps.TapTap
 
         public void shutDown()
         {
-            mHandler.Shutdown(SocketShutdown.Both);
-            mHandler.Close();
-            mHandler = null;
+            mState.sslStream.Close();
+            mState.workClient.Close();
+            mState = null;
         }
 
     }
