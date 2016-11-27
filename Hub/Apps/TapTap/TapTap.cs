@@ -629,7 +629,7 @@ namespace HomeOS.Hub.Apps.TapTap
             }
 
             string friendlySwitchname = "NULL";
-            if ( (friendlySwitchname = config.GetThingFriendlyName(engine.Message.deviceID)) == "NULL")
+            if ( (friendlySwitchname = config.GetThingFriendlyName(engine.Message.tagID)) == "NULL")
             {
                 engine.Send("Tag Not Valid \n");
                 engine.shutDown();
