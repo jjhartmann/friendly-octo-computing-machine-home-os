@@ -126,6 +126,8 @@ namespace HomeOS.Hub.Apps.TapTap
             state.workClient = client;
             //handler.BeginReceive(state.buffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReadCallBack), state);
 
+            ProcessClient(state);
+
         }
 
 
@@ -137,7 +139,7 @@ namespace HomeOS.Hub.Apps.TapTap
             try
             {
                 // Authenticate Server
-                sslStream.AuthenticateAsServer(serverCertificate, false, SslProtocols.Tls12, true);
+                sslStream.AuthenticateAsServer(serverCertificate, false, SslProtocols.Tls, true);
 
                 // Set SslStream
                 state.sslStream = sslStream;

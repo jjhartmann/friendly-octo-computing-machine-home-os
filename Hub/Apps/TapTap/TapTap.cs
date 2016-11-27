@@ -288,7 +288,7 @@ namespace HomeOS.Hub.Apps.TapTap
 
             //// Read configuration file
             string taptapConfigDirector = moduleInfo.WorkingDir() + "\\Config";
-            string taptapCertificate = moduleInfo.WorkingDir() + "\\Cert\\Certificate.cer";
+            string taptapCertificate = moduleInfo.WorkingDir() + "\\Cert\\certificate.cer";
 
 
             // Parser
