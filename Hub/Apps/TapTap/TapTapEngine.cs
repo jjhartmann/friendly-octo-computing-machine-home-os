@@ -49,6 +49,16 @@ namespace HomeOS.Hub.Apps.TapTap
             mState = state;
         }
 
+        ~TapTapEngine()
+        {
+            if (mState != null)
+            {
+                mState.sslStream.Close();
+                mState.workClient.Close();
+                mState = null;
+            }
+        }
+
         public bool ParseData(string data)
         {
             serializer = new XmlSerializer(typeof(ProtocolFormat));

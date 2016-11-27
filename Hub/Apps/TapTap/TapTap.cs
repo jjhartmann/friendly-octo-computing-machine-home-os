@@ -352,7 +352,7 @@ namespace HomeOS.Hub.Apps.TapTap
             }
 
 
-            // Check messages from client.
+            // Route Messages
             switch (engine.Message.actionType)
             {
                 case "binarySwitch":

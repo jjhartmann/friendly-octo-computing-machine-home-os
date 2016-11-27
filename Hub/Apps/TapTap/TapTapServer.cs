@@ -184,6 +184,12 @@ namespace HomeOS.Hub.Apps.TapTap
                     if (engine.ParseData(data)) {
                         eDelegate(engine);
                     }
+                    else
+                    {
+                        Console.WriteLine("Error in Parsing data. Shut down stream");
+                        state.sslStream.Close();
+                        state.workClient.Close();
+                    }
                 }
                 else
                 {
