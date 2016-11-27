@@ -24,7 +24,7 @@ namespace HomeOS.Hub.Scouts.Arduino
         private bool disposed = false;
 
         Dictionary<string, SerialPort> serialPorts = new Dictionary<string, SerialPort>();
-        string serialPortofArduino = ""; //need to tell driver which serial port this one is on
+        string serialPortofArduino = "COM5"; //need to tell driver which serial port this one is on
 
         DeviceList currentDeviceList = new DeviceList();
 
