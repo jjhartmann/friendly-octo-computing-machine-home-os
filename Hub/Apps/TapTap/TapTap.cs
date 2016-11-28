@@ -638,6 +638,7 @@ namespace HomeOS.Hub.Apps.TapTap
                         string newfriendlyname = port.GetInfo().GetFriendlyName();
                         string oldFriendlyName = switchFriendlyNameRev[port];
                         switchFriendlyNameRev.Remove(port);
+                        switchFriendlyName.Reverse(oldFriendlyName);
 
                         // TODO: Create a bi-directional hashtable for port <==> name lookup
                         switchFriendlyName[newfriendlyname] = port;
@@ -662,6 +663,7 @@ namespace HomeOS.Hub.Apps.TapTap
                         string newfriendlyname = port.GetInfo().GetFriendlyName();
                         string oldFriendlyName = androidUnoRegistered[port];
                         androidUnoRegistered.Remove(port);
+                        androidUnoFriendlyName.Remove(oldFriendlyName);
 
                         // TODO: Create a bi-directional hashtable for port <==> name lookup
                         androidUnoFriendlyName[newfriendlyname] = port;
