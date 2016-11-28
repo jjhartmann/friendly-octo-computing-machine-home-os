@@ -692,23 +692,33 @@ namespace HomeOS.Hub.Apps.TapTap
 
         private bool VerifyBinarySwitch(TapTapEngine engine)
         {
-            string friendlySwitchname = "NULL";
-            if ( (friendlySwitchname = config.GetThingFriendlyName(engine.Message.tagID)) == "NULL")
+            string friendlyname = "NULL";
+            if ( (friendlyname = config.GetThingFriendlyName(engine.Message.tagID)) == "NULL")
             {
                 engine.Send("Tag Not Valid \n");
                 engine.shutDown();
                 return false;
             }
 
-            // Don't need value for binary switch.
-            if (SetLevel(friendlySwitchname))
+            if (switchFriendlyName.ContainsKey(friendlyname))
             {
-                 engine.Send("Success in activating Switch\n");
-            }
-            else
+
+                // Don't need value for binary switch.
+                if (SetLevel(friendlyname))
+                {
+                    engine.Send("Success in activating Switch\n");
+                }
+                else
+                {
+                    engine.Send("Failure: in activating Switch\n");
+                }
+            } 
+            else if (androidUnoFriendlyName.ContainsKey(friendlyname))
             {
-                engine.Send("Failure: in activating Switch\n");
+                // Invoke Android device.
             }
+
+
 
             engine.shutDown();
             return true;
