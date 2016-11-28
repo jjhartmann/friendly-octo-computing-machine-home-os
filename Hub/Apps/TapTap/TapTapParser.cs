@@ -153,19 +153,47 @@ namespace HomeOS.Hub.Apps.TapTap
                                 Type TKey = args[0];
                                 Type TVal = args[1];
 
-                                Dictionary<string, string> dictProp = new Dictionary<string, string>();
-
-                                XmlNodeList nodeList = val.ChildNodes;
-                                foreach (XmlNode i in nodeList)
+                                // For String string
+                                if (Type.GetTypeCode(TKey) == TypeCode.String && Type.GetTypeCode(TVal) == TypeCode.String)
                                 {
-                                    string textOne = i.ChildNodes[0].InnerText;
-                                    string textTwo = i.ChildNodes[1].InnerText;
 
-                                    dictProp[textOne] = textTwo;
+                                    Dictionary<string, string> dictProp = new Dictionary<string, string>();
+
+                                    XmlNodeList nodeList = val.ChildNodes;
+                                    foreach (XmlNode i in nodeList)
+                                    {
+                                        string textOne = i.ChildNodes[0].InnerText;
+                                        string textTwo = i.ChildNodes[1].InnerText;
+
+                                        dictProp[textOne] = textTwo;
+                                    }
+
+
+                                    propInfo.SetValue(obj, dictProp);
+                                }
+                                else if (Type.GetTypeCode(TKey) == TypeCode.String && Type.GetTypeCode(TVal) == TypeCode.Object)
+                                {
+
+                                    Dictionary<string, List<string>> dictProp = new Dictionary<string, List<string>>();
+
+                                    XmlNodeList nodeList = val.ChildNodes;
+                                    foreach (XmlNode i in nodeList)
+                                    {
+                                        string textOne = i.ChildNodes[0].InnerText;
+
+                                        XmlNodeList innerList = i.ChildNodes[1].ChildNodes;
+                                        List<string> thinglist = new List<string>();
+                                        foreach (XmlNode j in innerList) {
+                                            thinglist.Add(j.InnerText);
+                                        }
+                                        dictProp[textOne] = thinglist;
+                                    }
+
+
+                                    propInfo.SetValue(obj, dictProp);
                                 }
 
 
-                                propInfo.SetValue(obj, dictProp);
                             }
                             break;
                         default:

@@ -1,5 +1,6 @@
 ﻿using HomeOS.Hub.Apps.TapTap;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
 using System.IO;
 
 namespace TapTapParsserTest
@@ -135,6 +136,25 @@ namespace TapTapParsserTest
             config.Things["zwa2gqw3267ve43"] = "2314123123232";
             config.Things["zwav252525e43"] = "2314123123232";
             config.Things["zwa223452ve43"] = "2314123123232";
+
+            List<string> d1 = new List<string>
+            {
+                "zwave4sdfgsf35",
+                "adfasdf",
+                "zwavsdfae4sdfgsf35",
+                "zwaveasdfasdfasd4sdfgsf35",
+                "sdfasasdfasddf",
+                "zwave4sdfgsf35",
+                "zwave4sasdfadfgsf35",
+                "zwavefasdfasd4sdfgsf35",
+                "zwaveasdfafadsf4sdfgsf35",
+                "zwaveadsfasdfas4sdfgsf35"
+            };
+            config.DeviceAuth["2324562525uy4uyt423"] = d1;
+            config.DeviceAuth["dsfasdfadsf"] = d1;
+            config.DeviceAuth["asdfasdfasdf"] = d1;
+            config.DeviceAuth["asdfasdfasdf"] = d1;
+            config.DeviceAuth["asdfasdfasdf"] = d1;
 
             TapTapParser parser = new TapTapParser(Directory.GetCurrentDirectory().ToString(), "Test.xml", "Test");
             parser.CreateXml(config);

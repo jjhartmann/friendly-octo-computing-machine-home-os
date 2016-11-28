@@ -47,6 +47,10 @@ namespace HomeOS.Hub.Apps.TapTap
         private Dictionary<string, string> mDevices = new Dictionary<string, string>();
         private Dictionary<string, string> mThingsRev = new Dictionary<string, string>();
         private Dictionary<string, string> mThings = new Dictionary<string, string>();
+
+        // Authentication
+        private Dictionary<string, List<string>> mDeviceAuth = new Dictionary<string, List<string>>();
+
         
         public Dictionary<string, string> Devices {
             get { return mDevices;  }
@@ -62,6 +66,11 @@ namespace HomeOS.Hub.Apps.TapTap
                     mThingsRev[mThings[key]] = key;
                 }
             }
+        }
+        public Dictionary<string, List<string>> DeviceAuth
+        {
+            get { return mDeviceAuth; }
+            set { mDeviceAuth = value; }
         }
 
         /// <summary>
@@ -83,9 +92,19 @@ namespace HomeOS.Hub.Apps.TapTap
             {
                 xml += "<Thing><Id>" + e.Key + "</Id><NFCTag>" + e.Value + "</NFCTag></Thing>";
             }
-            xml += "</Things></TapTapConfig>";
+            xml += "</Things><DeviceAuth>";
 
+            foreach (KeyValuePair<string, List<string>> e in mDeviceAuth)
+            {
+                xml += "<Auth><DeviceID>" + e.Key + "</DeviceID><ThingsList>";
+                foreach (string th in e.Value) {
+                    xml += "<Thing>" + th + "</Thing>";
+                }
 
+                xml += "</ThingsList></Auth>";
+            }
+
+            xml += "</DeviceAuth></TapTapConfig>";
             return xml;
 
         }
