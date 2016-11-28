@@ -1,6 +1,5 @@
-﻿using System;
+﻿using HomeOS.Hub.Apps.TapTap;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using HomeOS.Hub.Apps.TapTap;
 using System.IO;
 
 namespace TapTapParsserTest
@@ -12,73 +11,65 @@ namespace TapTapParsserTest
         public void TestXMLLoading()
         {
             TapTapParser parser = new TapTapParser();
-            string xml = @"<TEST> 
+            string xml = @"<TEST>
                                 <name>hello</name>
                                 <region>canada</region>
                                 <number> 234 </number>
                             </TEST>";
-            
+
             parser.ReadRaw(xml.Replace("\r\n", string.Empty));
         }
 
-
-
-        class CoolObject
+        private class CoolObject
         {
-            string mName;
-            string mRegion;
-            int mNumber = 0;
+            private string mName;
+            private string mRegion;
+            private int mNumber = 0;
 
             public string Name { get { return mName; } set { mName = value; } }
 
             public string Region { get { return mRegion; } set { mRegion = value; } }
 
             public int Number { get { return mNumber; } set { mNumber = value; } }
-
         }
 
         [TestMethod]
-        public void TestXMLObjectGenPostive() {
+        public void TestXMLObjectGenPostive()
+        {
             TapTapParser parser = new TapTapParser();
-            string xml = @"<TEST> 
+            string xml = @"<TEST>
                                 <Name>hello</Name>
                                 <Region>canada</Region>
                                 <Number> 234 </Number>
                             </TEST>";
             parser.ReadRaw(xml.Replace("\r\n", string.Empty));
 
-
             // Generate new object
             CoolObject cobj = parser.GenObject<CoolObject>();
             Assert.AreNotEqual(cobj, null);
         }
 
-
         [TestMethod]
         public void TestXMLObjectGenNegative()
         {
             TapTapParser parser = new TapTapParser();
-            string xml = @"<TEST> 
+            string xml = @"<TEST>
                                 <Name>hello</Name>
                                 <Lights>canada</Lights>
                                 <Staff> 234 </Staff>
                             </TEST>";
             parser.ReadRaw(xml.Replace("\r\n", string.Empty));
 
-
             // Generate new object
             CoolObject cobj = parser.GenObject<CoolObject>();
             Assert.AreNotEqual(cobj, null);
         }
 
-
-        
-
         [TestMethod]
         public void TestXMLObjectGenConfig()
         {
             TapTapParser parser = new TapTapParser();
-            string xml = @"<ConfigTapTap> 
+            string xml = @"<ConfigTapTap>
                                 <Devices>
                                     <Device><Id>234g45k4k</Id><Name>Jeremy's Phone</Name></Device>
                                     <Device><Id>2352343g5k</Id><Name>Mark's Phone</Name></Device>
@@ -93,21 +84,18 @@ namespace TapTapParsserTest
                             </ConfigTapTap>";
             parser.ReadRaw(xml.Replace("\r\n", string.Empty));
 
-
             // Generate new object
             TapTapConfig cobj = parser.GenObject<TapTapConfig>();
             Assert.AreNotEqual(cobj, null);
         }
 
-
         [TestMethod]
         public void TestXMLObjectGenEmpty()
         {
             TapTapParser parser = new TapTapParser();
-            string xml = @"<ConfigTapTap> 
+            string xml = @"<ConfigTapTap>
                            </ConfigTapTap>";
             parser.ReadRaw(xml.Replace("\r\n", string.Empty));
-
 
             // Generate new object
             TapTapConfig cobj = parser.GenObject<TapTapConfig>();
@@ -150,10 +138,6 @@ namespace TapTapParsserTest
 
             TapTapParser parser = new TapTapParser(Directory.GetCurrentDirectory().ToString(), "Test.xml", "Test");
             parser.CreateXml(config);
-            
-
-
-            
         }
     }
 }
