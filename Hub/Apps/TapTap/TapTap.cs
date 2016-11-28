@@ -44,11 +44,16 @@ namespace HomeOS.Hub.Apps.TapTap
         public string mPath;
         public string mFile;
 
+        // Devices (phones) <GUIID, GivenName>
         private Dictionary<string, string> mDevices = new Dictionary<string, string>();
+
+        // ThingsRev (objects> <NFCTag, FriendlyName>
         private Dictionary<string, string> mThingsRev = new Dictionary<string, string>();
+
+        // Things (objects) <FriendlyName, NFCTag>
         private Dictionary<string, string> mThings = new Dictionary<string, string>();
 
-        // Authentication
+        // Authentication: <GUID, List_of_things_access>
         private Dictionary<string, List<string>> mDeviceAuth = new Dictionary<string, List<string>>();
 
         
@@ -154,6 +159,21 @@ namespace HomeOS.Hub.Apps.TapTap
                 mThings[friendlyNameID] = nfctag;
                 mThingsRev[nfctag] = friendlyNameID;
 
+                // Default behavior is to add thing permission to all devices
+                foreach (KeyValuePair<string, string> e in mDevices)
+                {
+                    if (!mDeviceAuth.ContainsKey(e.Key))
+                    {
+                        List<string> list = new List<string>();
+                        list.Add(friendlyNameID);
+                        mDeviceAuth[e.Key] = list;
+                    }
+                    else
+                    {
+                        mDeviceAuth[e.Key].Add(friendlyNameID);
+                    }
+                }
+
                 WriteToDisk();
                 return true;
             }
@@ -169,9 +189,10 @@ namespace HomeOS.Hub.Apps.TapTap
         // Remove thing to the Config file.
         public bool RemoveThing(string id)
         {
+
             try
             {
-                mThingsRev.Remove(mDevices[id]);
+                mThingsRev.Remove(mThings[id]);
                 mThings.Remove(id);
                 WriteToDisk();
                 return true;
@@ -205,9 +226,15 @@ namespace HomeOS.Hub.Apps.TapTap
         }
 
 
-        public bool VerifyDevice(string dName)
+        public bool VerifyDeviceAuthentication(string dName, string nfctag)
         {
-            return mDevices.ContainsKey(dName);
+            if (mDevices.ContainsKey(dName) && VerifyNFCTag(nfctag)) {
+                List<string> thingList = mDeviceAuth[dName];
+                string thingName = mThingsRev[nfctag];
+                return thingList.Contains(thingName);
+            }
+
+            return false;
         }
 
         public bool VerifyNFCTag(string tag)
@@ -215,8 +242,58 @@ namespace HomeOS.Hub.Apps.TapTap
             return mThingsRev.ContainsKey(tag);
         }
 
+        public bool AddDeviceAuth(string deviceName, string thingName)
+        {
+            try
+            {
+                if (mDeviceAuth.ContainsKey(deviceName))
+                {
+                    mDeviceAuth[deviceName].Add(thingName);
+                }
+                else
+                {
+                    List<string> list = new List<string>();
+                    list.Add(thingName);
+                    mDeviceAuth[deviceName] = list;
+
+                }
+                WriteToDisk();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error in creating Device entry: {0}", e);
+
+            }
+
+            return false;
+        }
+
+        public bool RemoveDeviceAuth(string deviceName, string thingName)
+        {
+            if (!mDeviceAuth.ContainsKey(deviceName)) {
+                return false;
+            }
+
+            try
+            { 
+                mDeviceAuth[deviceName].Remove(thingName);
+                WriteToDisk();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error in creating Device entry: {0}", e);
+
+            }
+
+            return false;
+        }
+
+
         public void WriteToDisk()
         {
+            // Write in separate thread
             TapTapConfig temp =  (TapTapConfig) this.MemberwiseClone();
             SafeThread w = new SafeThread(delegate {
                 TapTapParser parser = new TapTapParser(mPath, mFile, CONFIG_NAME);
@@ -394,9 +471,8 @@ namespace HomeOS.Hub.Apps.TapTap
             }
 
             // Check if device is valid. 
-            if (!config.VerifyDevice(engine.Message.clientID))
+            if (!config.VerifyDeviceAuthentication(engine.Message.clientID, engine.Message.tagID))
             {
-                
                 engine.SendDebug("Device not Validated\n");
                 engine.shutDown();
                 return;
