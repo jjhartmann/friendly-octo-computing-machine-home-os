@@ -70,19 +70,168 @@ namespace TapTapParsserTest
         public void TestXMLObjectGenConfig()
         {
             TapTapParser parser = new TapTapParser();
-            string xml = @"<ConfigTapTap>
-                                <Devices>
-                                    <Device><Id>234g45k4k</Id><Name>Jeremy's Phone</Name></Device>
-                                    <Device><Id>2352343g5k</Id><Name>Mark's Phone</Name></Device>
-                                    <Device><Id>234g2gg344k</Id><Name>Body's Phone</Name></Device>
-                                </Devices>
-                                <Things>
-                                    <Thing><Id>Zwve.Node2</Id><NFC>12384756</NFC></Thing>
-                                    <Thing><Id>Zwve.Node1</Id><NFC>56376245</NFC></Thing>
-                                    <Thing><Id>Zwve.Node5</Id><NFC>22527216</NFC></Thing>
-                                    <Thing><Id>Zwve.Node8</Id><NFC>16134512</NFC></Thing>
-                                </Things>
-                            </ConfigTapTap>";
+            string xml =
+                            @"<TapTapConfig>
+                              <Devices>
+                                <Device>
+                                  <Id>11131yweryeh5112</Id>
+                                  <Name>Hello Phone</Name>
+                                </Device>
+                                <Device>
+                                  <Id>24whshwey5622</Id>
+                                  <Name>Hello Phone</Name>
+                                </Device>
+                                <Device>
+                                  <Id>2324562525uy4uyt423</Id>
+                                  <Name>Hello Phone</Name>
+                                </Device>
+                                <Device>
+                                  <Id>23252562456</Id>
+                                  <Name>Hello Phone</Name>
+                                </Device>
+                                <Device>
+                                  <Id>562625622yehw</Id>
+                                  <Name>Hello Phone</Name>
+                                </Device>
+                                <Device>
+                                  <Id>2426525622252</Id>
+                                  <Name>Hello Phone</Name>
+                                </Device>
+                                <Device>
+                                  <Id>11126262315112</Id>
+                                  <Name>Hello Phone</Name>
+                                </Device>
+                                <Device>
+                                  <Id>111325625615112</Id>
+                                  <Name>Hello Phone</Name>
+                                </Device>
+                                <Device>
+                                  <Id>werter33y</Id>
+                                  <Name>Hello Phone</Name>
+                                </Device>
+                                <Device>
+                                  <Id>fweryy</Id>
+                                  <Name>Hello Phone</Name>
+                                </Device>
+                                <Device>
+                                  <Id>dfgqerqyqy</Id>
+                                  <Name>Hello Phone</Name>
+                                </Device>
+                                <Device>
+                                  <Id>1113256215112</Id>
+                                  <Name>Hello Phone</Name>
+                                </Device>
+                                <Device>
+                                  <Id>111256252315112</Id>
+                                  <Name>Hello Phone</Name>
+                                </Device>
+                              </Devices>
+                              <Things>
+                                <Thing>
+                                  <Id>sdfgsfg</Id>
+                                  <NFCTag>2314123123232</NFCTag>
+                                </Thing>
+                                <Thing>
+                                  <Id>hwwerh</Id>
+                                  <NFCTag>2314123123232</NFCTag>
+                                </Thing>
+                                <Thing>
+                                  <Id>sdfgs</Id>
+                                  <NFCTag>2314123123232</NFCTag>
+                                </Thing>
+                                <Thing>
+                                  <Id>zwave4sdfgsf35</Id>
+                                  <NFCTag>2314123123232</NFCTag>
+                                </Thing>
+                                <Thing>
+                                  <Id>zwave453</Id>
+                                  <NFCTag>2314123123232</NFCTag>
+                                </Thing>
+                                <Thing>
+                                  <Id>zw5avsdfgsdfse43</Id>
+                                  <NFCTag>2314123123232</NFCTag>
+                                </Thing>
+                                <Thing>
+                                  <Id>zw5a6fgsdfgsdgsve43</Id>
+                                  <NFCTag>2314123123232</NFCTag>
+                                </Thing>
+                                <Thing>
+                                  <Id>asdfasdfasdfasdfas</Id>
+                                  <NFCTag>2314123123232</NFCTag>
+                                </Thing>
+                                <Thing>
+                                  <Id>zwa6ve43</Id>
+                                  <NFCTag>2314123123232</NFCTag>
+                                </Thing>
+                                <Thing>
+                                  <Id>zw7sdfgsdg5ave43</Id>
+                                  <NFCTag>2314123123232</NFCTag>
+                                </Thing>
+                                <Thing>
+                                  <Id>zwa7dgsdfgsd252ve43</Id>
+                                  <NFCTag>2314123123232</NFCTag>
+                                </Thing>
+                                <Thing>
+                                  <Id>zwa2gqw3267ve43</Id>
+                                  <NFCTag>2314123123232</NFCTag>
+                                </Thing>
+                                <Thing>
+                                  <Id>zwav252525e43</Id>
+                                  <NFCTag>2314123123232</NFCTag>
+                                </Thing>
+                                <Thing>
+                                  <Id>zwa223452ve43</Id>
+                                  <NFCTag>2314123123232</NFCTag>
+                                </Thing>
+                              </Things>
+                              <DeviceAuth>
+                                <Auth>
+                                  <DeviceID>2324562525uy4uyt423</DeviceID>
+                                  <ThingsList>
+                                    <Thing>zwave4sdfgsf35</Thing>
+                                    <Thing>adfasdf</Thing>
+                                    <Thing>zwavsdfae4sdfgsf35</Thing>
+                                    <Thing>zwaveasdfasdfasd4sdfgsf35</Thing>
+                                    <Thing>sdfasasdfasddf</Thing>
+                                    <Thing>zwave4sdfgsf35</Thing>
+                                    <Thing>zwave4sasdfadfgsf35</Thing>
+                                    <Thing>zwavefasdfasd4sdfgsf35</Thing>
+                                    <Thing>zwaveasdfafadsf4sdfgsf35</Thing>
+                                    <Thing>zwaveadsfasdfas4sdfgsf35</Thing>
+                                  </ThingsList>
+                                </Auth>
+                                <Auth>
+                                  <DeviceID>dsfasdfadsf</DeviceID>
+                                  <ThingsList>
+                                    <Thing>zwave4sdfgsf35</Thing>
+                                    <Thing>adfasdf</Thing>
+                                    <Thing>zwavsdfae4sdfgsf35</Thing>
+                                    <Thing>zwaveasdfasdfasd4sdfgsf35</Thing>
+                                    <Thing>sdfasasdfasddf</Thing>
+                                    <Thing>zwave4sdfgsf35</Thing>
+                                    <Thing>zwave4sasdfadfgsf35</Thing>
+                                    <Thing>zwavefasdfasd4sdfgsf35</Thing>
+                                    <Thing>zwaveasdfafadsf4sdfgsf35</Thing>
+                                    <Thing>zwaveadsfasdfas4sdfgsf35</Thing>
+                                  </ThingsList>
+                                </Auth>
+                                <Auth>
+                                  <DeviceID>asdfasdfasdf</DeviceID>
+                                  <ThingsList>
+                                    <Thing>zwave4sdfgsf35</Thing>
+                                    <Thing>adfasdf</Thing>
+                                    <Thing>zwavsdfae4sdfgsf35</Thing>
+                                    <Thing>zwaveasdfasdfasd4sdfgsf35</Thing>
+                                    <Thing>sdfasasdfasddf</Thing>
+                                    <Thing>zwave4sdfgsf35</Thing>
+                                    <Thing>zwave4sasdfadfgsf35</Thing>
+                                    <Thing>zwavefasdfasd4sdfgsf35</Thing>
+                                    <Thing>zwaveasdfafadsf4sdfgsf35</Thing>
+                                    <Thing>zwaveadsfasdfas4sdfgsf35</Thing>
+                                  </ThingsList>
+                                </Auth>
+                              </DeviceAuth>
+                            </TapTapConfig>";
             parser.ReadRaw(xml.Replace("\r\n", string.Empty));
 
             // Generate new object
