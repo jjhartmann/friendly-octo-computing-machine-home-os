@@ -341,7 +341,7 @@ namespace HomeOS.Hub.Apps.TapTap
                 mEngine.SendFormatedClientResponse(mDeviceId, "1", "1");
                 return true;
             }
-            mEngine.SendFormatedClientResponse(mDeviceId, "0", "0");
+            mEngine.SendFormatedClientResponse(mDeviceId, "1", "0");
             mEngine.SendDebug("Device Verify Failed");
             return false;
         }
