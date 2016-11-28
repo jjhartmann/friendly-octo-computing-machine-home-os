@@ -87,6 +87,17 @@ namespace HomeOS.Hub.Apps.TapTap
         }
 
 
+        public bool SendFormatedClientResponse(string friendlyName, string state, string status)
+        {
+            string payload = "<ReturnFormat><friendlyName>" + friendlyName + "</friendlyName>" +
+                                "<state>" + state + "</state>" +
+                                "<status>" + status + "</status>" +
+                            "</ReturnFormat>";
+
+            return Send(payload); 
+        }
+
+
 
         // Debug Send
         public bool SendDebug(string data)

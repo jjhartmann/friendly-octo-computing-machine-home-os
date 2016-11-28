@@ -233,9 +233,10 @@ namespace HomeOS.Hub.Apps.TapTap
             if (id == mDeviceId && pass == mDevicePassPharse)
             {
                 mEngine.SendDebug("Device Verify Success");
+                mEngine.SendFormatedClientResponse(mDeviceId, "1", "1");
                 return true;
             }
-
+            mEngine.SendFormatedClientResponse(mDeviceId, "0", "0");
             mEngine.SendDebug("Device Verify Failed");
             return false;
         }
@@ -782,33 +783,30 @@ namespace HomeOS.Hub.Apps.TapTap
                 return false;
             }
 
+            bool activationSuccess = false;
             if (switchFriendlyName.ContainsKey(friendlyname))
             {
 
                 // Don't need value for binary switch.
-                if (SetLevel(friendlyname))
-                {
-                    engine.SendDebug("Success in activating Switch\n");
-                }
-                else
-                {
-                    engine.SendDebug("Failure: in activating Switch\n");
-                }
+                activationSuccess = SetLevel(friendlyname);
             } 
             else if (androidUnoFriendlyName.ContainsKey(friendlyname))
             {
                 // Invoke Android device.
                 int value = Int32.Parse(engine.Message.actionValue);
-                if (InvokeUno(friendlyname, value))
-                {
-                    engine.SendDebug("Success in activating Uno\n");
-                }
-                else
-                {
-                    engine.SendDebug("Failure: in activating Uno\n");
-                }
+                activationSuccess = InvokeUno(friendlyname, value);
             }
 
+            if (activationSuccess)
+            {
+                engine.SendFormatedClientResponse(friendlyname, engine.Message.actionType, "1");
+                engine.SendDebug("Success: in activating " + friendlyname + "\n");
+            }
+            else
+            {
+                engine.SendFormatedClientResponse(friendlyname, engine.Message.actionType, "0");
+                engine.SendDebug("Failure: in activating " + friendlyname + "\n");
+            }
 
 
             engine.shutDown();
