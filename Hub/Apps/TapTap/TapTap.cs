@@ -40,7 +40,7 @@ namespace HomeOS.Hub.Apps.TapTap
         private VLogger logger;
 
         // Config Settings
-        public const string mName = "TapTapConfig";
+        public const string CONFIG_NAME = "TapTapConfig";
         public string mPath;
         public string mFile;
 
@@ -171,7 +171,7 @@ namespace HomeOS.Hub.Apps.TapTap
             if (mThingsRev.ContainsKey(tag))
                 return mThingsRev[tag];
 
-            return "NULL";
+            return TapTapConstants.STR_NULL;
         }
 
 
@@ -182,7 +182,7 @@ namespace HomeOS.Hub.Apps.TapTap
                 return mThings[friendlyname];
             }
 
-            return "NULL";
+            return TapTapConstants.STR_NULL;
         }
 
 
@@ -200,7 +200,7 @@ namespace HomeOS.Hub.Apps.TapTap
         {
             TapTapConfig temp =  (TapTapConfig) this.MemberwiseClone();
             SafeThread w = new SafeThread(delegate {
-                TapTapParser parser = new TapTapParser(mPath, mFile, mName);
+                TapTapParser parser = new TapTapParser(mPath, mFile, CONFIG_NAME);
                 parser.CreateXml(temp);
             }, "taptapconfig-writetodisk", logger);
             w.Start();
@@ -214,8 +214,8 @@ namespace HomeOS.Hub.Apps.TapTap
     class TapTapDeviceRequest
     {
         // Setting up device
-        private string mDeviceId = "NULL";
-        private string mDevicePassPharse = "NULL";
+        private string mDeviceId = TapTapConstants.STR_NULL;
+        private string mDevicePassPharse = TapTapConstants.STR_NULL;
         private TapTapEngine mEngine = null;
 
         public string DeviceId { get { return mDeviceId; } set { mDeviceId = value; } }
@@ -249,8 +249,8 @@ namespace HomeOS.Hub.Apps.TapTap
         public void Dispose()
         {
             mEngine.shutDown();
-            mDeviceId = "NULL";
-            mDevicePassPharse = "NULL";
+            mDeviceId = TapTapConstants.STR_NULL;
+            mDevicePassPharse = TapTapConstants.STR_NULL;
         }
 
 
@@ -317,16 +317,16 @@ namespace HomeOS.Hub.Apps.TapTap
             appServer = new WebFileServer(moduleInfo.BinaryDir(), moduleInfo.BaseURL(), logger);
 
             //// Read configuration file
-            string taptapConfigDirector = moduleInfo.WorkingDir() + "\\Config";
-            string taptapCertificate = moduleInfo.WorkingDir() + "\\Cert\\certificate.cer";
+            string taptapConfigDirector = moduleInfo.WorkingDir() + TapTapConstants.CONFIG_DIR;
+            string taptapCertificate = moduleInfo.WorkingDir() + TapTapConstants.CERT_DIR_FILE;
 
 
             // Parser
-            TapTapParser parser = new TapTapParser(taptapConfigDirector, "taptapconfig.xml", "TapTapConfig");
+            TapTapParser parser = new TapTapParser(taptapConfigDirector, TapTapConstants.CONFIG_FILE, TapTapConfig.CONFIG_NAME);
 
             config = parser.GenObject<TapTapConfig>();
             config.mPath = taptapConfigDirector;
-            config.mFile = "taptapconfig.xml";
+            config.mFile = TapTapConstants.CONFIG_FILE;
 
 
 
@@ -365,7 +365,7 @@ namespace HomeOS.Hub.Apps.TapTap
             engine.Send("Inside Taptap main!! \n");
 
             // Check new Add Device Request
-            if (engine.Message.actionType == "addDeviceRequest")
+            if (engine.Message.actionType == ENUM_MESSAGE_TYPE.ACTION_ADD_DEVICE_REQUEST)
             {
                 // Get device request. 
                 deviceRequest = new TapTapDeviceRequest(engine.Message.clientID, engine.Message.actionValue);
@@ -385,7 +385,7 @@ namespace HomeOS.Hub.Apps.TapTap
             // Route Messages
             switch (engine.Message.actionType)
             {
-                case "binarySwitch":
+                case ENUM_MESSAGE_TYPE.ACTION_BINARY_SWITCH:
                     // Process the switch and turn device on or off. 
                     VerifyBinarySwitch(engine);
                     break;
@@ -774,7 +774,7 @@ namespace HomeOS.Hub.Apps.TapTap
         private bool VerifyBinarySwitch(TapTapEngine engine)
         {
             string friendlyname = "NULL";
-            if ( (friendlyname = config.GetThingFriendlyName(engine.Message.tagID)) == "NULL")
+            if ( (friendlyname = config.GetThingFriendlyName(engine.Message.tagID)) == TapTapConstants.STR_NULL)
             {
                 engine.Send("Tag Not Valid \n");
                 engine.shutDown();
