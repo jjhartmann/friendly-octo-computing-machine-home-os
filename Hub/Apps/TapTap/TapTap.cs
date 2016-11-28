@@ -246,6 +246,19 @@ namespace HomeOS.Hub.Apps.TapTap
     }
 
 
+    // TODO: Change the UNo into own class
+    class ArduinoUno
+    {
+
+
+    }
+
+    // TOOD: Change the swtich into own class.
+    class BinarySwitch
+    {
+
+    }
+
 
     /// <summary>
     /// A taptap a module that 
@@ -258,8 +271,13 @@ namespace HomeOS.Hub.Apps.TapTap
         //list of accessible taptap ports in the system
         List<VPort> accessibleTapTapPorts;
 
+        // Swtich varibales
         Dictionary<VPort, SwitchInfo> switchRegistered = new Dictionary<VPort, SwitchInfo>();
         Dictionary<string, VPort> switchFriendlyName = new Dictionary<string, VPort>();
+
+        // Android UNO Variables
+        Dictionary<VPort, string> androidUnoRegistered = new Dictionary<VPort, string>();
+        Dictionary<string, VPort> androidUnoFriendlyName = new Dictionary<string, VPort>();
 
         private SafeServiceHost serviceHost;
 
@@ -505,6 +523,16 @@ namespace HomeOS.Hub.Apps.TapTap
 
                     }
                 }
+                else if (Role.ContainsRole(port, RoleArduinoUno.RoleName))
+                {
+                    if (!androidUnoRegistered.ContainsKey(port) && GetCapabilityFromPlatform(port) != null)
+                    {
+                        // Init the port
+                        InitArduinoUno(port);
+                    }
+                } 
+
+
             }
         }
 
@@ -520,6 +548,15 @@ namespace HomeOS.Hub.Apps.TapTap
             }
         }
 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Arduino UNO
+
+        void InitArduinoUno(VPort port)
+        {
+
+        }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
