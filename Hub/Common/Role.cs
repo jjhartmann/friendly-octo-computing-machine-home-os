@@ -161,8 +161,44 @@ namespace HomeOS.Hub.Common
         }
     }
 
- 
 
+    public class RoleArduinoUno : Role
+    {
+        public const string RoleName = ":arduinouno:";
+        public const string OpEchoName = RoleName + "->" + "echo";
+        public const string OpEchoSubName = RoleName + "->" + "echosub";
+
+        private static RoleArduinoUno _instance;
+
+        protected RoleArduinoUno()
+        {
+            SetName(RoleName);
+            _instance = this;
+
+            {
+                List<VParamType> args = new List<VParamType>() { new ParamType(0) };
+                List<VParamType> retVals = new List<VParamType>() { new ParamType(0) };
+                AddOperation(new Operation(OpEchoName, args, retVals));
+            }
+
+            {
+                List<VParamType> args = new List<VParamType>();
+                List<VParamType> retVals = new List<VParamType>() { new ParamType(0) };
+                AddOperation(new Operation(OpEchoSubName, args, retVals, true));
+            }
+
+        }
+
+        public static RoleArduinoUno Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    new RoleArduinoUno();
+                return _instance;
+            }
+        }
+    }
 
 
     public class RoleDoorjamb : Role

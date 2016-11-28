@@ -23,4 +23,5 @@
   <Role Name=":speechreco:"/>
   <Role Name=":weather:"/>
   <Role Name=":arduino:"/>
+  <Role Name=":arduinouno:"/>
 </Roles>

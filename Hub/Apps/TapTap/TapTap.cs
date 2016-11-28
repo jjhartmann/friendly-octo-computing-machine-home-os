@@ -494,7 +494,9 @@ namespace HomeOS.Hub.Apps.TapTap
 
             lock (this)
             {
-                if (Role.ContainsRole(port, RoleSwitchBinary.RoleName))
+                if (!accessibleSensorPorts.Contains(port) &&
+                    GetCapabilityFromPlatform(port) != null && 
+                    Role.ContainsRole(port, RoleSwitchBinary.RoleName))
                 {
                     if (!switchRegistered.ContainsKey(port) && GetCapabilityFromPlatform(port) != null)
                     {

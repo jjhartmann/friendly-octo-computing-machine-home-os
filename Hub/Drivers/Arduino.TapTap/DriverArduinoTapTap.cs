@@ -23,7 +23,7 @@ namespace HomeOS.Hub.Drivers.Arduino.TapTap
     public class DriverArduinoTapTap :  ModuleBase
     {
         SafeThread workThread = null; 
-        Port dummyPort;
+        Port unoPort;
         bool serialPortOpen = false;
         string serialPortNameforArudino;
         SerialPort serPort = null;
@@ -41,14 +41,14 @@ namespace HomeOS.Hub.Drivers.Arduino.TapTap
          
             //.................instantiate the port
             VPortInfo portInfo = GetPortInfoFromPlatform("arduino-" + dummyDeviceId);
-            dummyPort = InitPort(portInfo);
+            unoPort = InitPort(portInfo);
 
             // ..... initialize the list of roles we are going to export and bind to the role
-            List<VRole> listRole = new List<VRole>() { RoleDummy.Instance};
-            BindRoles(dummyPort, listRole);
+            List<VRole> listRole = new List<VRole>() { RoleArduinoUno.Instance};
+            BindRoles(unoPort, listRole);
 
             //.................register the port after the binding is complete
-            RegisterPortWithPlatform(dummyPort);
+            RegisterPortWithPlatform(unoPort);
 
             workThread = new SafeThread(delegate() { Work(); } , "ArduinoDriverTapTap work thread" , logger);
             workThread.Start();
@@ -145,7 +145,7 @@ namespace HomeOS.Hub.Drivers.Arduino.TapTap
                         }
 
                         //notify applications intersted in role dummy and so example works with DummyApplication and others
-                        Notify(dummyPort, RoleDummy.Instance, RoleDummy.OpEchoSubName, new ParamType(numVal));
+                        Notify(unoPort, RoleArduinoUno.Instance, RoleArduinoUno.OpEchoSubName, new ParamType(numVal));
                        
                     }
                     catch (Exception e)
@@ -168,7 +168,7 @@ namespace HomeOS.Hub.Drivers.Arduino.TapTap
         public override IList<VParamType> OnInvoke(string roleName, String opName, IList<VParamType> args)
         {
 
-            if (!(roleName.Equals(RoleDummy.RoleName)))
+            if (!(roleName.Equals(RoleArduinoUno.RoleName)))
             {
                 logger.Log("Invalid role {0} in OnInvoke", roleName);
                 return null;
@@ -176,7 +176,7 @@ namespace HomeOS.Hub.Drivers.Arduino.TapTap
 
             switch (opName.ToLower())
             {
-                case RoleDummy.OpEchoName:
+                case RoleArduinoUno.OpEchoName:
                     int payload = (int)args[0].Value();
                     
                     logger.Log("{0} Got EchoRequest {1}", this.ToString(), payload.ToString());

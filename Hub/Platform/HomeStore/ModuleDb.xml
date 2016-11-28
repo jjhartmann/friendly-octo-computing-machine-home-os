@@ -39,7 +39,7 @@
   <Module AppName="TapTap" BinaryName="HomeOS.Hub.Apps.TapTap" Description="TapTap: Ubiquitous device interaction" Rating="5">
     <RoleList>
       <Role Name=":switchbinary:"/>
-      <Role Name=":dummy:"/>
+      <Role Name=":arduinouno:"/>
       <!--<Role Name=":switchbinary:"/>-->
     </RoleList>
   </Module>

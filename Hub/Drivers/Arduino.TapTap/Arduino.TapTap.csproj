@@ -7,8 +7,8 @@
     <ProjectGuid>{9EC17717-2CE9-41B0-A4EC-C4CD04B54816}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>HomeOS.Hub.Drivers.Arduino.MicrosoftResearch.Dummy</RootNamespace>
-    <AssemblyName>HomeOS.Hub.Drivers.Arduino.MicrosoftResearch.Dummy</AssemblyName>
+    <RootNamespace>HomeOS.Hub.Drivers.Arduino.TapTap.UNO1</RootNamespace>
+    <AssemblyName>HomeOS.Hub.Drivers.Arduino.TapTap.UNO1</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
@@ -21,7 +21,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\output\binaries\Pipeline\AddIns\HomeOS.Hub.Drivers.Arduino.MicrosoftResearch.Dummy\</OutputPath>
+    <OutputPath>..\..\output\binaries\Pipeline\AddIns\HomeOS.Hub.Drivers.Arduino.TapTap.UNO1\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>

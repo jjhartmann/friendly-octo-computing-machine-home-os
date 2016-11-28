@@ -17,7 +17,8 @@
  
 // Pin 13 has an LED connected on most Arduino boards.
 // give it a name:
-int led = 13;
+int redled = 13;
+int greenled = 12;
 int numCharRead = 0;
 char incomingData[20];
 int dummyValue = 0;
@@ -25,7 +26,8 @@ int dummyValue = 0;
 // the setup routine runs once when you press reset:
 void setup() {                
   // initialize the digital pin as an output.
-  pinMode(led, OUTPUT);  
+  pinMode(redled, OUTPUT);  
+  pinMode(greenled, OUTPUT);
   
   //Setup the serial port
  Serial.begin(9600);
@@ -47,9 +49,9 @@ void loop() {
   else
    dummyValue = 0; 
    
-//  digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
-//  delay(1000);               // wait for a second
-//  digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
+  digitalWrite(redled, HIGH);   // turn the LED on (HIGH is the voltage level)
+  delay(1000);               // wait for a second
+  digitalWrite(redled, LOW);    // turn the LED off by making the voltage LOW
   delay(1000);               // wait for a second
 
 }
@@ -81,6 +83,13 @@ int processCommandsFromLoT(int numCharRead ) {
          Serial.print(dummyValue);
          Serial.print(']');     
          break;
+
+        case 'i':
+          digitalWrite(greenled, HIGH);
+          break;
+        case 'o':
+          digitalWrite(greenled, LOW);
+          break;
         
         default:
           Serial.print("[!No matching command]");
