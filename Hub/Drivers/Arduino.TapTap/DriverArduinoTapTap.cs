@@ -124,38 +124,38 @@ namespace HomeOS.Hub.Drivers.Arduino.TapTap
 
                 if (!serialPortOpen)
                     serialPortOpen = OpenSerialPort();
-                
-                if (serialPortOpen)
-                {
-                    //Ping the Arduino HomeOS Microsoft Research Dummy device and pass the value back.
-                    //right now keeping the serial port open and closing when driver stops
 
-                    try
-                    {
-                        serPort.Write("[v]"); //ask for value
-                        rawDataFromArduino = serPort.ReadTo("]");
-                        cleanDataFromArduino = rawDataFromArduino.TrimStart('[');  //remove opening bracket
-                        try
-                        {
-                            numVal = Convert.ToInt32(cleanDataFromArduino);
-                        }
-                        catch (FormatException e)
-                        {
-                            logger.Log("ArduinoDummyDriver: Value received from device is not a sequence of digits.");
-                        }
+                //if (serialPortOpen)
+                //{
+                //    //Ping the Arduino HomeOS Microsoft Research Dummy device and pass the value back.
+                //    //right now keeping the serial port open and closing when driver stops
 
-                        //notify applications intersted in role dummy and so example works with DummyApplication and others
-                        Notify(unoPort, RoleArduinoUno.Instance, RoleArduinoUno.OpEchoSubName, new ParamType(numVal));
-                       
-                    }
-                    catch (Exception e)
-                    {
+                //    try
+                //    {
+                //        serPort.Write("[v]"); //ask for value
+                //        rawDataFromArduino = serPort.ReadTo("]");
+                //        cleanDataFromArduino = rawDataFromArduino.TrimStart('[');  //remove opening bracket
+                //        try
+                //        {
+                //            numVal = Convert.ToInt32(cleanDataFromArduino);
+                //        }
+                //        catch (FormatException e)
+                //        {
+                //            logger.Log("ArduinoDummyDriver: Value received from device is not a sequence of digits.");
+                //        }
 
-                        logger.Log("ArduinoDummyDriver: Problem in SerPort Write/Read");
-                    }
-                }
-          
-                
+                //        //notify applications intersted in role dummy and so example works with DummyApplication and others
+                //        Notify(unoPort, RoleArduinoUno.Instance, RoleArduinoUno.OpEchoSubName, new ParamType(numVal));
+
+                //    }
+                //    catch (Exception e)
+                //    {
+
+                //        logger.Log("ArduinoDummyDriver: Problem in SerPort Write/Read");
+                //    }
+                //}
+
+
                 System.Threading.Thread.Sleep(1 * 5 * 1000);
             }
         }
@@ -180,29 +180,33 @@ namespace HomeOS.Hub.Drivers.Arduino.TapTap
                     int payload = (int)args[0].Value();
                     
                     logger.Log("{0} Got EchoRequest {1}", this.ToString(), payload.ToString());
+                    if (!serialPortOpen)
+                        serialPortOpen = OpenSerialPort();
 
-                    return new List<VParamType>() {new ParamType(-1 * payload)};
-
-                    try
+                    if (serialPortOpen)
                     {
-                        if (payload > 0)
+                        try
                         {
-                            serPort.Write("[i]"); //ask for value
+                            if (payload > 0)
+                            {
+                                serPort.Write("[i]"); //ask for value
+                            }
+                            else
+                            {
+                                serPort.Write("[o]");
+                            }
+
+                            string rawDataFromArduino = serPort.ReadTo("]");
+                            string cleanDataFromArduino = rawDataFromArduino.TrimStart('[');  //remove opening bracket
+
                         }
-                        else
+                        catch (Exception e)
                         {
-                            serPort.Write("[o]");
+
+                            logger.Log("ArduinoDummyDriver: Problem in SerPort Write/Read");
                         }
-
-                        string rawDataFromArduino = serPort.ReadTo("]");
-                        string  cleanDataFromArduino = rawDataFromArduino.TrimStart('[');  //remove opening bracket
- 
                     }
-                    catch (Exception e)
-                    {
-
-                        logger.Log("ArduinoDummyDriver: Problem in SerPort Write/Read");
-                    }
+                    return new List<VParamType>() { new ParamType(-1 * payload) };
 
                 default:
                     logger.Log("Invalid operation: {0}", opName);

@@ -128,12 +128,12 @@ namespace HomeOS.Hub.Apps.TapTap
         }
 
         // Add thing to the config file
-        public bool AddThing(string id, string name)
+        public bool AddThing(string friendlyNameID, string nfctag)
         {
             try
             {
-                mThings[id] = name;
-                mThingsRev[name] = id;
+                mThings[friendlyNameID] = nfctag;
+                mThingsRev[nfctag] = friendlyNameID;
 
                 WriteToDisk();
                 return true;
@@ -170,6 +170,17 @@ namespace HomeOS.Hub.Apps.TapTap
         {
             if (mThingsRev.ContainsKey(tag))
                 return mThingsRev[tag];
+
+            return "NULL";
+        }
+
+
+        public string GetThingNFCTag(string friendlyname)
+        {
+            if (mThings.ContainsKey(friendlyname))
+            {
+                return mThings[friendlyname];
+            }
 
             return "NULL";
         }
@@ -274,6 +285,7 @@ namespace HomeOS.Hub.Apps.TapTap
         // Swtich varibales
         Dictionary<VPort, SwitchInfo> switchRegistered = new Dictionary<VPort, SwitchInfo>();
         Dictionary<string, VPort> switchFriendlyName = new Dictionary<string, VPort>();
+        Dictionary<VPort, string> switchFriendlyNameRev = new Dictionary<VPort, string>();
 
         // Android UNO Variables
         Dictionary<VPort, string> androidUnoRegistered = new Dictionary<VPort, string>();
@@ -523,6 +535,22 @@ namespace HomeOS.Hub.Apps.TapTap
                         InitSwitch(port, switchType, colored);
 
                     }
+                    else
+                    {
+                        // Rename port with new friendlyname
+                        string newfriendlyname = port.GetInfo().GetFriendlyName();
+                        string oldFriendlyName = switchFriendlyNameRev[port];
+                        switchFriendlyNameRev.Remove(port);
+
+                        // TODO: Create a bi-directional hashtable for port <==> name lookup
+                        switchFriendlyName[newfriendlyname] = port;
+                        switchFriendlyNameRev[port] = newfriendlyname;
+
+                        // Modify the config folder.
+                        string nfctag = config.GetThingNFCTag(oldFriendlyName);
+                        config.AddThing(newfriendlyname, nfctag);
+
+                    }
                 }
                 else if (Role.ContainsRole(port, RoleArduinoUno.RoleName))
                 {
@@ -530,6 +558,22 @@ namespace HomeOS.Hub.Apps.TapTap
                     {
                         // Init the port
                         InitArduinoUno(port);
+                    }
+                    else
+                    {
+                        // Rename port with new friendlyname
+                        string newfriendlyname = port.GetInfo().GetFriendlyName();
+                        string oldFriendlyName = androidUnoRegistered[port];
+                        androidUnoRegistered.Remove(port);
+
+                        // TODO: Create a bi-directional hashtable for port <==> name lookup
+                        androidUnoFriendlyName[newfriendlyname] = port;
+                        androidUnoRegistered[port] = newfriendlyname;
+
+                        // Modify the config folder.
+                        string nfctag = config.GetThingNFCTag(oldFriendlyName);
+                        config.AddThing(newfriendlyname, nfctag);
+
                     }
                 } 
 
@@ -625,10 +669,13 @@ namespace HomeOS.Hub.Apps.TapTap
             sinfo.IsColored = isColored;
             sinfo.Color = Color.Black;
 
+            // Register Switches
             switchRegistered.Add(port, sinfo);
 
             string friendlyName = port.GetInfo().GetFriendlyName();
             switchFriendlyName.Add(friendlyName, port);
+            switchFriendlyNameRev.Add(port, friendlyName);
+
 
             if (sinfo.Capability != null)
             {
@@ -689,9 +736,8 @@ namespace HomeOS.Hub.Apps.TapTap
                     IList<VParamType> args = new List<VParamType>();
 
                     //make sure that the level is between zero and 1
-                    if (level < 0) level = 0;
-                    if (level > 1) level = 1;
-                    if (level >= 1) level = 0;
+                    level = level <= 0 ? 1 : 0;
+                    
 
                     if (sinfo.Type == SwitchType.Binary)
                     {
