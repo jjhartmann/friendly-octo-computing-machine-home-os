@@ -512,6 +512,7 @@ namespace HomeOS.Hub.Apps.TapTap
 
             lock (this)
             {
+                accessibleTapTapPorts.Add(port);
                 if (Role.ContainsRole(port, RoleSwitchBinary.RoleName))
                 {
                     if (!switchRegistered.ContainsKey(port) && GetCapabilityFromPlatform(port) != null)
@@ -555,7 +556,16 @@ namespace HomeOS.Hub.Apps.TapTap
 
         void InitArduinoUno(VPort port)
         {
+            string friendlyname = port.GetInfo().GetFriendlyName();
+            androidUnoRegistered.Add(port, friendlyname);
+            androidUnoFriendlyName.Add(friendlyname, port);
+            
+            logger.Log("{0} added port {1}", this.ToString(), port.ToString());
 
+            if (Subscribe(port, RoleArduinoUno.Instance, RoleArduinoUno.OpEchoSubName))
+                logger.Log("{0} subscribed to port {1}", this.ToString(), port.ToString());
+            else
+                logger.Log("failed to subscribe to port {1}", this.ToString(), port.ToString());
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
