@@ -121,6 +121,15 @@ namespace HomeOS.Hub.Apps.TapTap
             try
             {
                 mDevices[id] = name;
+
+                // Assign things by default
+                mDeviceAuth[id] = new HashSet<string>();
+                foreach (KeyValuePair<string, string> e in mThings)
+                {
+                    mDeviceAuth[id].Add(e.Key);
+                }
+
+
                 WriteToDisk();
                 return true;
             }
