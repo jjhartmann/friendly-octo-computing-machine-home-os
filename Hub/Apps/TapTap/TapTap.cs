@@ -54,7 +54,7 @@ namespace HomeOS.Hub.Apps.TapTap
         private Dictionary<string, string> mThings = new Dictionary<string, string>();
 
         // Authentication: <GUID, List_of_things_access>
-        private Dictionary<string, List<string>> mDeviceAuth = new Dictionary<string, List<string>>();
+        private Dictionary<string, HashSet<string>> mDeviceAuth = new Dictionary<string, HashSet<string>>();
 
         
         public Dictionary<string, string> Devices {
@@ -72,7 +72,7 @@ namespace HomeOS.Hub.Apps.TapTap
                 }
             }
         }
-        public Dictionary<string, List<string>> DeviceAuth
+        public Dictionary<string, HashSet<string>> DeviceAuth
         {
             get { return mDeviceAuth; }
             set { mDeviceAuth = value; }
@@ -99,7 +99,7 @@ namespace HomeOS.Hub.Apps.TapTap
             }
             xml += "</Things><DeviceAuth>";
 
-            foreach (KeyValuePair<string, List<string>> e in mDeviceAuth)
+            foreach (KeyValuePair<string, HashSet<string>> e in mDeviceAuth)
             {
                 xml += "<Auth><DeviceID>" + e.Key + "</DeviceID><ThingsList>";
                 foreach (string th in e.Value) {
@@ -164,7 +164,7 @@ namespace HomeOS.Hub.Apps.TapTap
                 {
                     if (!mDeviceAuth.ContainsKey(e.Key))
                     {
-                        List<string> list = new List<string>();
+                        HashSet<string> list = new HashSet<string>();
                         list.Add(friendlyNameID);
                         mDeviceAuth[e.Key] = list;
                     }
@@ -229,7 +229,7 @@ namespace HomeOS.Hub.Apps.TapTap
         public bool VerifyDeviceAuthentication(string dName, string nfctag)
         {
             if (mDevices.ContainsKey(dName) && VerifyNFCTag(nfctag)) {
-                List<string> thingList = mDeviceAuth[dName];
+                HashSet<string> thingList = mDeviceAuth[dName];
                 string thingName = mThingsRev[nfctag];
                 return thingList.Contains(thingName);
             }
@@ -252,7 +252,7 @@ namespace HomeOS.Hub.Apps.TapTap
                 }
                 else
                 {
-                    List<string> list = new List<string>();
+                    HashSet<string> list = new HashSet<string>();
                     list.Add(thingName);
                     mDeviceAuth[deviceName] = list;
 
@@ -638,7 +638,7 @@ namespace HomeOS.Hub.Apps.TapTap
                         string newfriendlyname = port.GetInfo().GetFriendlyName();
                         string oldFriendlyName = switchFriendlyNameRev[port];
                         switchFriendlyNameRev.Remove(port);
-                        switchFriendlyName.Reverse(oldFriendlyName);
+                        switchFriendlyName.Remove(oldFriendlyName);
 
                         // TODO: Create a bi-directional hashtable for port <==> name lookup
                         switchFriendlyName[newfriendlyname] = port;

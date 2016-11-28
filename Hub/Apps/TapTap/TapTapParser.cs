@@ -174,7 +174,7 @@ namespace HomeOS.Hub.Apps.TapTap
                                 else if (Type.GetTypeCode(TKey) == TypeCode.String && Type.GetTypeCode(TVal) == TypeCode.Object)
                                 {
 
-                                    Dictionary<string, List<string>> dictProp = new Dictionary<string, List<string>>();
+                                    Dictionary<string, HashSet<string>> dictProp = new Dictionary<string, HashSet<string>>();
 
                                     XmlNodeList nodeList = val.ChildNodes;
                                     foreach (XmlNode i in nodeList)
@@ -182,7 +182,7 @@ namespace HomeOS.Hub.Apps.TapTap
                                         string textOne = i.ChildNodes[0].InnerText;
 
                                         XmlNodeList innerList = i.ChildNodes[1].ChildNodes;
-                                        List<string> thinglist = new List<string>();
+                                        HashSet<string> thinglist = new HashSet<string>();
                                         foreach (XmlNode j in innerList) {
                                             thinglist.Add(j.InnerText);
                                         }
