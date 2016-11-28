@@ -494,9 +494,7 @@ namespace HomeOS.Hub.Apps.TapTap
 
             lock (this)
             {
-                if (!accessibleSensorPorts.Contains(port) &&
-                    GetCapabilityFromPlatform(port) != null && 
-                    Role.ContainsRole(port, RoleSwitchBinary.RoleName))
+                if (Role.ContainsRole(port, RoleSwitchBinary.RoleName))
                 {
                     if (!switchRegistered.ContainsKey(port) && GetCapabilityFromPlatform(port) != null)
                     {
@@ -592,7 +590,7 @@ namespace HomeOS.Hub.Apps.TapTap
         /// </summary>
         /// <param name="switchFriendlyName"></param>
         /// <param name="level"></param>
-        internal bool SetLevel(string friendlyName, double level)
+        internal bool SetLevel(string friendlyName)
         {
 
             // Determine the swtich'
@@ -604,15 +602,18 @@ namespace HomeOS.Hub.Apps.TapTap
                 {
 
                     SwitchInfo sinfo = switchRegistered[sport];
+                    double level = sinfo.Level;
 
                     IList<VParamType> args = new List<VParamType>();
 
                     //make sure that the level is between zero and 1
                     if (level < 0) level = 0;
                     if (level > 1) level = 1;
+                    if (level >= 1) level = 0;
 
                     if (sinfo.Type == SwitchType.Binary)
                     {
+                        // Do opposite of current switch value
                         bool blevel = (level > 0) ? true : false;
 
                         var retVal = Invoke(sport, RoleSwitchBinary.Instance, RoleSwitchBinary.OpSetName, new ParamType(blevel));
@@ -652,8 +653,8 @@ namespace HomeOS.Hub.Apps.TapTap
                 return false;
             }
 
-            double level = Convert.ToDouble(engine.Message.actionValue);
-            if (SetLevel(friendlySwitchname, level))
+            // Don't need value for binary switch.
+            if (SetLevel(friendlySwitchname))
             {
                  engine.Send("Success in activating Switch\n");
             }
