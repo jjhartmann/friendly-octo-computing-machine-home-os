@@ -375,7 +375,7 @@ namespace HomeOS.Hub.Apps.TapTap
             {
                 case "binarySwitch":
                     // Process the switch and turn device on or off. 
-                    VerifySwitchInteraction(engine);
+                    VerifyBinarySwitch(engine);
                     break;
 
                 //case "addDeviceRequest":
@@ -690,7 +690,7 @@ namespace HomeOS.Hub.Apps.TapTap
         }
 
 
-        private bool VerifySwitchInteraction(TapTapEngine engine)
+        private bool VerifyBinarySwitch(TapTapEngine engine)
         {
             string friendlySwitchname = "NULL";
             if ( (friendlySwitchname = config.GetThingFriendlyName(engine.Message.tagID)) == "NULL")
@@ -734,6 +734,18 @@ namespace HomeOS.Hub.Apps.TapTap
             Dictionary<string, string> ret = new Dictionary<string, string>();
 
             foreach(string name in switchFriendlyName.Keys)
+            {
+                if (config.Things.ContainsKey(name))
+                {
+                    ret.Add(name, config.Things[name]);
+                }
+                else
+                {
+                    ret.Add(name, "Insert NFC Tag");
+                }
+            }
+
+            foreach (string name in androidUnoFriendlyName.Keys)
             {
                 if (config.Things.ContainsKey(name))
                 {
