@@ -78,15 +78,28 @@ namespace HomeOS.Hub.Apps.TapTap
             //
             if (mMsg == null || (mMsg != null && mMsg.actionType == null))
             {
-                Send("Error Occurred: Unable to parse command from client\n");
+                SendDebug("Error Occurred: Unable to parse command from client\n");
                 return false;
             }
 
-            Send("Success in parsingCommand \n");
+            SendDebug("Success in parsingCommand \n");
             return true;
         }
 
-        public bool Send(String data)
+
+
+        // Debug Send
+        public bool SendDebug(string data)
+        {
+            if (TapTapConstants.DEBUG_CLIENT_SERVER)
+            {
+                return Send(data);
+            }
+
+            return false;
+        }
+
+        private bool Send(String data)
         {
             // Convert data into byte stream
             byte[] byteData = Encoding.ASCII.GetBytes(data);

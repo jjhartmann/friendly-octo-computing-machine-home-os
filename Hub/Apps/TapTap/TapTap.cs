@@ -232,11 +232,11 @@ namespace HomeOS.Hub.Apps.TapTap
         {
             if (id == mDeviceId && pass == mDevicePassPharse)
             {
-                mEngine.Send("Device Verify Success");
+                mEngine.SendDebug("Device Verify Success");
                 return true;
             }
 
-            mEngine.Send("Device Verify Failed");
+            mEngine.SendDebug("Device Verify Failed");
             return false;
         }
 
@@ -362,7 +362,7 @@ namespace HomeOS.Hub.Apps.TapTap
         {
             // TODO: The egnine onwner ship in conflict, who shuts it down. 
             Console.WriteLine("Parser Callback. \nData: {0}", engine.Message.actionType);
-            engine.Send("Inside Taptap main!! \n");
+            engine.SendDebug("Inside Taptap main!! \n");
 
             // Check new Add Device Request
             if (engine.Message.actionType == ENUM_MESSAGE_TYPE.ACTION_ADD_DEVICE_REQUEST)
@@ -376,7 +376,8 @@ namespace HomeOS.Hub.Apps.TapTap
             // Check if device is valid. 
             if (!config.VerifyDevice(engine.Message.clientID))
             {
-                engine.Send("Device not Validated\n");
+                
+                engine.SendDebug("Device not Validated\n");
                 engine.shutDown();
                 return;
             }
@@ -776,7 +777,7 @@ namespace HomeOS.Hub.Apps.TapTap
             string friendlyname = "NULL";
             if ( (friendlyname = config.GetThingFriendlyName(engine.Message.tagID)) == TapTapConstants.STR_NULL)
             {
-                engine.Send("Tag Not Valid \n");
+                engine.SendDebug("Tag Not Valid \n");
                 engine.shutDown();
                 return false;
             }
@@ -787,11 +788,11 @@ namespace HomeOS.Hub.Apps.TapTap
                 // Don't need value for binary switch.
                 if (SetLevel(friendlyname))
                 {
-                    engine.Send("Success in activating Switch\n");
+                    engine.SendDebug("Success in activating Switch\n");
                 }
                 else
                 {
-                    engine.Send("Failure: in activating Switch\n");
+                    engine.SendDebug("Failure: in activating Switch\n");
                 }
             } 
             else if (androidUnoFriendlyName.ContainsKey(friendlyname))
@@ -800,11 +801,11 @@ namespace HomeOS.Hub.Apps.TapTap
                 int value = Int32.Parse(engine.Message.actionValue);
                 if (InvokeUno(friendlyname, value))
                 {
-                    engine.Send("Success in activating Uno\n");
+                    engine.SendDebug("Success in activating Uno\n");
                 }
                 else
                 {
-                    engine.Send("Failure: in activating Uno\n");
+                    engine.SendDebug("Failure: in activating Uno\n");
                 }
             }
 
