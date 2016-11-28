@@ -286,7 +286,7 @@ namespace TapTapParsserTest
             config.Things["zwav252525e43"] = "2314123123232";
             config.Things["zwa223452ve43"] = "2314123123232";
 
-            List<string> d1 = new List<string>
+            HashSet<string> d1 = new HashSet<string>
             {
                 "zwave4sdfgsf35",
                 "adfasdf",
