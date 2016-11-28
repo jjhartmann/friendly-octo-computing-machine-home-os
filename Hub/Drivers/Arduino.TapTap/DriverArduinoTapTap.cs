@@ -183,7 +183,26 @@ namespace HomeOS.Hub.Drivers.Arduino.TapTap
 
                     return new List<VParamType>() {new ParamType(-1 * payload)};
 
-                //TODO Show example of sending message to Arduino
+                    try
+                    {
+                        if (payload > 0)
+                        {
+                            serPort.Write("[i]"); //ask for value
+                        }
+                        else
+                        {
+                            serPort.Write("[o]");
+                        }
+
+                        string rawDataFromArduino = serPort.ReadTo("]");
+                        string  cleanDataFromArduino = rawDataFromArduino.TrimStart('[');  //remove opening bracket
+ 
+                    }
+                    catch (Exception e)
+                    {
+
+                        logger.Log("ArduinoDummyDriver: Problem in SerPort Write/Read");
+                    }
 
                 default:
                     logger.Log("Invalid operation: {0}", opName);
