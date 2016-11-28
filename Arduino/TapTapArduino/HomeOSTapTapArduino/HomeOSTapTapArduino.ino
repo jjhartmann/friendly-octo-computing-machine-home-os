@@ -47,9 +47,9 @@ void loop() {
   else
    dummyValue = 0; 
    
-  digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
-  delay(1000);               // wait for a second
-  digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
+//  digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
+//  delay(1000);               // wait for a second
+//  digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
   delay(1000);               // wait for a second
 
 }
@@ -71,7 +71,7 @@ int processCommandsFromLoT(int numCharRead ) {
       switch(incomingData[1]) {
         
         case '?':
-         Serial.print("[HomeOSArduinoDevice_Dummy_MicrosoftResearch_1234]");
+         Serial.print("[HomeOSArduinoDevice_UNO1_TapTap_1]");
         break;
         
         ///ADD COMMANDS RELEVANT TO YOUR DEVICE & DRIVER HERE

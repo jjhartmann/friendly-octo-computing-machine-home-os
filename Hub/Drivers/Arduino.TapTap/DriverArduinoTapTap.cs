@@ -8,7 +8,7 @@ using System.Threading;
 using System.IO.Ports;
 
 
-namespace HomeOS.Hub.Drivers.Arduino.MicrosoftResearch.Dummy
+namespace HomeOS.Hub.Drivers.Arduino.TapTap
 {
 
     /// <summary>
@@ -19,7 +19,7 @@ namespace HomeOS.Hub.Drivers.Arduino.MicrosoftResearch.Dummy
     /// 3. sends values on to Dummy example applicadtion (in OnOperationInvoke())
     /// </summary>
 
-    [System.AddIn.AddIn("HomeOS.Hub.Drivers.Arduino.TapTap")]
+    [System.AddIn.AddIn("HomeOS.Hub.Drivers.Arduino.TapTap.UNO1")]
     public class DriverArduinoTapTap :  ModuleBase
     {
         SafeThread workThread = null; 
