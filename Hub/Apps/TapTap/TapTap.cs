@@ -568,6 +568,41 @@ namespace HomeOS.Hub.Apps.TapTap
                 logger.Log("failed to subscribe to port {1}", this.ToString(), port.ToString());
         }
 
+
+        bool InvokeUno(string friendlyName, int level)
+        {
+            VPort port = androidUnoFriendlyName[friendlyName];
+            try
+            {
+                DateTime requestTime = DateTime.Now;
+
+                var retVals = Invoke(port, RoleArduinoUno.Instance, RoleArduinoUno.OpEchoName, new ParamType(level));
+
+                double diffMs = (DateTime.Now - requestTime).TotalMilliseconds;
+
+                if (retVals[0].Maintype() != (int)ParamType.SimpleType.error)
+                {
+
+                    int rcvdNum = (int)retVals[0].Value();
+
+                    logger.Log("echo success to {0} after {1} ms. sent = {2} rcvd = {3}", port.ToString(), diffMs.ToString(), level.ToString(), rcvdNum.ToString());
+                    return true;
+                }
+                else
+                {
+                    logger.Log("echo failure to {0} after {1} ms. sent = {2} error = {3}", port.ToString(), diffMs.ToString(), level.ToString(), retVals[0].Value().ToString());
+                }
+
+            }
+            catch (Exception e)
+            {
+                logger.Log("Error while calling echo request: {0}", e.ToString());
+            }
+
+
+            return false;
+        }
+
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -716,6 +751,15 @@ namespace HomeOS.Hub.Apps.TapTap
             else if (androidUnoFriendlyName.ContainsKey(friendlyname))
             {
                 // Invoke Android device.
+                int value = Int32.Parse(engine.Message.actionValue);
+                if (InvokeUno(friendlyname, value))
+                {
+                    engine.Send("Success in activating Uno\n");
+                }
+                else
+                {
+                    engine.Send("Failure: in activating Uno\n");
+                }
             }
 
 
