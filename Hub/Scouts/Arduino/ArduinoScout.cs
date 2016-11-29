@@ -79,7 +79,8 @@ namespace HomeOS.Hub.Scouts.Arduino
 
                         //skip low nubmered ports; they cannot be our device
                         //we can't skip Com 1..16 because Win8 assigns low-numbered ports starting from COM3
-                        if (portNumber < 3)
+                        // ZWave use COM3: How to manage both?
+                        if (portNumber <= 3)
                             continue;
 
                         SerialPort serPort;

@@ -122,8 +122,8 @@ namespace HomeOS.Hub.Drivers.Arduino.TapTap
                 counter++;
                 int numVal = -1;
 
-                if (!serialPortOpen)
-                    serialPortOpen = OpenSerialPort();
+                //if (!serialPortOpen)
+                //    serialPortOpen = OpenSerialPort();
 
                 //if (serialPortOpen)
                 //{
@@ -180,31 +180,43 @@ namespace HomeOS.Hub.Drivers.Arduino.TapTap
                     int payload = (int)args[0].Value();
                     
                     logger.Log("{0} Got EchoRequest {1}", this.ToString(), payload.ToString());
-                    if (!serialPortOpen)
-                        serialPortOpen = OpenSerialPort();
 
-                    if (serialPortOpen)
+                    int attempts = 3;
+
+                    while (attempts >= 0)
                     {
-                        try
+                        if (!serialPortOpen)
+                            serialPortOpen = OpenSerialPort();
+
+                        if (serialPortOpen)
                         {
-                            if (payload > 0)
+                            try
                             {
-                                serPort.Write("[i]"); //ask for value
+                                if (payload > 0)
+                                {
+                                    serPort.Write("[i]"); //ask for value
+                                }
+                                else
+                                {
+                                    serPort.Write("[o]");
+                                }
+
+                                string rawDataFromArduino = serPort.ReadTo("]");
+                                string cleanDataFromArduino = rawDataFromArduino.TrimStart('[');  //remove opening bracket
+
                             }
-                            else
+                            catch (Exception e)
                             {
-                                serPort.Write("[o]");
+
+                                logger.Log("ArduinoDummyDriver: Problem in SerPort Write/Read");
                             }
 
-                            string rawDataFromArduino = serPort.ReadTo("]");
-                            string cleanDataFromArduino = rawDataFromArduino.TrimStart('[');  //remove opening bracket
-
+                            // Close Port
+                            ClosePort();
+                            attempts = -1;
                         }
-                        catch (Exception e)
-                        {
 
-                            logger.Log("ArduinoDummyDriver: Problem in SerPort Write/Read");
-                        }
+                        attempts--;
                     }
                     return new List<VParamType>() { new ParamType(-1 * payload) };
 
@@ -213,6 +225,13 @@ namespace HomeOS.Hub.Drivers.Arduino.TapTap
                     return null;
             }
         }
+
+        void ClosePort()
+        {
+            serPort.Close();
+            serialPortOpen = false;
+        }
+
 
         /// <summary>
         ///  Called when a new port is registered with the platform

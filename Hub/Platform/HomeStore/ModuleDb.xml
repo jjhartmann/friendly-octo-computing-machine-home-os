@@ -40,8 +40,6 @@
     <RoleList>
       <Role Name=":switchbinary:"/>
       <Role Name=":arduinouno:"/>
-      <Role Name=":dummy:"/>
-      <!--<Role Name=":switchbinary:"/>-->
     </RoleList>
   </Module>
 
