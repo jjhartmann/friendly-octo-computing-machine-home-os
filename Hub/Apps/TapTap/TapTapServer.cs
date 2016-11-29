@@ -139,7 +139,7 @@ namespace HomeOS.Hub.Apps.TapTap
             try
             {
                 // Authenticate Server
-                sslStream.AuthenticateAsServer(serverCertificate, false, SslProtocols.Tls, true);
+                sslStream.AuthenticateAsServer(serverCertificate, false, SslProtocols.Tls12, true);
 
                 // Set SslStream
                 state.sslStream = sslStream;
