@@ -20,5 +20,6 @@ namespace HomeOS.Hub.Apps.TapTap
     {
         public const string ACTION_BINARY_SWITCH = "binarySwitch";
         public const string ACTION_ADD_DEVICE_REQUEST = "addDeviceRequest";
+        public const string ACTION_GET_INFO = "getInfo";
     }
 }
