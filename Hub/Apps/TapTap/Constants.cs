@@ -8,7 +8,7 @@ namespace HomeOS.Hub.Apps.TapTap
 {
     static class TapTapConstants
     {
-        public const bool DEBUG_CLIENT_SERVER = true;
+        public const bool DEBUG_CLIENT_SERVER = false;
         public const string STR_NULL = "NULL";
         public const string CERT_DIR_FILE = "\\Cert\\certificate.cer";
         public const string CONFIG_DIR = "\\Config";

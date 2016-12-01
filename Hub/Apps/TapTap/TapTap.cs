@@ -470,6 +470,13 @@ namespace HomeOS.Hub.Apps.TapTap
             Console.WriteLine("Parser Callback. \nData: {0}", engine.Message.actionType);
             engine.SendDebug("Inside Taptap main!! \n");
 
+            if (engine.Message.actionType == "")
+            {
+                engine.SendDebug("Error: no action value:");
+                engine.shutDown();
+                return;
+            }
+
             // Check new Add Device Request
             if (engine.Message.actionType == ENUM_MESSAGE_TYPE.ACTION_ADD_DEVICE_REQUEST)
             {
@@ -905,12 +912,12 @@ namespace HomeOS.Hub.Apps.TapTap
 
             if (activationSuccess)
             {
-                engine.SendFormatedClientResponse(friendlyname, engine.Message.actionType, "1");
+                engine.SendFormatedClientResponse(friendlyname, "0", "1");
                 engine.SendDebug("Success: in activating " + friendlyname + "\n");
             }
             else
             {
-                engine.SendFormatedClientResponse(friendlyname, engine.Message.actionType, "0");
+                engine.SendFormatedClientResponse(friendlyname, "0", "0");
                 engine.SendDebug("Failure: in activating " + friendlyname + "\n");
             }
 

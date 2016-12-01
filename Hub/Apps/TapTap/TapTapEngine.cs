@@ -11,7 +11,7 @@ using System.Net.Sockets;
 
 namespace HomeOS.Hub.Apps.TapTap
 {
-    public class ProtocolFormat
+    public class ProtoTapTap
     {
         public string actionType;
         public string actionValue;
@@ -23,8 +23,8 @@ namespace HomeOS.Hub.Apps.TapTap
     {
         // Variables
         private string mData;
-        private ProtocolFormat mMsg;
-        public ProtocolFormat Message
+        private ProtoTapTap mMsg;
+        public ProtoTapTap Message
         {
             get
             {
@@ -61,14 +61,14 @@ namespace HomeOS.Hub.Apps.TapTap
 
         public bool ParseData(string data)
         {
-            serializer = new XmlSerializer(typeof(ProtocolFormat));
+            serializer = new XmlSerializer(typeof(ProtoTapTap));
             mData = data.Substring(0, data.IndexOf("<EOF>"));
 
             try
             {
                 using (var reader = new StringReader(mData))
                 {
-                    mMsg = (ProtocolFormat)serializer.Deserialize(reader);
+                    mMsg = (ProtoTapTap)serializer.Deserialize(reader);
                 }
             } catch (Exception e)
             {
@@ -102,6 +102,7 @@ namespace HomeOS.Hub.Apps.TapTap
         // Debug Send
         public bool SendDebug(string data)
         {
+            Console.WriteLine(data);
             if (TapTapConstants.DEBUG_CLIENT_SERVER)
             {
                 return Send(data);
